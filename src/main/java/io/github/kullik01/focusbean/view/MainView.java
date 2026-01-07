@@ -7,6 +7,7 @@ import io.github.kullik01.focusbean.util.AppConstants;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.input.KeyCode;
@@ -15,35 +16,47 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 
 import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Logger;
 
 /**
- * The main view assembling all UI components.
+ * The main view assembling all UI components with modern card-based layout.
  *
  * <p>
- * This view contains the timer display, control panel, history view,
- * and settings button. It handles keyboard shortcuts and coordinates
+ * This view contains the timer display, control panel, and daily progress view
+ * arranged in side-by-side cards. It handles keyboard shortcuts and coordinates
  * updates between view components and the controller.
  * </p>
  */
 public final class MainView extends BorderPane {
 
     private static final Logger LOGGER = Logger.getLogger(MainView.class.getName());
+    private static final String FONT_FAMILY = "'Segoe UI', 'Helvetica Neue', sans-serif";
 
-    private static final String STYLE_SETTINGS_BUTTON = """
-            -fx-font-family: 'Segoe UI', 'Helvetica Neue', sans-serif;
-            -fx-font-size: 12px;
+    private static final String STYLE_CARD = """
+            -fx-background-color: %s;
+            -fx-background-radius: 8;
+            -fx-border-color: %s;
+            -fx-border-radius: 8;
+            -fx-border-width: 1;
+            -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 4, 0, 0, 1);
+            """;
+
+    private static final String STYLE_HEADER_BUTTON = """
             -fx-background-color: transparent;
             -fx-text-fill: %s;
             -fx-cursor: hand;
+            -fx-font-size: 14px;
             """;
 
     private final TimerController controller;
     private final TimerDisplayView timerDisplay;
     private final ControlPanelView controlPanel;
+    private final DailyProgressView dailyProgressView;
     private final HistoryView historyView;
     private final Button settingsButton;
     private final TabPane tabPane;
@@ -60,29 +73,35 @@ public final class MainView extends BorderPane {
         // Create components
         timerDisplay = new TimerDisplayView();
         controlPanel = new ControlPanelView();
+        dailyProgressView = new DailyProgressView();
         historyView = new HistoryView();
         settingsButton = createSettingsButton();
 
-        // Create timer tab content
-        VBox timerPane = new VBox(20);
-        timerPane.setAlignment(Pos.CENTER);
-        timerPane.setPadding(new Insets(30, 20, 20, 20));
+        // Create and configure cards
+        VBox focusCard = createFocusSessionCard();
+        VBox progressCard = createDailyProgressCard();
 
-        HBox settingsBar = new HBox(settingsButton);
-        settingsBar.setAlignment(Pos.TOP_RIGHT);
-        settingsBar.setPadding(new Insets(10));
+        // Make cards grow equally
+        HBox.setHgrow(focusCard, Priority.ALWAYS);
+        HBox.setHgrow(progressCard, Priority.ALWAYS);
 
-        VBox.setVgrow(timerDisplay, Priority.ALWAYS);
-        timerPane.getChildren().addAll(settingsBar, timerDisplay, controlPanel);
+        // Create side-by-side card container
+        HBox cardContainer = new HBox(15);
+        cardContainer.setPadding(new Insets(20));
+        cardContainer.setAlignment(Pos.CENTER);
+        cardContainer.setStyle("-fx-background-color: " + AppConstants.COLOR_WINDOW_BACKGROUND + ";");
+        cardContainer.getChildren().addAll(focusCard, progressCard);
 
-        // Create tabs
-        Tab timerTab = new Tab("Timer", timerPane);
+        // Keep TabPane for history access (hidden initially, can be accessed via
+        // keyboard)
+        Tab timerTab = new Tab("Timer", cardContainer);
         timerTab.setClosable(false);
 
         Tab historyTab = new Tab(AppConstants.LABEL_HISTORY, historyView);
         historyTab.setClosable(false);
 
         tabPane = new TabPane(timerTab, historyTab);
+        tabPane.setTabMinWidth(80);
         tabPane.getSelectionModel().select(timerTab);
 
         // Update history when tab is selected
@@ -103,6 +122,75 @@ public final class MainView extends BorderPane {
         // Initialize display with current settings
         timerDisplay.updateState(TimerState.IDLE);
         timerDisplay.showDuration(controller.getSettings().getWorkDurationMinutes());
+
+        // Initialize daily progress
+        updateDailyProgress();
+    }
+
+    /**
+     * Creates the Focus Session card containing timer and controls.
+     *
+     * @return the configured card VBox
+     */
+    private VBox createFocusSessionCard() {
+        // Header
+        Label headerLabel = new Label("Focus session");
+        headerLabel.setFont(Font.font(FONT_FAMILY, FontWeight.NORMAL, 14));
+        headerLabel.setTextFill(javafx.scene.paint.Color.web(AppConstants.COLOR_TEXT_PRIMARY));
+
+        HBox headerBar = new HBox();
+        headerBar.setAlignment(Pos.CENTER_LEFT);
+        headerBar.setPadding(new Insets(15, 15, 0, 15));
+        HBox.setHgrow(headerLabel, Priority.ALWAYS);
+        headerBar.getChildren().addAll(headerLabel, settingsButton);
+
+        // Timer content
+        VBox timerContent = new VBox(10);
+        timerContent.setAlignment(Pos.CENTER);
+        timerContent.setPadding(new Insets(10, 20, 20, 20));
+        VBox.setVgrow(timerContent, Priority.ALWAYS);
+        timerContent.getChildren().addAll(timerDisplay, controlPanel);
+
+        // Card container
+        VBox card = new VBox();
+        card.setStyle(String.format(STYLE_CARD,
+                AppConstants.COLOR_CARD_BACKGROUND,
+                AppConstants.COLOR_CARD_BORDER));
+        card.setMinWidth(380);
+        card.setMaxWidth(400);
+        card.setMinHeight(340);
+        card.getChildren().addAll(headerBar, timerContent);
+
+        return card;
+    }
+
+    /**
+     * Creates the Daily Progress card.
+     *
+     * @return the configured card VBox
+     */
+    private VBox createDailyProgressCard() {
+        // Card container
+        VBox card = new VBox();
+        card.setStyle(String.format(STYLE_CARD,
+                AppConstants.COLOR_CARD_BACKGROUND,
+                AppConstants.COLOR_CARD_BORDER));
+        card.setMinWidth(380);
+        card.setMaxWidth(400);
+        card.setMinHeight(340);
+        card.getChildren().add(dailyProgressView);
+
+        // Wire edit button to settings
+        dailyProgressView.setOnEdit(this::showSettingsDialog);
+
+        return card;
+    }
+
+    /**
+     * Updates the daily progress view with current data.
+     */
+    private void updateDailyProgress() {
+        dailyProgressView.update(controller.getHistory(), controller.getSettings());
     }
 
     /**
@@ -124,7 +212,12 @@ public final class MainView extends BorderPane {
     private void bindToController() {
         // Update time display when remaining seconds change
         controller.remainingSecondsProperty()
-                .addListener((obs, oldVal, newVal) -> timerDisplay.updateTime(newVal.intValue()));
+                .addListener((obs, oldVal, newVal) -> {
+                    timerDisplay.updateTime(newVal.intValue());
+                    // Update completed minutes in daily progress
+                    dailyProgressView.setCompletedTodayMinutes(
+                            controller.getHistory().getTodaysTotalWorkMinutes());
+                });
 
         // Update state display and button states when state changes
         controller.currentStateProperty().addListener((obs, oldState, newState) -> {
@@ -134,6 +227,14 @@ public final class MainView extends BorderPane {
             // When returning to IDLE, show configured work duration
             if (newState == TimerState.IDLE) {
                 timerDisplay.showDuration(controller.getSettings().getWorkDurationMinutes());
+                updateDailyProgress();
+            }
+
+            // Set total seconds for progress calculation
+            if (newState == TimerState.WORK) {
+                timerDisplay.setTotalSeconds(controller.getSettings().getWorkDurationSeconds());
+            } else if (newState == TimerState.BREAK) {
+                timerDisplay.setTotalSeconds(controller.getSettings().getBreakDurationSeconds());
             }
         });
     }
@@ -150,10 +251,16 @@ public final class MainView extends BorderPane {
                     settings.getWorkDurationMinutes(),
                     settings.getBreakDurationMinutes());
 
+            // Update daily goal if changed
+            controller.getSettings().setDailyGoalMinutes(settings.getDailyGoalMinutes());
+
             // Update display if idle
             if (controller.getCurrentState() == TimerState.IDLE) {
                 timerDisplay.showDuration(settings.getWorkDurationMinutes());
             }
+
+            // Update daily progress
+            updateDailyProgress();
 
             LOGGER.info("Settings updated via dialog");
         });
@@ -173,6 +280,14 @@ public final class MainView extends BorderPane {
             event.consume();
         } else if (event.getCode() == KeyCode.S && !event.isControlDown()) {
             showSettingsDialog();
+            event.consume();
+        } else if (event.getCode() == KeyCode.H && !event.isControlDown()) {
+            // Toggle to history tab
+            if (tabPane.getSelectionModel().getSelectedIndex() == 0) {
+                tabPane.getSelectionModel().select(1);
+            } else {
+                tabPane.getSelectionModel().select(0);
+            }
             event.consume();
         }
     }
@@ -196,8 +311,8 @@ public final class MainView extends BorderPane {
      * @return the configured settings button
      */
     private Button createSettingsButton() {
-        Button button = new Button("⚙ " + AppConstants.LABEL_SETTINGS);
-        button.setStyle(String.format(STYLE_SETTINGS_BUTTON, AppConstants.COLOR_TEXT_SECONDARY));
+        Button button = new Button("⚙");
+        button.setStyle(String.format(STYLE_HEADER_BUTTON, AppConstants.COLOR_TEXT_SECONDARY));
         return button;
     }
 

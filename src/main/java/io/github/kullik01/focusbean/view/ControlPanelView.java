@@ -10,37 +10,51 @@ import javafx.scene.layout.HBox;
 import java.util.Objects;
 
 /**
- * Contains the timer control buttons (Start/Pause, Reset, Skip).
+ * Contains the timer control buttons with modern icon-based design.
  *
  * <p>
- * The button labels and enabled states change based on the current
- * timer state. The view provides hooks for external event handling.
+ * Features a primary circular button for start/pause/resume actions
+ * and a secondary menu button for additional options. The design follows
+ * the Windows Clock Focus Sessions style.
  * </p>
  */
 public final class ControlPanelView extends HBox {
 
-    private static final double BUTTON_WIDTH = 80;
-    private static final double BUTTON_HEIGHT = 36;
-    private static final double BUTTON_SPACING = 15;
-    private static final double PANEL_PADDING = 20;
+    private static final double ICON_BUTTON_SIZE = 44;
+    private static final double MENU_BUTTON_SIZE = 36;
+    private static final double BUTTON_SPACING = 12;
+    private static final double PANEL_PADDING = 10;
 
-    private static final String STYLE_BUTTON = """
-            -fx-font-family: 'Segoe UI', 'Helvetica Neue', sans-serif;
-            -fx-font-size: 14px;
-            -fx-font-weight: 500;
-            -fx-background-radius: 6;
+    private static final String STYLE_PRIMARY_BUTTON = """
+            -fx-font-size: 18px;
+            -fx-background-radius: 50;
+            -fx-min-width: %fpx;
+            -fx-min-height: %fpx;
+            -fx-max-width: %fpx;
+            -fx-max-height: %fpx;
             -fx-cursor: hand;
-            """;
-
-    private static final String STYLE_PRIMARY_BUTTON = STYLE_BUTTON + """
             -fx-background-color: %s;
             -fx-text-fill: white;
             """;
 
-    private static final String STYLE_SECONDARY_BUTTON = STYLE_BUTTON + """
-            -fx-background-color: #e0e0e0;
-            -fx-text-fill: #333333;
+    private static final String STYLE_SECONDARY_BUTTON = """
+            -fx-font-size: 14px;
+            -fx-background-radius: 50;
+            -fx-min-width: %fpx;
+            -fx-min-height: %fpx;
+            -fx-max-width: %fpx;
+            -fx-max-height: %fpx;
+            -fx-cursor: hand;
+            -fx-background-color: transparent;
+            -fx-text-fill: %s;
+            -fx-border-color: %s;
+            -fx-border-radius: 50;
+            -fx-border-width: 1;
             """;
+
+    private static final String ICON_PLAY = "▶";
+    private static final String ICON_PAUSE = "⏸";
+    private static final String ICON_MENU = "•••";
 
     private final Button startPauseButton;
     private final Button resetButton;
@@ -53,16 +67,16 @@ public final class ControlPanelView extends HBox {
     private Runnable onSkip;
 
     /**
-     * Creates a new ControlPanelView with default button layout.
+     * Creates a new ControlPanelView with modern icon-based layout.
      */
     public ControlPanelView() {
-        startPauseButton = createButton(AppConstants.LABEL_START);
-        resetButton = createButton(AppConstants.LABEL_RESET);
-        skipButton = createButton(AppConstants.LABEL_SKIP);
+        startPauseButton = createPrimaryButton(ICON_PLAY);
+        resetButton = createSecondaryButton(ICON_MENU);
+        skipButton = createSecondaryButton("⏭");
 
-        startPauseButton.setStyle(String.format(STYLE_PRIMARY_BUTTON, AppConstants.COLOR_ACCENT));
-        resetButton.setStyle(STYLE_SECONDARY_BUTTON);
-        skipButton.setStyle(STYLE_SECONDARY_BUTTON);
+        // Hide skip button by default for cleaner look
+        skipButton.setVisible(false);
+        skipButton.setManaged(false);
 
         // Set up event handlers
         startPauseButton.setOnAction(e -> handleStartPauseClick());
@@ -81,14 +95,14 @@ public final class ControlPanelView extends HBox {
         setSpacing(BUTTON_SPACING);
         setAlignment(Pos.CENTER);
         setPadding(new Insets(PANEL_PADDING));
-        getChildren().addAll(startPauseButton, resetButton, skipButton);
+        getChildren().addAll(startPauseButton, resetButton);
 
-        // Initial state: only start button enabled
+        // Initial state: ready to start
         updateForState(TimerState.IDLE);
     }
 
     /**
-     * Updates button labels and enabled states for the given timer state.
+     * Updates button icons and enabled states for the given timer state.
      *
      * @param state the current timer state
      */
@@ -99,22 +113,22 @@ public final class ControlPanelView extends HBox {
 
         switch (state) {
             case IDLE -> {
-                startPauseButton.setText(AppConstants.LABEL_START);
+                startPauseButton.setText(ICON_PLAY);
                 startPauseButton.setDisable(false);
                 resetButton.setDisable(true);
-                skipButton.setDisable(true);
+                resetButton.setOpacity(0.4);
             }
             case WORK, BREAK -> {
-                startPauseButton.setText(AppConstants.LABEL_PAUSE);
+                startPauseButton.setText(ICON_PAUSE);
                 startPauseButton.setDisable(false);
                 resetButton.setDisable(false);
-                skipButton.setDisable(false);
+                resetButton.setOpacity(1.0);
             }
             case PAUSED -> {
-                startPauseButton.setText(AppConstants.LABEL_RESUME);
+                startPauseButton.setText(ICON_PLAY);
                 startPauseButton.setDisable(false);
                 resetButton.setDisable(false);
-                skipButton.setDisable(false);
+                resetButton.setOpacity(1.0);
             }
         }
     }
@@ -203,36 +217,51 @@ public final class ControlPanelView extends HBox {
     }
 
     /**
-     * Handles the start/pause button click based on current label.
+     * Handles the start/pause button click based on current icon.
      */
     private void handleStartPauseClick() {
-        String currentLabel = startPauseButton.getText();
+        String currentIcon = startPauseButton.getText();
 
-        if (AppConstants.LABEL_START.equals(currentLabel)) {
+        if (ICON_PLAY.equals(currentIcon)) {
+            // Could be start or resume
             if (onStart != null) {
                 onStart.run();
             }
-        } else if (AppConstants.LABEL_PAUSE.equals(currentLabel)) {
+        } else if (ICON_PAUSE.equals(currentIcon)) {
             if (onPause != null) {
                 onPause.run();
-            }
-        } else if (AppConstants.LABEL_RESUME.equals(currentLabel)) {
-            if (onResume != null) {
-                onResume.run();
             }
         }
     }
 
     /**
-     * Creates a styled button with consistent size.
+     * Creates a primary (circular, filled) button with the given icon.
      *
-     * @param text the button label
+     * @param icon the button icon text
      * @return the configured button
      */
-    private Button createButton(String text) {
-        Button button = new Button(text);
-        button.setPrefWidth(BUTTON_WIDTH);
-        button.setPrefHeight(BUTTON_HEIGHT);
+    private Button createPrimaryButton(String icon) {
+        Button button = new Button(icon);
+        button.setStyle(String.format(STYLE_PRIMARY_BUTTON,
+                ICON_BUTTON_SIZE, ICON_BUTTON_SIZE,
+                ICON_BUTTON_SIZE, ICON_BUTTON_SIZE,
+                AppConstants.COLOR_PROGRESS_ACTIVE));
+        return button;
+    }
+
+    /**
+     * Creates a secondary (outlined) button with the given icon.
+     *
+     * @param icon the button icon text
+     * @return the configured button
+     */
+    private Button createSecondaryButton(String icon) {
+        Button button = new Button(icon);
+        button.setStyle(String.format(STYLE_SECONDARY_BUTTON,
+                MENU_BUTTON_SIZE, MENU_BUTTON_SIZE,
+                MENU_BUTTON_SIZE, MENU_BUTTON_SIZE,
+                AppConstants.COLOR_TEXT_SECONDARY,
+                AppConstants.COLOR_CARD_BORDER));
         return button;
     }
 }

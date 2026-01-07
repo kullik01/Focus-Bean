@@ -38,16 +38,16 @@ public final class AppConstants {
     // =========================================================================
 
     /** Default window width in pixels. */
-    public static final int DEFAULT_WINDOW_WIDTH = 400;
+    public static final int DEFAULT_WINDOW_WIDTH = 820;
 
     /** Default window height in pixels. */
-    public static final int DEFAULT_WINDOW_HEIGHT = 500;
+    public static final int DEFAULT_WINDOW_HEIGHT = 420;
 
     /** Minimum window width in pixels. */
-    public static final int MIN_WINDOW_WIDTH = 300;
+    public static final int MIN_WINDOW_WIDTH = 700;
 
     /** Minimum window height in pixels. */
-    public static final int MIN_WINDOW_HEIGHT = 400;
+    public static final int MIN_WINDOW_HEIGHT = 380;
 
     // =========================================================================
     // Timer Configuration
@@ -115,4 +115,26 @@ public final class AppConstants {
 
     /** Logger name prefix for the application. */
     public static final String LOGGER_PREFIX = "io.github.kullik01.focusbean";
+
+    // =========================================================================
+    // Card UI Colors (Modern Design)
+    // =========================================================================
+
+    /** Background color for cards (white). */
+    public static final String COLOR_CARD_BACKGROUND = "#FFFFFF";
+
+    /** Border color for cards (light gray). */
+    public static final String COLOR_CARD_BORDER = "#E8E8E8";
+
+    /** Window background color (light gray). */
+    public static final String COLOR_WINDOW_BACKGROUND = "#F3F3F3";
+
+    /** Progress ring inactive color. */
+    public static final String COLOR_PROGRESS_RING = "#E0E0E0";
+
+    /** Progress ring active color (Windows blue). */
+    public static final String COLOR_PROGRESS_ACTIVE = "#0078D4";
+
+    /** Tick mark color for timer display. */
+    public static final String COLOR_TICK_MARK = "#C0C0C0";
 }

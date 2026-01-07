@@ -15,11 +15,13 @@ import java.util.Objects;
 import java.util.Optional;
 
 /**
- * Dialog for configuring timer settings (work and break durations).
+ * Dialog for configuring timer settings (work, break durations, and daily
+ * goal).
  *
  * <p>
- * Displays spinners for adjusting work and break durations in minutes.
- * Returns the new settings if the user confirms, or empty if cancelled.
+ * Displays spinners for adjusting work duration, break duration, and daily goal
+ * in minutes. Returns the new settings if the user confirms, or empty if
+ * cancelled.
  * </p>
  */
 public final class SettingsDialog extends Dialog<UserSettings> {
@@ -31,6 +33,7 @@ public final class SettingsDialog extends Dialog<UserSettings> {
 
     private final Spinner<Integer> workSpinner;
     private final Spinner<Integer> breakSpinner;
+    private final Spinner<Integer> dailyGoalSpinner;
 
     /**
      * Creates a new SettingsDialog with the current settings.
@@ -42,7 +45,7 @@ public final class SettingsDialog extends Dialog<UserSettings> {
         Objects.requireNonNull(currentSettings, "currentSettings must not be null");
 
         setTitle(AppConstants.LABEL_SETTINGS);
-        setHeaderText("Configure Timer Durations");
+        setHeaderText("Configure Timer Settings");
 
         // Create spinners
         workSpinner = new Spinner<>();
@@ -61,12 +64,23 @@ public final class SettingsDialog extends Dialog<UserSettings> {
         breakSpinner.setEditable(true);
         breakSpinner.setPrefWidth(100);
 
+        dailyGoalSpinner = new Spinner<>();
+        dailyGoalSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(
+                UserSettings.MIN_DURATION_MINUTES,
+                UserSettings.MAX_DAILY_GOAL_MINUTES,
+                currentSettings.getDailyGoalMinutes()));
+        dailyGoalSpinner.setEditable(true);
+        dailyGoalSpinner.setPrefWidth(100);
+
         // Create labels
         Label workLabel = new Label("Work Duration (minutes):");
         workLabel.setStyle(STYLE_LABEL);
 
         Label breakLabel = new Label("Break Duration (minutes):");
         breakLabel.setStyle(STYLE_LABEL);
+
+        Label dailyGoalLabel = new Label("Daily Goal (minutes):");
+        dailyGoalLabel.setStyle(STYLE_LABEL);
 
         // Layout
         GridPane grid = new GridPane();
@@ -78,6 +92,8 @@ public final class SettingsDialog extends Dialog<UserSettings> {
         grid.add(workSpinner, 1, 0);
         grid.add(breakLabel, 0, 1);
         grid.add(breakSpinner, 1, 1);
+        grid.add(dailyGoalLabel, 0, 2);
+        grid.add(dailyGoalSpinner, 1, 2);
 
         getDialogPane().setContent(grid);
 
@@ -90,7 +106,8 @@ public final class SettingsDialog extends Dialog<UserSettings> {
             if (buttonType == saveButtonType) {
                 return new UserSettings(
                         workSpinner.getValue(),
-                        breakSpinner.getValue());
+                        breakSpinner.getValue(),
+                        dailyGoalSpinner.getValue());
             }
             return null;
         });
@@ -121,5 +138,14 @@ public final class SettingsDialog extends Dialog<UserSettings> {
      */
     public Spinner<Integer> getBreakSpinner() {
         return breakSpinner;
+    }
+
+    /**
+     * Returns the daily goal spinner for testing purposes.
+     *
+     * @return the daily goal spinner
+     */
+    public Spinner<Integer> getDailyGoalSpinner() {
+        return dailyGoalSpinner;
     }
 }

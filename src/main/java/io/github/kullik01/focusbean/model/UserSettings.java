@@ -27,14 +27,21 @@ public final class UserSettings {
     /** Maximum allowed duration for break sessions (in minutes). */
     public static final int MAX_BREAK_DURATION_MINUTES = 60;
 
+    /** Maximum allowed daily goal (in minutes). */
+    public static final int MAX_DAILY_GOAL_MINUTES = 480;
+
     /** Default work session duration (in minutes). */
     public static final int DEFAULT_WORK_DURATION_MINUTES = 25;
 
     /** Default break session duration (in minutes). */
     public static final int DEFAULT_BREAK_DURATION_MINUTES = 5;
 
+    /** Default daily goal (in minutes). */
+    public static final int DEFAULT_DAILY_GOAL_MINUTES = 25;
+
     private int workDurationMinutes;
     private int breakDurationMinutes;
+    private int dailyGoalMinutes;
 
     /**
      * Creates a new UserSettings instance with default values.
@@ -50,6 +57,7 @@ public final class UserSettings {
     public UserSettings() {
         this.workDurationMinutes = DEFAULT_WORK_DURATION_MINUTES;
         this.breakDurationMinutes = DEFAULT_BREAK_DURATION_MINUTES;
+        this.dailyGoalMinutes = DEFAULT_DAILY_GOAL_MINUTES;
     }
 
     /**
@@ -63,6 +71,22 @@ public final class UserSettings {
     public UserSettings(int workDurationMinutes, int breakDurationMinutes) {
         setWorkDurationMinutes(workDurationMinutes);
         setBreakDurationMinutes(breakDurationMinutes);
+        this.dailyGoalMinutes = DEFAULT_DAILY_GOAL_MINUTES;
+    }
+
+    /**
+     * Creates a new UserSettings instance with the specified durations and daily
+     * goal.
+     *
+     * @param workDurationMinutes  the work session duration in minutes
+     * @param breakDurationMinutes the break session duration in minutes
+     * @param dailyGoalMinutes     the daily goal in minutes
+     * @throws IllegalArgumentException if any duration is outside the allowed range
+     */
+    public UserSettings(int workDurationMinutes, int breakDurationMinutes, int dailyGoalMinutes) {
+        setWorkDurationMinutes(workDurationMinutes);
+        setBreakDurationMinutes(breakDurationMinutes);
+        setDailyGoalMinutes(dailyGoalMinutes);
     }
 
     /**
@@ -74,7 +98,7 @@ public final class UserSettings {
      */
     public static UserSettings copyOf(UserSettings other) {
         Objects.requireNonNull(other, "other must not be null");
-        return new UserSettings(other.workDurationMinutes, other.breakDurationMinutes);
+        return new UserSettings(other.workDurationMinutes, other.breakDurationMinutes, other.dailyGoalMinutes);
     }
 
     /**
@@ -141,6 +165,28 @@ public final class UserSettings {
     }
 
     /**
+     * Returns the configured daily goal.
+     *
+     * @return the daily goal in minutes
+     */
+    public int getDailyGoalMinutes() {
+        return dailyGoalMinutes;
+    }
+
+    /**
+     * Sets the daily goal.
+     *
+     * @param dailyGoalMinutes the goal in minutes
+     * @throws IllegalArgumentException if the value is outside the range
+     *                                  [{@value #MIN_DURATION_MINUTES},
+     *                                  {@value #MAX_DAILY_GOAL_MINUTES}]
+     */
+    public void setDailyGoalMinutes(int dailyGoalMinutes) {
+        validateDuration(dailyGoalMinutes, MIN_DURATION_MINUTES, MAX_DAILY_GOAL_MINUTES, "dailyGoalMinutes");
+        this.dailyGoalMinutes = dailyGoalMinutes;
+    }
+
+    /**
      * Validates that a duration value falls within the specified range.
      *
      * @param value     the value to validate
@@ -166,16 +212,18 @@ public final class UserSettings {
         }
         UserSettings that = (UserSettings) obj;
         return workDurationMinutes == that.workDurationMinutes
-                && breakDurationMinutes == that.breakDurationMinutes;
+                && breakDurationMinutes == that.breakDurationMinutes
+                && dailyGoalMinutes == that.dailyGoalMinutes;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(workDurationMinutes, breakDurationMinutes);
+        return Objects.hash(workDurationMinutes, breakDurationMinutes, dailyGoalMinutes);
     }
 
     @Override
     public String toString() {
-        return String.format("UserSettings[work=%dmin, break=%dmin]", workDurationMinutes, breakDurationMinutes);
+        return String.format("UserSettings[work=%dmin, break=%dmin, dailyGoal=%dmin]",
+                workDurationMinutes, breakDurationMinutes, dailyGoalMinutes);
     }
 }

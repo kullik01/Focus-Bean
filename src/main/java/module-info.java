@@ -30,4 +30,5 @@ module io.github.kullik01.focusbean {
 
   // Open packages for Gson reflection access
   opens io.github.kullik01.focusbean.model to com.google.gson;
+  opens io.github.kullik01.focusbean.service to com.google.gson;
 }

@@ -2,63 +2,80 @@ package io.github.kullik01.focusbean.view;
 
 import io.github.kullik01.focusbean.model.TimerState;
 import io.github.kullik01.focusbean.util.AppConstants;
-import io.github.kullik01.focusbean.util.TimeFormatter;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.canvas.Canvas;
+import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 
 /**
- * Displays the timer countdown and current state.
+ * Displays the timer countdown with a circular progress ring and tick marks.
  *
  * <p>
- * This view component shows the remaining time in MM:SS format
- * and the current timer state (Ready, Working, Break, Paused).
- * The display updates automatically when bound to the controller properties.
+ * This view component shows the remaining time in a stylized format (e.g., "20
+ * min")
+ * inside a circular progress indicator. The progress ring shows the
+ * elapsed/remaining
+ * time visually, matching the Windows Clock Focus Sessions design.
  * </p>
  */
 public final class TimerDisplayView extends StackPane {
 
-    private static final String STYLE_TIME_LABEL = """
-            -fx-font-family: 'Segoe UI', 'Helvetica Neue', sans-serif;
-            -fx-font-size: 72px;
-            -fx-font-weight: 300;
-            -fx-text-fill: %s;
-            """;
+    private static final double RING_SIZE = 200;
+    private static final double RING_STROKE_WIDTH = 4;
+    private static final int TICK_COUNT = 60;
+    private static final double TICK_LENGTH_MAJOR = 12;
+    private static final double TICK_LENGTH_MINOR = 6;
+    private static final double TICK_WIDTH = 2;
 
-    private static final String STYLE_STATE_LABEL = """
-            -fx-font-family: 'Segoe UI', 'Helvetica Neue', sans-serif;
-            -fx-font-size: 18px;
-            -fx-font-weight: 400;
-            -fx-text-fill: %s;
-            """;
+    private static final String FONT_FAMILY = "'Segoe UI', 'Helvetica Neue', sans-serif";
 
-    private static final String INITIAL_TIME_DISPLAY = "00:00";
-
+    private final Canvas progressCanvas;
     private final Label timeLabel;
-    private final Label stateLabel;
-    private final VBox container;
+    private final Label unitLabel;
+    private final VBox centerContent;
+
+    private int totalSeconds;
+    private int remainingSeconds;
+    private TimerState currentState;
 
     /**
      * Creates a new TimerDisplayView with default styling.
      */
     public TimerDisplayView() {
-        timeLabel = new Label(INITIAL_TIME_DISPLAY);
-        timeLabel.setStyle(String.format(STYLE_TIME_LABEL, AppConstants.COLOR_TEXT_PRIMARY));
+        this.totalSeconds = 25 * 60;
+        this.remainingSeconds = totalSeconds;
+        this.currentState = TimerState.IDLE;
 
-        stateLabel = new Label(TimerState.IDLE.getDisplayName());
-        stateLabel.setStyle(String.format(STYLE_STATE_LABEL, AppConstants.COLOR_TEXT_SECONDARY));
+        // Create the circular progress canvas
+        progressCanvas = new Canvas(RING_SIZE, RING_SIZE);
+        drawProgressRing();
 
-        container = new VBox(10);
-        container.setAlignment(Pos.CENTER);
-        container.getChildren().addAll(stateLabel, timeLabel);
+        // Time display in center
+        timeLabel = new Label("25");
+        timeLabel.setFont(Font.font(FONT_FAMILY, FontWeight.LIGHT, 48));
+        timeLabel.setTextFill(Color.web(AppConstants.COLOR_TEXT_PRIMARY));
 
+        unitLabel = new Label("min");
+        unitLabel.setFont(Font.font(FONT_FAMILY, FontWeight.NORMAL, 18));
+        unitLabel.setTextFill(Color.web(AppConstants.COLOR_TEXT_SECONDARY));
+
+        centerContent = new VBox(0);
+        centerContent.setAlignment(Pos.CENTER);
+        centerContent.getChildren().addAll(timeLabel, unitLabel);
+
+        // Stack the canvas and center content
         setAlignment(Pos.CENTER);
-        getChildren().add(container);
+        setPadding(new Insets(20));
+        getChildren().addAll(progressCanvas, centerContent);
 
-        // Set minimum size to prevent layout jumps
-        setMinWidth(300);
-        setMinHeight(150);
+        setMinWidth(RING_SIZE + 40);
+        setMinHeight(RING_SIZE + 40);
     }
 
     /**
@@ -67,8 +84,19 @@ public final class TimerDisplayView extends StackPane {
      * @param remainingSeconds the remaining seconds to display
      */
     public void updateTime(int remainingSeconds) {
-        String formatted = TimeFormatter.formatSeconds(Math.max(0, remainingSeconds));
-        timeLabel.setText(formatted);
+        this.remainingSeconds = Math.max(0, remainingSeconds);
+        updateTimeDisplay();
+        drawProgressRing();
+    }
+
+    /**
+     * Sets the total duration for progress calculation.
+     *
+     * @param totalSeconds the total duration in seconds
+     */
+    public void setTotalSeconds(int totalSeconds) {
+        this.totalSeconds = Math.max(1, totalSeconds);
+        drawProgressRing();
     }
 
     /**
@@ -80,18 +108,8 @@ public final class TimerDisplayView extends StackPane {
         if (state == null) {
             state = TimerState.IDLE;
         }
-
-        stateLabel.setText(state.getDisplayName());
-
-        // Update background color based on state
-        String backgroundColor = switch (state) {
-            case WORK -> AppConstants.COLOR_WORK_BACKGROUND;
-            case BREAK -> AppConstants.COLOR_BREAK_BACKGROUND;
-            case PAUSED -> AppConstants.COLOR_PAUSED_BACKGROUND;
-            case IDLE -> AppConstants.COLOR_IDLE_BACKGROUND;
-        };
-
-        setStyle("-fx-background-color: " + backgroundColor + ";");
+        this.currentState = state;
+        drawProgressRing();
     }
 
     /**
@@ -100,7 +118,10 @@ public final class TimerDisplayView extends StackPane {
      * @param durationMinutes the duration in minutes
      */
     public void showDuration(int durationMinutes) {
-        updateTime(durationMinutes * 60);
+        this.totalSeconds = durationMinutes * 60;
+        this.remainingSeconds = totalSeconds;
+        updateTimeDisplay();
+        drawProgressRing();
     }
 
     /**
@@ -114,10 +135,129 @@ public final class TimerDisplayView extends StackPane {
 
     /**
      * Returns the state label for external styling.
+     * For compatibility, returns the unit label.
      *
-     * @return the state label
+     * @return the unit label
      */
     public Label getStateLabel() {
-        return stateLabel;
+        return unitLabel;
+    }
+
+    /**
+     * Updates the time display labels based on remaining seconds.
+     */
+    private void updateTimeDisplay() {
+        int minutes = remainingSeconds / 60;
+        int seconds = remainingSeconds % 60;
+
+        if (remainingSeconds >= 60) {
+            // Show minutes format
+            timeLabel.setText(String.valueOf(minutes));
+            unitLabel.setText("min");
+        } else {
+            // Show seconds format when under a minute
+            timeLabel.setText(String.valueOf(seconds));
+            unitLabel.setText("sec");
+        }
+    }
+
+    /**
+     * Draws the circular progress ring with tick marks.
+     */
+    private void drawProgressRing() {
+        GraphicsContext gc = progressCanvas.getGraphicsContext2D();
+        double width = progressCanvas.getWidth();
+        double height = progressCanvas.getHeight();
+        double centerX = width / 2;
+        double centerY = height / 2;
+        double radius = (Math.min(width, height) - RING_STROKE_WIDTH * 2 - TICK_LENGTH_MAJOR * 2) / 2;
+
+        // Clear canvas
+        gc.clearRect(0, 0, width, height);
+
+        // Draw tick marks
+        drawTickMarks(gc, centerX, centerY, radius + TICK_LENGTH_MAJOR / 2 + 4);
+
+        // Draw background ring
+        gc.setStroke(Color.web(AppConstants.COLOR_PROGRESS_RING));
+        gc.setLineWidth(RING_STROKE_WIDTH);
+        gc.strokeOval(
+                centerX - radius,
+                centerY - radius,
+                radius * 2,
+                radius * 2);
+
+        // Draw progress arc (only when timer is active)
+        if (currentState != TimerState.IDLE && totalSeconds > 0) {
+            double progress = 1.0 - ((double) remainingSeconds / totalSeconds);
+            double sweepAngle = progress * 360;
+
+            gc.setStroke(Color.web(AppConstants.COLOR_PROGRESS_ACTIVE));
+            gc.setLineWidth(RING_STROKE_WIDTH);
+            gc.strokeArc(
+                    centerX - radius,
+                    centerY - radius,
+                    radius * 2,
+                    radius * 2,
+                    90,
+                    -sweepAngle,
+                    javafx.scene.shape.ArcType.OPEN);
+
+            // Draw progress indicator dot
+            drawProgressIndicator(gc, centerX, centerY, radius, progress);
+        }
+    }
+
+    /**
+     * Draws the tick marks around the progress ring.
+     *
+     * @param gc      the graphics context
+     * @param centerX the center X coordinate
+     * @param centerY the center Y coordinate
+     * @param radius  the radius for tick mark placement
+     */
+    private void drawTickMarks(GraphicsContext gc, double centerX, double centerY, double radius) {
+        gc.setStroke(Color.web(AppConstants.COLOR_TICK_MARK));
+        gc.setLineWidth(TICK_WIDTH);
+
+        for (int i = 0; i < TICK_COUNT; i++) {
+            double angle = Math.toRadians(i * (360.0 / TICK_COUNT) - 90);
+            boolean isMajor = (i % 5 == 0);
+            double tickLength = isMajor ? TICK_LENGTH_MAJOR : TICK_LENGTH_MINOR;
+
+            double innerRadius = radius - tickLength;
+            double outerRadius = radius;
+
+            double x1 = centerX + innerRadius * Math.cos(angle);
+            double y1 = centerY + innerRadius * Math.sin(angle);
+            double x2 = centerX + outerRadius * Math.cos(angle);
+            double y2 = centerY + outerRadius * Math.sin(angle);
+
+            gc.strokeLine(x1, y1, x2, y2);
+        }
+    }
+
+    /**
+     * Draws the progress indicator dot at the current position.
+     *
+     * @param gc       the graphics context
+     * @param centerX  the center X coordinate
+     * @param centerY  the center Y coordinate
+     * @param radius   the radius of the progress ring
+     * @param progress the current progress (0.0 to 1.0)
+     */
+    private void drawProgressIndicator(GraphicsContext gc, double centerX, double centerY,
+            double radius, double progress) {
+        double angle = Math.toRadians(progress * 360 - 90);
+        double indicatorX = centerX + radius * Math.cos(angle);
+        double indicatorY = centerY + radius * Math.sin(angle);
+        double indicatorRadius = 8;
+
+        gc.setFill(Color.web(AppConstants.COLOR_PROGRESS_ACTIVE));
+        gc.fillOval(
+                indicatorX - indicatorRadius,
+                indicatorY - indicatorRadius,
+                indicatorRadius * 2,
+                indicatorRadius * 2);
     }
 }

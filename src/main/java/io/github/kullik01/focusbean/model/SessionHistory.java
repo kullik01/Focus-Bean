@@ -151,6 +151,54 @@ public final class SessionHistory {
     }
 
     /**
+     * Calculates total work minutes completed yesterday.
+     *
+     * @return total minutes of completed work sessions yesterday
+     */
+    public int getYesterdaysTotalWorkMinutes() {
+        LocalDate yesterday = LocalDate.now().minusDays(1);
+        return getSessionsForDate(yesterday).stream()
+                .filter(session -> session.isWorkSession() && session.completed())
+                .mapToInt(TimerSession::durationMinutes)
+                .sum();
+    }
+
+    /**
+     * Calculates the current streak of consecutive days with completed work
+     * sessions.
+     *
+     * <p>
+     * A streak counts backwards from yesterday. Today is not included because
+     * it is still in progress. Days must have at least one completed work session
+     * to count toward the streak.
+     * </p>
+     *
+     * @return the number of consecutive days with completed work sessions
+     */
+    public int getCurrentStreak() {
+        LocalDate checkDate = LocalDate.now().minusDays(1);
+        int streak = 0;
+
+        while (hasCompletedWorkOnDate(checkDate)) {
+            streak++;
+            checkDate = checkDate.minusDays(1);
+        }
+
+        return streak;
+    }
+
+    /**
+     * Checks if there is at least one completed work session on the given date.
+     *
+     * @param date the date to check
+     * @return {@code true} if at least one completed work session exists
+     */
+    private boolean hasCompletedWorkOnDate(LocalDate date) {
+        return getSessionsForDate(date).stream()
+                .anyMatch(session -> session.isWorkSession() && session.completed());
+    }
+
+    /**
      * Returns the total number of sessions in history.
      *
      * @return the session count
