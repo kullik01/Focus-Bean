@@ -13,7 +13,8 @@ repositories {
     mavenCentral()
 }
 
-val junitVersion = "5.12.1"
+val junitVersion = "5.10.2"
+val gsonVersion = "2.11.0"
 
 java {
     toolchain {
@@ -27,28 +28,40 @@ tasks.withType<JavaCompile> {
 
 application {
     mainModule.set("io.github.kullik01.focusbean")
-    mainClass.set("io.github.kullik01.focusbean.HelloApplication")
+    mainClass.set("io.github.kullik01.focusbean.Launcher")
 }
 
 javafx {
     version = "21.0.6"
-    modules = listOf("javafx.controls", "javafx.fxml")
+    modules = listOf("javafx.controls", "javafx.graphics")
 }
 
 dependencies {
-    implementation("org.controlsfx:controlsfx:11.2.1")
-    testImplementation("org.junit.jupiter:junit-jupiter-api:${junitVersion}")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
+    implementation("com.google.code.gson:gson:${gsonVersion}")
+    testImplementation("org.junit.jupiter:junit-jupiter:${junitVersion}")
 }
 
 tasks.withType<Test> {
     useJUnitPlatform()
+    // Add JVM args to allow reflective access for testing and Gson serialization
+    jvmArgs(
+        "--add-reads", "io.github.kullik01.focusbean=ALL-UNNAMED",
+        "--add-opens", "java.base/java.lang=ALL-UNNAMED",
+        "--add-opens", "java.base/java.lang.reflect=ALL-UNNAMED",
+        "--add-opens", "io.github.kullik01.focusbean/io.github.kullik01.focusbean.model=ALL-UNNAMED"
+    )
 }
 
 jlink {
-    imageZip.set(layout.buildDirectory.file("/distributions/app-${javafx.platform.classifier}.zip"))
-    options.set(listOf("--strip-debug", "--compress", "2", "--no-header-files", "--no-man-pages"))
+    imageZip.set(layout.buildDirectory.file("distributions/FocusBean-${version}.zip"))
+    options.set(listOf(
+        "--strip-debug",
+        "--compress", "zip-6",
+        "--no-header-files",
+        "--no-man-pages"
+    ))
     launcher {
-        name = "app"
+        name = "FocusBean"
+        noConsole = true
     }
 }
