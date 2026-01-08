@@ -14,8 +14,8 @@ import java.util.Objects;
  *
  * <p>
  * Features a primary circular button for start/pause/resume actions
- * and a secondary menu button for additional options. The design follows
- * the Windows Clock Focus Sessions style.
+ * and a secondary reset button to return the timer to its initial state.
+ * The design follows the Windows Clock Focus Sessions style.
  * </p>
  */
 public final class ControlPanelView extends HBox {
@@ -54,7 +54,7 @@ public final class ControlPanelView extends HBox {
 
     private static final String ICON_PLAY = "▶";
     private static final String ICON_PAUSE = "⏸";
-    private static final String ICON_MENU = "•••";
+    private static final String ICON_RESET = "⟲";
 
     private final Button startPauseButton;
     private final Button resetButton;
@@ -71,7 +71,7 @@ public final class ControlPanelView extends HBox {
      */
     public ControlPanelView() {
         startPauseButton = createPrimaryButton(ICON_PLAY);
-        resetButton = createSecondaryButton(ICON_MENU);
+        resetButton = createSecondaryButton(ICON_RESET);
         skipButton = createSecondaryButton("⏭");
 
         // Hide skip button by default for cleaner look

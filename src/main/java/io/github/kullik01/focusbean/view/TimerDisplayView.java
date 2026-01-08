@@ -118,9 +118,21 @@ public final class TimerDisplayView extends StackPane {
      * @param durationMinutes the duration in minutes
      */
     public void showDuration(int durationMinutes) {
+        showDuration(durationMinutes, "min");
+    }
+
+    /**
+     * Updates the time display to show the configured duration with a custom label.
+     *
+     * @param durationMinutes the duration in minutes
+     * @param label           the label to display below the time (e.g., "min",
+     *                        "Break")
+     */
+    public void showDuration(int durationMinutes, String label) {
         this.totalSeconds = durationMinutes * 60;
         this.remainingSeconds = totalSeconds;
-        updateTimeDisplay();
+        timeLabel.setText(String.valueOf(durationMinutes));
+        unitLabel.setText(label);
         drawProgressRing();
     }
 
@@ -175,8 +187,8 @@ public final class TimerDisplayView extends StackPane {
         // Clear canvas
         gc.clearRect(0, 0, width, height);
 
-        // Draw tick marks
-        drawTickMarks(gc, centerX, centerY, radius + TICK_LENGTH_MAJOR / 2 + 4);
+        // Draw tick marks positioned inside the ring, extending toward center
+        drawTickMarks(gc, centerX, centerY, radius - RING_STROKE_WIDTH);
 
         // Draw background ring
         gc.setStroke(Color.web(AppConstants.COLOR_PROGRESS_RING));
@@ -225,13 +237,14 @@ public final class TimerDisplayView extends StackPane {
             boolean isMajor = (i % 5 == 0);
             double tickLength = isMajor ? TICK_LENGTH_MAJOR : TICK_LENGTH_MINOR;
 
-            double innerRadius = radius - tickLength;
+            // Tick marks now point inward: start from outer edge and extend toward center
             double outerRadius = radius;
+            double innerRadius = radius - tickLength;
 
-            double x1 = centerX + innerRadius * Math.cos(angle);
-            double y1 = centerY + innerRadius * Math.sin(angle);
-            double x2 = centerX + outerRadius * Math.cos(angle);
-            double y2 = centerY + outerRadius * Math.sin(angle);
+            double x1 = centerX + outerRadius * Math.cos(angle);
+            double y1 = centerY + outerRadius * Math.sin(angle);
+            double x2 = centerX + innerRadius * Math.cos(angle);
+            double y2 = centerY + innerRadius * Math.sin(angle);
 
             gc.strokeLine(x1, y1, x2, y2);
         }

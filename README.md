@@ -8,18 +8,18 @@
 <h1 align="center">☕ Focus Bean</h1>
 
 <p align="center">
-  <strong>A modern, elegant Pomodoro timer application designed for deep work and productivity.</strong>
+  <strong>A modern, elegant timer application designed for deep work and productivity.</strong>
 </p>
 
 <p align="center">
-  Built with JavaFX and inspired by the sleek design of Windows Clock Focus Sessions.
+  Built with JavaFX and inspired by the sleek design of Clock Focus Sessions.
 </p>
 
 ---
 
 ## ✨ Features
 
-### 🎯 **Pomodoro Timer**
+### 🎯 **Timer**
 - Configurable work and break session durations
 - Visual countdown timer with modern circular display
 - Pause, resume, skip, and reset functionality
@@ -47,13 +47,6 @@
 - Clean, card-based layout
 - Light theme with subtle shadows
 - Responsive window sizing
-- Windows Clock-inspired aesthetics
-
----
-
-## 🖼️ Screenshots
-
-> *Coming soon – screenshots showcasing the main timer view, daily progress, and history panel.*
 
 ---
 
@@ -187,21 +180,12 @@ This project is licensed under the **BSD 3-Clause License** – see the [LICENSE
 
 ---
 
-## 👤 Author
-
-**Hannah Kullik**  
-GitHub: [@kullik01](https://github.com/kullik01)
-
----
-
 ## 🙏 Acknowledgements
-
-- Inspired by the [Windows Clock Focus Sessions](https://support.microsoft.com/en-us/windows/how-to-use-focus-in-windows-11-cbcc9ddb-8164-43fa-8919-b9a2af072382)
 - Built with [JavaFX](https://openjfx.io/)
 - Icons and design elements follow the [Fluent Design System](https://fluent2.microsoft.design/)
 
 ---
 
 <p align="center">
-  Made with ❤️ and ☕ for productivity enthusiasts
+  Made with ❤️ and ☕ for productivity enthusiasts.
 </p>

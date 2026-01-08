@@ -46,6 +46,7 @@ public final class TimerController {
     private LocalDateTime currentSessionStartTime;
     private int currentSessionDuration;
     private TimerState currentSessionType;
+    private TimerState pendingSessionType;
 
     /**
      * Creates a new TimerController with the specified services and models.
@@ -101,14 +102,19 @@ public final class TimerController {
      * Starts the timer based on the current state.
      *
      * <p>
-     * If IDLE, starts a work session. If PAUSED, resumes the current session.
+     * If IDLE, starts a work or break session based on the pending session type.
+     * If PAUSED, resumes the current session.
      * </p>
      */
     public void startOrResume() {
         TimerState state = timerService.getCurrentState();
 
         if (state == TimerState.IDLE) {
-            startWork();
+            if (pendingSessionType == TimerState.BREAK) {
+                startBreak();
+            } else {
+                startWork();
+            }
         } else if (state == TimerState.PAUSED) {
             resume();
         }
@@ -141,12 +147,14 @@ public final class TimerController {
      *
      * <p>
      * Any current session will be discarded without being recorded.
+     * The pending session type is reset to WORK.
      * </p>
      */
     public void reset() {
         currentSessionStartTime = null;
         currentSessionDuration = 0;
         currentSessionType = null;
+        pendingSessionType = null;
         timerService.reset();
 
         LOGGER.info("Timer reset, current session discarded");
@@ -257,6 +265,21 @@ public final class TimerController {
     }
 
     /**
+     * Returns the pending session type that will start when the user presses play.
+     *
+     * <p>
+     * This is set after a session completes to indicate what type of session
+     * should start next. Returns {@code null} if a work session should start
+     * (the default behavior).
+     * </p>
+     *
+     * @return the pending session type, or {@code null} if work is pending
+     */
+    public TimerState getPendingSessionType() {
+        return pendingSessionType;
+    }
+
+    /**
      * Starts a timer session with the given parameters.
      *
      * @param state           the session type (WORK or BREAK)
@@ -278,23 +301,28 @@ public final class TimerController {
      * Called when the timer completes (reaches zero).
      *
      * <p>
-     * Records the completed session and starts the next session
-     * (work → break → work cycle).
+     * Records the completed session and sets the pending session type
+     * for the user to start manually. The timer returns to IDLE state.
      * </p>
      */
     private void onTimerComplete() {
+        TimerState completedSessionType = currentSessionType;
+
         if (currentSessionStartTime != null && currentSessionType != null) {
             recordSession(true);
         }
 
-        // Transition to next session type
-        if (currentSessionType == TimerState.WORK) {
-            LOGGER.info("Work session complete, starting break");
-            startBreak();
-        } else if (currentSessionType == TimerState.BREAK) {
-            LOGGER.info("Break session complete, starting work");
-            startWork();
+        // Set pending session type for next manual start
+        if (completedSessionType == TimerState.WORK) {
+            LOGGER.info("Work session complete, break is now pending");
+            pendingSessionType = TimerState.BREAK;
+        } else if (completedSessionType == TimerState.BREAK) {
+            LOGGER.info("Break session complete, work is now pending");
+            pendingSessionType = TimerState.WORK;
         }
+
+        // Return to IDLE state - user must press play to start next session
+        timerService.reset();
     }
 
     /**

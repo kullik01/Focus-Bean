@@ -197,7 +197,7 @@ public final class MainView extends BorderPane {
      * Wires event handlers from view components to controller actions.
      */
     private void wireEventHandlers() {
-        controlPanel.setOnStart(controller::startWork);
+        controlPanel.setOnStart(controller::startOrResume);
         controlPanel.setOnPause(controller::pause);
         controlPanel.setOnResume(controller::resume);
         controlPanel.setOnReset(controller::reset);
@@ -224,9 +224,13 @@ public final class MainView extends BorderPane {
             timerDisplay.updateState(newState);
             controlPanel.updateForState(newState, controller.getStateBeforePause());
 
-            // When returning to IDLE, show configured work duration
+            // When returning to IDLE, show duration based on pending session type
             if (newState == TimerState.IDLE) {
-                timerDisplay.showDuration(controller.getSettings().getWorkDurationMinutes());
+                if (controller.getPendingSessionType() == TimerState.BREAK) {
+                    timerDisplay.showDuration(controller.getSettings().getBreakDurationMinutes(), "Break");
+                } else {
+                    timerDisplay.showDuration(controller.getSettings().getWorkDurationMinutes());
+                }
                 updateDailyProgress();
             }
 
