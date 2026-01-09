@@ -6,7 +6,6 @@ import io.github.kullik01.focusbean.model.UserSettings;
 import io.github.kullik01.focusbean.util.AppConstants;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
@@ -20,7 +19,6 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
 import java.util.Objects;
-import java.util.Optional;
 import java.util.logging.Logger;
 
 /**
@@ -46,19 +44,12 @@ public final class MainView extends BorderPane {
             -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 4, 0, 0, 1);
             """;
 
-    private static final String STYLE_HEADER_BUTTON = """
-            -fx-background-color: transparent;
-            -fx-text-fill: %s;
-            -fx-cursor: hand;
-            -fx-font-size: 14px;
-            """;
-
     private final TimerController controller;
     private final TimerDisplayView timerDisplay;
     private final ControlPanelView controlPanel;
     private final DailyProgressView dailyProgressView;
     private final HistoryView historyView;
-    private final Button settingsButton;
+    private final SettingsView settingsView;
     private final TabPane tabPane;
 
     /**
@@ -75,7 +66,7 @@ public final class MainView extends BorderPane {
         controlPanel = new ControlPanelView();
         dailyProgressView = new DailyProgressView();
         historyView = new HistoryView();
-        settingsButton = createSettingsButton();
+        settingsView = new SettingsView(controller.getSettings(), controller.getNotificationService());
 
         // Create and configure cards
         VBox focusCard = createFocusSessionCard();
@@ -92,22 +83,26 @@ public final class MainView extends BorderPane {
         cardContainer.setStyle("-fx-background-color: " + AppConstants.COLOR_WINDOW_BACKGROUND + ";");
         cardContainer.getChildren().addAll(focusCard, progressCard);
 
-        // Keep TabPane for history access (hidden initially, can be accessed via
-        // keyboard)
+        // Create tabs
         Tab timerTab = new Tab("Timer", cardContainer);
         timerTab.setClosable(false);
 
         Tab historyTab = new Tab(AppConstants.LABEL_HISTORY, historyView);
         historyTab.setClosable(false);
 
-        tabPane = new TabPane(timerTab, historyTab);
+        Tab settingsTab = new Tab(AppConstants.LABEL_SETTINGS, settingsView);
+        settingsTab.setClosable(false);
+
+        tabPane = new TabPane(timerTab, historyTab, settingsTab);
         tabPane.setTabMinWidth(80);
         tabPane.getSelectionModel().select(timerTab);
 
-        // Update history when tab is selected
+        // Update views when tab is selected
         tabPane.getSelectionModel().selectedItemProperty().addListener((obs, oldTab, newTab) -> {
             if (newTab == historyTab) {
                 historyView.update(controller.getHistory());
+            } else if (newTab == settingsTab) {
+                settingsView.update(controller.getSettings());
             }
         });
 
@@ -117,6 +112,9 @@ public final class MainView extends BorderPane {
             historyView.update(controller.getHistory());
             updateDailyProgress();
         });
+
+        // Wire settings save callback
+        settingsView.setOnSave(this::applySettings);
 
         setCenter(tabPane);
 
@@ -148,8 +146,7 @@ public final class MainView extends BorderPane {
         HBox headerBar = new HBox();
         headerBar.setAlignment(Pos.CENTER_LEFT);
         headerBar.setPadding(new Insets(15, 15, 0, 15));
-        HBox.setHgrow(headerLabel, Priority.ALWAYS);
-        headerBar.getChildren().addAll(headerLabel, settingsButton);
+        headerBar.getChildren().add(headerLabel);
 
         // Timer content - includes timer display and controls within the card
         VBox timerContent = new VBox(0);
@@ -187,8 +184,8 @@ public final class MainView extends BorderPane {
         card.setMinHeight(340);
         card.getChildren().add(dailyProgressView);
 
-        // Wire edit button to settings
-        dailyProgressView.setOnEdit(this::showSettingsDialog);
+        // Wire edit button to switch to settings tab
+        dailyProgressView.setOnEdit(() -> tabPane.getSelectionModel().select(2));
 
         return card;
     }
@@ -209,8 +206,6 @@ public final class MainView extends BorderPane {
         controlPanel.setOnResume(controller::resume);
         controlPanel.setOnReset(controller::reset);
         controlPanel.setOnSkip(controller::skip);
-
-        settingsButton.setOnAction(e -> showSettingsDialog());
     }
 
     /**
@@ -251,41 +246,36 @@ public final class MainView extends BorderPane {
     }
 
     /**
-     * Shows the settings dialog and applies changes if confirmed.
+     * Applies settings from the SettingsView.
      */
-    private void showSettingsDialog() {
-        SettingsDialog dialog = new SettingsDialog(
-                controller.getSettings(),
-                controller.getNotificationService());
-        Optional<UserSettings> result = dialog.showAndGetResult();
+    private void applySettings() {
+        UserSettings settings = settingsView.getCurrentSettings();
 
-        result.ifPresent(settings -> {
-            controller.updateSettings(
-                    settings.getWorkDurationMinutes(),
-                    settings.getBreakDurationMinutes());
+        controller.updateSettings(
+                settings.getWorkDurationMinutes(),
+                settings.getBreakDurationMinutes());
 
-            // Update daily goal if changed
-            controller.getSettings().setDailyGoalMinutes(settings.getDailyGoalMinutes());
+        // Update daily goal if changed
+        controller.getSettings().setDailyGoalMinutes(settings.getDailyGoalMinutes());
 
-            // Update notification settings
-            controller.getSettings().setSoundNotificationEnabled(settings.isSoundNotificationEnabled());
-            controller.getSettings().setPopupNotificationEnabled(settings.isPopupNotificationEnabled());
-            controller.getSettings().setNotificationSound(settings.getNotificationSound());
-            controller.getSettings().setCustomSoundPath(settings.getCustomSoundPath());
+        // Update notification settings
+        controller.getSettings().setSoundNotificationEnabled(settings.isSoundNotificationEnabled());
+        controller.getSettings().setPopupNotificationEnabled(settings.isPopupNotificationEnabled());
+        controller.getSettings().setNotificationSound(settings.getNotificationSound());
+        controller.getSettings().setCustomSoundPath(settings.getCustomSoundPath());
 
-            // Update display if idle
-            if (controller.getCurrentState() == TimerState.IDLE) {
-                timerDisplay.showDuration(settings.getWorkDurationMinutes());
-            }
+        // Update display if idle
+        if (controller.getCurrentState() == TimerState.IDLE) {
+            timerDisplay.showDuration(settings.getWorkDurationMinutes());
+        }
 
-            // Update daily progress
-            updateDailyProgress();
+        // Update daily progress
+        updateDailyProgress();
 
-            // Save updated settings
-            controller.saveData();
+        // Save updated settings
+        controller.saveData();
 
-            LOGGER.info("Settings updated via dialog");
-        });
+        LOGGER.info("Settings applied from Settings tab");
     }
 
     /**
@@ -301,7 +291,8 @@ public final class MainView extends BorderPane {
             controller.reset();
             event.consume();
         } else if (event.getCode() == KeyCode.S && !event.isControlDown()) {
-            showSettingsDialog();
+            // Switch to settings tab
+            tabPane.getSelectionModel().select(2);
             event.consume();
         } else if (event.getCode() == KeyCode.H && !event.isControlDown()) {
             // Toggle to history tab
@@ -325,17 +316,6 @@ public final class MainView extends BorderPane {
             case WORK, BREAK -> controller.pause();
             case PAUSED -> controller.resume();
         }
-    }
-
-    /**
-     * Creates the settings button.
-     *
-     * @return the configured settings button
-     */
-    private Button createSettingsButton() {
-        Button button = new Button("⚙");
-        button.setStyle(String.format(STYLE_HEADER_BUTTON, AppConstants.COLOR_TEXT_SECONDARY));
-        return button;
     }
 
     /**
