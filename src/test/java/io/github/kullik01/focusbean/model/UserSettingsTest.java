@@ -96,4 +96,79 @@ class UserSettingsTest {
         assertEquals(settings1.hashCode(), settings2.hashCode());
         assertNotEquals(settings1, settings3);
     }
+
+    @Test
+    @DisplayName("Default constructor should set default notification values")
+    void defaultConstructorSetsNotificationDefaults() {
+        UserSettings settings = new UserSettings();
+
+        assertTrue(settings.isSoundNotificationEnabled(), "Sound notification should be enabled by default");
+        assertFalse(settings.isPopupNotificationEnabled(), "Popup notification should be disabled by default");
+    }
+
+    @Test
+    @DisplayName("Full constructor should set notification values")
+    void fullConstructorSetsNotificationValues() {
+        UserSettings settings = new UserSettings(25, 5, 60, false, true);
+
+        assertFalse(settings.isSoundNotificationEnabled());
+        assertTrue(settings.isPopupNotificationEnabled());
+    }
+
+    @Test
+    @DisplayName("Notification setters should update values")
+    void notificationSettersWork() {
+        UserSettings settings = new UserSettings();
+
+        settings.setSoundNotificationEnabled(false);
+        settings.setPopupNotificationEnabled(true);
+
+        assertFalse(settings.isSoundNotificationEnabled());
+        assertTrue(settings.isPopupNotificationEnabled());
+    }
+
+    @Test
+    @DisplayName("copyOf should preserve notification settings")
+    void copyOfPreservesNotificationSettings() {
+        UserSettings original = new UserSettings(25, 5, 60, false, true);
+        UserSettings copy = UserSettings.copyOf(original);
+
+        assertEquals(original.isSoundNotificationEnabled(), copy.isSoundNotificationEnabled());
+        assertEquals(original.isPopupNotificationEnabled(), copy.isPopupNotificationEnabled());
+        assertEquals(original, copy);
+    }
+
+    @Test
+    @DisplayName("equals should consider notification settings")
+    void equalsConsidersNotificationSettings() {
+        UserSettings settings1 = new UserSettings(25, 5, 60, true, false);
+        UserSettings settings2 = new UserSettings(25, 5, 60, true, false);
+        UserSettings settings3 = new UserSettings(25, 5, 60, false, false);
+        UserSettings settings4 = new UserSettings(25, 5, 60, true, true);
+
+        assertEquals(settings1, settings2);
+        assertNotEquals(settings1, settings3, "Different sound setting should not be equal");
+        assertNotEquals(settings1, settings4, "Different popup setting should not be equal");
+    }
+
+    @Test
+    @DisplayName("hashCode should consider notification settings")
+    void hashCodeConsidersNotificationSettings() {
+        UserSettings settings1 = new UserSettings(25, 5, 60, true, false);
+        UserSettings settings2 = new UserSettings(25, 5, 60, true, false);
+        UserSettings settings3 = new UserSettings(25, 5, 60, false, false);
+
+        assertEquals(settings1.hashCode(), settings2.hashCode());
+        assertNotEquals(settings1.hashCode(), settings3.hashCode());
+    }
+
+    @Test
+    @DisplayName("toString should include notification settings")
+    void toStringIncludesNotificationSettings() {
+        UserSettings settings = new UserSettings(25, 5, 60, true, false);
+        String str = settings.toString();
+
+        assertTrue(str.contains("sound=true"), "toString should include sound setting");
+        assertTrue(str.contains("popup=false"), "toString should include popup setting");
+    }
 }

@@ -39,9 +39,22 @@ public final class UserSettings {
     /** Default daily goal (in minutes). */
     public static final int DEFAULT_DAILY_GOAL_MINUTES = 25;
 
+    /** Default value for sound notification. */
+    public static final boolean DEFAULT_SOUND_NOTIFICATION_ENABLED = true;
+
+    /** Default value for popup notification. */
+    public static final boolean DEFAULT_POPUP_NOTIFICATION_ENABLED = false;
+
+    /** Default notification sound. */
+    public static final NotificationSound DEFAULT_NOTIFICATION_SOUND = NotificationSound.CHIME;
+
     private int workDurationMinutes;
     private int breakDurationMinutes;
     private int dailyGoalMinutes;
+    private boolean soundNotificationEnabled;
+    private boolean popupNotificationEnabled;
+    private NotificationSound notificationSound;
+    private String customSoundPath;
 
     /**
      * Creates a new UserSettings instance with default values.
@@ -58,6 +71,10 @@ public final class UserSettings {
         this.workDurationMinutes = DEFAULT_WORK_DURATION_MINUTES;
         this.breakDurationMinutes = DEFAULT_BREAK_DURATION_MINUTES;
         this.dailyGoalMinutes = DEFAULT_DAILY_GOAL_MINUTES;
+        this.soundNotificationEnabled = DEFAULT_SOUND_NOTIFICATION_ENABLED;
+        this.popupNotificationEnabled = DEFAULT_POPUP_NOTIFICATION_ENABLED;
+        this.notificationSound = DEFAULT_NOTIFICATION_SOUND;
+        this.customSoundPath = null;
     }
 
     /**
@@ -72,6 +89,10 @@ public final class UserSettings {
         setWorkDurationMinutes(workDurationMinutes);
         setBreakDurationMinutes(breakDurationMinutes);
         this.dailyGoalMinutes = DEFAULT_DAILY_GOAL_MINUTES;
+        this.soundNotificationEnabled = DEFAULT_SOUND_NOTIFICATION_ENABLED;
+        this.popupNotificationEnabled = DEFAULT_POPUP_NOTIFICATION_ENABLED;
+        this.notificationSound = DEFAULT_NOTIFICATION_SOUND;
+        this.customSoundPath = null;
     }
 
     /**
@@ -87,6 +108,56 @@ public final class UserSettings {
         setWorkDurationMinutes(workDurationMinutes);
         setBreakDurationMinutes(breakDurationMinutes);
         setDailyGoalMinutes(dailyGoalMinutes);
+        this.soundNotificationEnabled = DEFAULT_SOUND_NOTIFICATION_ENABLED;
+        this.popupNotificationEnabled = DEFAULT_POPUP_NOTIFICATION_ENABLED;
+        this.notificationSound = DEFAULT_NOTIFICATION_SOUND;
+        this.customSoundPath = null;
+    }
+
+    /**
+     * Creates a new UserSettings instance with full configuration.
+     *
+     * @param workDurationMinutes      the work session duration in minutes
+     * @param breakDurationMinutes     the break session duration in minutes
+     * @param dailyGoalMinutes         the daily goal in minutes
+     * @param soundNotificationEnabled whether sound notifications are enabled
+     * @param popupNotificationEnabled whether popup notifications are enabled
+     * @throws IllegalArgumentException if any duration is outside the allowed range
+     */
+    public UserSettings(int workDurationMinutes, int breakDurationMinutes, int dailyGoalMinutes,
+            boolean soundNotificationEnabled, boolean popupNotificationEnabled) {
+        setWorkDurationMinutes(workDurationMinutes);
+        setBreakDurationMinutes(breakDurationMinutes);
+        setDailyGoalMinutes(dailyGoalMinutes);
+        this.soundNotificationEnabled = soundNotificationEnabled;
+        this.popupNotificationEnabled = popupNotificationEnabled;
+        this.notificationSound = DEFAULT_NOTIFICATION_SOUND;
+        this.customSoundPath = null;
+    }
+
+    /**
+     * Creates a new UserSettings instance with full configuration including sound
+     * selection.
+     *
+     * @param workDurationMinutes      the work session duration in minutes
+     * @param breakDurationMinutes     the break session duration in minutes
+     * @param dailyGoalMinutes         the daily goal in minutes
+     * @param soundNotificationEnabled whether sound notifications are enabled
+     * @param popupNotificationEnabled whether popup notifications are enabled
+     * @param notificationSound        the selected notification sound
+     * @param customSoundPath          the path to custom sound file, or null
+     * @throws IllegalArgumentException if any duration is outside the allowed range
+     */
+    public UserSettings(int workDurationMinutes, int breakDurationMinutes, int dailyGoalMinutes,
+            boolean soundNotificationEnabled, boolean popupNotificationEnabled,
+            NotificationSound notificationSound, String customSoundPath) {
+        setWorkDurationMinutes(workDurationMinutes);
+        setBreakDurationMinutes(breakDurationMinutes);
+        setDailyGoalMinutes(dailyGoalMinutes);
+        this.soundNotificationEnabled = soundNotificationEnabled;
+        this.popupNotificationEnabled = popupNotificationEnabled;
+        this.notificationSound = notificationSound != null ? notificationSound : DEFAULT_NOTIFICATION_SOUND;
+        this.customSoundPath = customSoundPath;
     }
 
     /**
@@ -98,7 +169,14 @@ public final class UserSettings {
      */
     public static UserSettings copyOf(UserSettings other) {
         Objects.requireNonNull(other, "other must not be null");
-        return new UserSettings(other.workDurationMinutes, other.breakDurationMinutes, other.dailyGoalMinutes);
+        return new UserSettings(
+                other.workDurationMinutes,
+                other.breakDurationMinutes,
+                other.dailyGoalMinutes,
+                other.soundNotificationEnabled,
+                other.popupNotificationEnabled,
+                other.notificationSound,
+                other.customSoundPath);
     }
 
     /**
@@ -187,6 +265,78 @@ public final class UserSettings {
     }
 
     /**
+     * Returns whether sound notifications are enabled.
+     *
+     * @return {@code true} if sound notifications are enabled
+     */
+    public boolean isSoundNotificationEnabled() {
+        return soundNotificationEnabled;
+    }
+
+    /**
+     * Sets whether sound notifications are enabled.
+     *
+     * @param soundNotificationEnabled {@code true} to enable sound notifications
+     */
+    public void setSoundNotificationEnabled(boolean soundNotificationEnabled) {
+        this.soundNotificationEnabled = soundNotificationEnabled;
+    }
+
+    /**
+     * Returns whether popup notifications are enabled.
+     *
+     * @return {@code true} if popup notifications are enabled
+     */
+    public boolean isPopupNotificationEnabled() {
+        return popupNotificationEnabled;
+    }
+
+    /**
+     * Sets whether popup notifications are enabled.
+     *
+     * @param popupNotificationEnabled {@code true} to enable popup notifications
+     */
+    public void setPopupNotificationEnabled(boolean popupNotificationEnabled) {
+        this.popupNotificationEnabled = popupNotificationEnabled;
+    }
+
+    /**
+     * Returns the selected notification sound.
+     *
+     * @return the notification sound
+     */
+    public NotificationSound getNotificationSound() {
+        return notificationSound;
+    }
+
+    /**
+     * Sets the notification sound.
+     *
+     * @param notificationSound the notification sound to use
+     */
+    public void setNotificationSound(NotificationSound notificationSound) {
+        this.notificationSound = notificationSound != null ? notificationSound : DEFAULT_NOTIFICATION_SOUND;
+    }
+
+    /**
+     * Returns the custom sound file path.
+     *
+     * @return the custom sound path, or null if not using custom sound
+     */
+    public String getCustomSoundPath() {
+        return customSoundPath;
+    }
+
+    /**
+     * Sets the custom sound file path.
+     *
+     * @param customSoundPath the path to the custom sound file
+     */
+    public void setCustomSoundPath(String customSoundPath) {
+        this.customSoundPath = customSoundPath;
+    }
+
+    /**
      * Validates that a duration value falls within the specified range.
      *
      * @param value     the value to validate
@@ -213,17 +363,24 @@ public final class UserSettings {
         UserSettings that = (UserSettings) obj;
         return workDurationMinutes == that.workDurationMinutes
                 && breakDurationMinutes == that.breakDurationMinutes
-                && dailyGoalMinutes == that.dailyGoalMinutes;
+                && dailyGoalMinutes == that.dailyGoalMinutes
+                && soundNotificationEnabled == that.soundNotificationEnabled
+                && popupNotificationEnabled == that.popupNotificationEnabled
+                && notificationSound == that.notificationSound
+                && Objects.equals(customSoundPath, that.customSoundPath);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(workDurationMinutes, breakDurationMinutes, dailyGoalMinutes);
+        return Objects.hash(workDurationMinutes, breakDurationMinutes, dailyGoalMinutes,
+                soundNotificationEnabled, popupNotificationEnabled, notificationSound, customSoundPath);
     }
 
     @Override
     public String toString() {
-        return String.format("UserSettings[work=%dmin, break=%dmin, dailyGoal=%dmin]",
-                workDurationMinutes, breakDurationMinutes, dailyGoalMinutes);
+        return String.format(
+                "UserSettings[work=%dmin, break=%dmin, dailyGoal=%dmin, sound=%s, popup=%s, notifSound=%s, customPath=%s]",
+                workDurationMinutes, breakDurationMinutes, dailyGoalMinutes,
+                soundNotificationEnabled, popupNotificationEnabled, notificationSound, customSoundPath);
     }
 }

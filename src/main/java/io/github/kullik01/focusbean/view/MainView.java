@@ -247,7 +247,9 @@ public final class MainView extends BorderPane {
      * Shows the settings dialog and applies changes if confirmed.
      */
     private void showSettingsDialog() {
-        SettingsDialog dialog = new SettingsDialog(controller.getSettings());
+        SettingsDialog dialog = new SettingsDialog(
+                controller.getSettings(),
+                controller.getNotificationService());
         Optional<UserSettings> result = dialog.showAndGetResult();
 
         result.ifPresent(settings -> {
@@ -258,6 +260,12 @@ public final class MainView extends BorderPane {
             // Update daily goal if changed
             controller.getSettings().setDailyGoalMinutes(settings.getDailyGoalMinutes());
 
+            // Update notification settings
+            controller.getSettings().setSoundNotificationEnabled(settings.isSoundNotificationEnabled());
+            controller.getSettings().setPopupNotificationEnabled(settings.isPopupNotificationEnabled());
+            controller.getSettings().setNotificationSound(settings.getNotificationSound());
+            controller.getSettings().setCustomSoundPath(settings.getCustomSoundPath());
+
             // Update display if idle
             if (controller.getCurrentState() == TimerState.IDLE) {
                 timerDisplay.showDuration(settings.getWorkDurationMinutes());
@@ -265,6 +273,9 @@ public final class MainView extends BorderPane {
 
             // Update daily progress
             updateDailyProgress();
+
+            // Save updated settings
+            controller.saveData();
 
             LOGGER.info("Settings updated via dialog");
         });

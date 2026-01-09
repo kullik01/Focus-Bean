@@ -3,6 +3,7 @@ package io.github.kullik01.focusbean;
 import io.github.kullik01.focusbean.controller.TimerController;
 import io.github.kullik01.focusbean.model.SessionHistory;
 import io.github.kullik01.focusbean.model.UserSettings;
+import io.github.kullik01.focusbean.service.NotificationService;
 import io.github.kullik01.focusbean.service.PersistenceService;
 import io.github.kullik01.focusbean.service.TimerService;
 import io.github.kullik01.focusbean.util.AppConstants;
@@ -65,9 +66,15 @@ public final class FocusBeanApplication extends Application {
 
         // Initialize services
         TimerService timerService = new TimerService();
+        NotificationService notificationService = new NotificationService();
 
         // Initialize controller
-        controller = new TimerController(timerService, persistenceService, settings, history);
+        controller = new TimerController(
+                timerService,
+                persistenceService,
+                notificationService,
+                settings,
+                history);
 
         // Initialize view
         MainView mainView = new MainView(controller);

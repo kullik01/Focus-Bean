@@ -4,6 +4,7 @@ import io.github.kullik01.focusbean.model.SessionHistory;
 import io.github.kullik01.focusbean.model.TimerSession;
 import io.github.kullik01.focusbean.model.TimerState;
 import io.github.kullik01.focusbean.model.UserSettings;
+import io.github.kullik01.focusbean.service.NotificationService;
 import io.github.kullik01.focusbean.service.PersistenceService;
 import io.github.kullik01.focusbean.service.TimerService;
 import javafx.beans.property.ReadOnlyIntegerProperty;
@@ -40,6 +41,7 @@ public final class TimerController {
 
     private final TimerService timerService;
     private final PersistenceService persistenceService;
+    private final NotificationService notificationService;
     private final UserSettings settings;
     private final SessionHistory history;
 
@@ -51,19 +53,22 @@ public final class TimerController {
     /**
      * Creates a new TimerController with the specified services and models.
      *
-     * @param timerService       the timer service for countdown functionality
-     * @param persistenceService the persistence service for saving data
-     * @param settings           the user settings
-     * @param history            the session history
+     * @param timerService        the timer service for countdown functionality
+     * @param persistenceService  the persistence service for saving data
+     * @param notificationService the notification service for alerts
+     * @param settings            the user settings
+     * @param history             the session history
      * @throws NullPointerException if any parameter is null
      */
     public TimerController(
             TimerService timerService,
             PersistenceService persistenceService,
+            NotificationService notificationService,
             UserSettings settings,
             SessionHistory history) {
         this.timerService = Objects.requireNonNull(timerService, "timerService must not be null");
         this.persistenceService = Objects.requireNonNull(persistenceService, "persistenceService must not be null");
+        this.notificationService = Objects.requireNonNull(notificationService, "notificationService must not be null");
         this.settings = Objects.requireNonNull(settings, "settings must not be null");
         this.history = Objects.requireNonNull(history, "history must not be null");
 
@@ -256,6 +261,15 @@ public final class TimerController {
     }
 
     /**
+     * Returns the notification service.
+     *
+     * @return the notification service
+     */
+    public NotificationService getNotificationService() {
+        return notificationService;
+    }
+
+    /**
      * Returns the state the timer was in before being paused.
      *
      * @return the state before pause, or {@code null} if not paused
@@ -307,6 +321,9 @@ public final class TimerController {
      */
     private void onTimerComplete() {
         TimerState completedSessionType = currentSessionType;
+
+        // Trigger notifications based on user settings
+        notificationService.notifySessionComplete(completedSessionType, settings);
 
         if (currentSessionStartTime != null && currentSessionType != null) {
             recordSession(true);

@@ -13,12 +13,16 @@ module io.github.kullik01.focusbean {
   // JavaFX dependencies
   requires javafx.controls;
   requires javafx.graphics;
+  requires javafx.media;
 
   // JSON persistence
   requires com.google.gson;
 
   // Logging
   requires java.logging;
+
+  // Desktop toolkit for system beep fallback
+  requires java.desktop;
 
   // Export packages for JavaFX reflection access
   exports io.github.kullik01.focusbean;
