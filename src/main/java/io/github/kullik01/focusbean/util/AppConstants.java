@@ -109,8 +109,8 @@ public final class AppConstants {
     /** Secondary text color (medium gray). */
     public static final String COLOR_TEXT_SECONDARY = "#636e72";
 
-    /** Accent color for buttons and highlights. */
-    public static final String COLOR_ACCENT = "#0984e3";
+    /** Accent color for buttons and highlights (Coffee Brown). */
+    public static final String COLOR_ACCENT = "#A0522D";
 
     // =========================================================================
     // Logging
@@ -126,17 +126,17 @@ public final class AppConstants {
     /** Background color for cards (white). */
     public static final String COLOR_CARD_BACKGROUND = "#FFFFFF";
 
-    /** Border color for cards (light gray). */
-    public static final String COLOR_CARD_BORDER = "#E8E8E8";
+    /** Border color for cards (warm beige). */
+    public static final String COLOR_CARD_BORDER = "#E5DCD3";
 
-    /** Window background color (light gray). */
-    public static final String COLOR_WINDOW_BACKGROUND = "#F3F3F3";
+    /** Window background color (warm off-white). */
+    public static final String COLOR_WINDOW_BACKGROUND = "#F5F2EF";
 
     /** Progress ring inactive color. */
     public static final String COLOR_PROGRESS_RING = "#E0E0E0";
 
-    /** Progress ring active color (Windows blue). */
-    public static final String COLOR_PROGRESS_ACTIVE = "#0078D4";
+    /** Progress ring active color (Coffee Brown). */
+    public static final String COLOR_PROGRESS_ACTIVE = "#8B5A2B";
 
     /** Tick mark color for timer display. */
     public static final String COLOR_TICK_MARK = "#C0C0C0";
