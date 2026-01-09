@@ -23,7 +23,7 @@ public final class ControlPanelView extends HBox {
     private static final double ICON_BUTTON_SIZE = 44;
     private static final double MENU_BUTTON_SIZE = 36;
     private static final double BUTTON_SPACING = 12;
-    private static final double PANEL_PADDING = 10;
+    private static final double PANEL_PADDING = 0;
 
     private static final String STYLE_PRIMARY_BUTTON = """
             -fx-font-size: 18px;

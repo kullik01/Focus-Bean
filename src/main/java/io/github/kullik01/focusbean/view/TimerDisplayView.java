@@ -71,7 +71,7 @@ public final class TimerDisplayView extends StackPane {
 
         // Stack the canvas and center content
         setAlignment(Pos.CENTER);
-        setPadding(new Insets(20));
+        setPadding(new Insets(10));
         getChildren().addAll(progressCanvas, centerContent);
 
         setMinWidth(RING_SIZE + 40);
