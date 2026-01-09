@@ -111,6 +111,13 @@ public final class MainView extends BorderPane {
             }
         });
 
+        // Wire clear history callback
+        historyView.setOnClearHistory(() -> {
+            controller.clearHistory();
+            historyView.update(controller.getHistory());
+            updateDailyProgress();
+        });
+
         setCenter(tabPane);
 
         // Wire up event handlers

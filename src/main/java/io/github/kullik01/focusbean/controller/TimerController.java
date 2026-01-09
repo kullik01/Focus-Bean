@@ -261,6 +261,20 @@ public final class TimerController {
     }
 
     /**
+     * Clears all session history and persists the change.
+     *
+     * <p>
+     * This operation cannot be undone. All recorded sessions will be
+     * permanently removed.
+     * </p>
+     */
+    public void clearHistory() {
+        history.clear();
+        saveData();
+        LOGGER.info("Session history cleared");
+    }
+
+    /**
      * Returns the notification service.
      *
      * @return the notification service

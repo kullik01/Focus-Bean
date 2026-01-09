@@ -43,7 +43,7 @@ public final class UserSettings {
     public static final boolean DEFAULT_SOUND_NOTIFICATION_ENABLED = true;
 
     /** Default value for popup notification. */
-    public static final boolean DEFAULT_POPUP_NOTIFICATION_ENABLED = false;
+    public static final boolean DEFAULT_POPUP_NOTIFICATION_ENABLED = true;
 
     /** Default notification sound. */
     public static final NotificationSound DEFAULT_NOTIFICATION_SOUND = NotificationSound.CHIME;

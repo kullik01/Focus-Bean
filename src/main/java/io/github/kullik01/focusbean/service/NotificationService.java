@@ -267,11 +267,10 @@ public final class NotificationService {
             trayIcon = new TrayIcon(image, "Focus Bean");
             trayIcon.setImageAutoSize(true);
 
-            // Don't add to system tray - just use for notifications
-            // systemTray.add(trayIcon);
-            // Instead, we add it temporarily when showing notification
+            // Add to system tray to enable notifications
+            systemTray.add(trayIcon);
 
-            LOGGER.fine("System tray icon created for notifications");
+            LOGGER.fine("System tray icon added for notifications");
         } catch (Exception e) {
             LOGGER.log(Level.WARNING, "Failed to initialize system tray", e);
             trayIcon = null;

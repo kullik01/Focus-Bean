@@ -84,6 +84,9 @@ public final class AppConstants {
     /** Label for the history button/tab. */
     public static final String LABEL_HISTORY = "History";
 
+    /** Label for the clear history button. */
+    public static final String LABEL_CLEAR_HISTORY = "Clear History";
+
     // =========================================================================
     // Color Scheme (CSS Color Values)
     // =========================================================================
