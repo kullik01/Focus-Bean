@@ -442,10 +442,38 @@ public final class SettingsView extends VBox {
     /**
      * Previews the currently selected sound.
      */
+    private boolean isPreviewPlaying = false;
+
+    /**
+     * Previews the currently selected sound.
+     */
     private void previewCurrentSound() {
-        NotificationSound sound = soundComboBox.getValue();
-        String path = (sound == NotificationSound.CUSTOM) ? customSoundPath : null;
-        notificationService.previewSound(sound, path);
+        if (isPreviewPlaying) {
+            // Stop logic
+            notificationService.stopSound();
+            updatePreviewButtonState(false);
+        } else {
+            // Play logic
+            NotificationSound sound = soundComboBox.getValue();
+            String path = (sound == NotificationSound.CUSTOM) ? customSoundPath : null;
+
+            updatePreviewButtonState(true);
+            notificationService.previewSound(sound, path, () -> {
+                updatePreviewButtonState(false);
+            });
+        }
+    }
+
+    private void updatePreviewButtonState(boolean playing) {
+        isPreviewPlaying = playing;
+        javafx.scene.shape.SVGPath icon = (javafx.scene.shape.SVGPath) previewButton.getGraphic();
+        if (playing) {
+            icon.setContent("M6 6h12v12H6z"); // Stop icon (square)
+            previewButton.getTooltip().setText("Stop");
+        } else {
+            icon.setContent("M8 5v14l11-7z"); // Play icon
+            previewButton.getTooltip().setText("Play");
+        }
     }
 
     /**

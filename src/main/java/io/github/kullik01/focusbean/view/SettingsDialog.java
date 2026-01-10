@@ -272,6 +272,10 @@ public final class SettingsDialog extends Dialog<UserSettings> {
 
         // Result converter
         setResultConverter(buttonType -> {
+            // Stop sound if playing when closing
+            if (isPreviewPlaying) {
+                notificationService.stopSound();
+            }
             if (buttonType == saveButtonType) {
                 return new UserSettings(
                         workSpinner.getValue(),
@@ -285,6 +289,8 @@ public final class SettingsDialog extends Dialog<UserSettings> {
             return null;
         });
     }
+
+    private boolean isPreviewPlaying = false;
 
     /**
      * Legacy constructor for backward compatibility.
@@ -302,9 +308,32 @@ public final class SettingsDialog extends Dialog<UserSettings> {
      * Previews the currently selected sound.
      */
     private void previewCurrentSound() {
-        NotificationSound sound = soundComboBox.getValue();
-        String path = (sound == NotificationSound.CUSTOM) ? customSoundPath : null;
-        notificationService.previewSound(sound, path);
+        if (isPreviewPlaying) {
+            // Stop logic
+            notificationService.stopSound();
+            updatePreviewButtonState(false);
+        } else {
+            // Play logic
+            NotificationSound sound = soundComboBox.getValue();
+            String path = (sound == NotificationSound.CUSTOM) ? customSoundPath : null;
+
+            updatePreviewButtonState(true);
+            notificationService.previewSound(sound, path, () -> {
+                updatePreviewButtonState(false);
+            });
+        }
+    }
+
+    private void updatePreviewButtonState(boolean playing) {
+        isPreviewPlaying = playing;
+        javafx.scene.shape.SVGPath icon = (javafx.scene.shape.SVGPath) previewButton.getGraphic();
+        if (playing) {
+            icon.setContent("M6 6h12v12H6z"); // Stop icon (square)
+            previewButton.getTooltip().setText("Stop");
+        } else {
+            icon.setContent("M8 5v14l11-7z"); // Play icon
+            previewButton.getTooltip().setText("Play");
+        }
     }
 
     /**

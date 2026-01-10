@@ -3,7 +3,8 @@ package io.github.kullik01.focusbean.service;
 import io.github.kullik01.focusbean.model.NotificationSound;
 import io.github.kullik01.focusbean.model.TimerState;
 import io.github.kullik01.focusbean.model.UserSettings;
-import javafx.scene.media.AudioClip;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
 
 import java.awt.SystemTray;
 import java.awt.TrayIcon;
@@ -44,7 +45,7 @@ public final class NotificationService {
     private static final Logger LOGGER = Logger.getLogger(NotificationService.class.getName());
 
     private TrayIcon trayIcon;
-    private AudioClip currentSound;
+    private MediaPlayer currentSound;
     private NotificationSound loadedSoundType;
     private String loadedCustomPath;
 
@@ -125,27 +126,56 @@ public final class NotificationService {
     /**
      * Previews a notification sound for settings dialog.
      *
-     * @param sound      the sound to preview
-     * @param customPath the custom sound path (only used if sound is CUSTOM)
+     * @param sound        the sound to preview
+     * @param customPath   the custom sound path (only used if sound is CUSTOM)
+     * @param onCompletion callback to run when playback finishes (can be null)
      */
-    public void previewSound(NotificationSound sound, String customPath) {
+    public void previewSound(NotificationSound sound, String customPath, Runnable onCompletion) {
         if (sound.isSilent()) {
+            if (onCompletion != null) {
+                // Run on FX thread just in case
+                javafx.application.Platform.runLater(onCompletion);
+            }
             return;
         }
 
         if (sound.isSystemBeep()) {
             playSystemBeep();
+            if (onCompletion != null) {
+                javafx.application.Platform.runLater(onCompletion);
+            }
             return;
         }
 
         try {
+            // Check if we are already playing this exact sound
+            if (currentSound != null && currentSound.getStatus() == MediaPlayer.Status.PLAYING) {
+                // If the same sound is requested, maybe we just want to let it play?
+                // But usually preview button acting as stop means we should have stopped it
+                // before calling this.
+                // However, if we need to load a NEW sound, we should plain load it.
+                // The logical flow in UI: if playing -> stop; if not playing -> preview.
+                // So this method is called when we want to START preview.
+                currentSound.stop();
+            }
+
             loadSound(sound, customPath);
             if (currentSound != null) {
+                if (onCompletion != null) {
+                    currentSound.setOnEndOfMedia(onCompletion);
+                }
                 currentSound.play();
+            } else {
+                if (onCompletion != null) {
+                    javafx.application.Platform.runLater(onCompletion);
+                }
             }
         } catch (Exception e) {
             LOGGER.log(Level.WARNING, "Failed to preview sound", e);
             playSystemBeep();
+            if (onCompletion != null) {
+                javafx.application.Platform.runLater(onCompletion);
+            }
         }
     }
 
@@ -233,7 +263,13 @@ public final class NotificationService {
                 urlString = resourceUrl.toExternalForm();
             }
 
-            currentSound = new AudioClip(urlString);
+            // Dispose previous player if exists
+            if (currentSound != null) {
+                currentSound.dispose();
+            }
+
+            Media media = new Media(urlString);
+            currentSound = new MediaPlayer(media);
             currentSound.setVolume(0.8);
             loadedSoundType = sound;
             loadedCustomPath = customPath;
@@ -242,6 +278,15 @@ public final class NotificationService {
         } catch (Exception e) {
             LOGGER.log(Level.WARNING, "Failed to load sound", e);
             currentSound = null;
+        }
+    }
+
+    /**
+     * Stops the currently playing sound.
+     */
+    public void stopSound() {
+        if (currentSound != null) {
+            currentSound.stop();
         }
     }
 
