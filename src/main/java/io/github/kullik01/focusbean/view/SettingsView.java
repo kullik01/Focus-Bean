@@ -4,6 +4,7 @@ import io.github.kullik01.focusbean.model.NotificationSound;
 import io.github.kullik01.focusbean.model.UserSettings;
 import io.github.kullik01.focusbean.service.NotificationService;
 import io.github.kullik01.focusbean.util.AppConstants;
+import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -13,6 +14,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -120,14 +122,58 @@ public final class SettingsView extends VBox {
         popupNotificationCheckbox.setSelected(currentSettings.isPopupNotificationEnabled());
         popupNotificationCheckbox.setStyle(STYLE_LABEL);
 
-        // Sound selection
-        soundComboBox = new ComboBox<>();
-        soundComboBox.getItems().addAll(NotificationSound.values());
-        soundComboBox.setValue(currentSettings.getNotificationSound());
+        // Sound selection - only System Beep and Custom options work reliably
+        soundComboBox = new ComboBox<>(FXCollections.observableArrayList(
+                NotificationSound.SYSTEM_BEEP,
+                NotificationSound.CUSTOM));
+        NotificationSound currentSound = currentSettings.getNotificationSound();
+        // Ensure value is one of the available options, default to SYSTEM_BEEP if not
+        if (currentSound == NotificationSound.SYSTEM_BEEP || currentSound == NotificationSound.CUSTOM) {
+            soundComboBox.setValue(currentSound);
+        } else {
+            soundComboBox.setValue(NotificationSound.SYSTEM_BEEP);
+        }
         soundComboBox.setPrefWidth(180);
 
         previewButton = new Button("▶");
-        previewButton.setStyle("-fx-font-size: 12px; -fx-cursor: hand;");
+        previewButton.setStyle(String.format("""
+                -fx-background-color: transparent;
+                -fx-cursor: hand;
+                -fx-font-size: 14px;
+                -fx-padding: 2 6 2 6;
+                -fx-text-fill: %s;
+                """, AppConstants.COLOR_PROGRESS_ACTIVE));
+
+        // Add tooltip with warm colors matching the GUI design
+        Tooltip playTooltip = new Tooltip("Play");
+        playTooltip.setStyle(String.format("""
+                -fx-font-family: 'Segoe UI', sans-serif;
+                -fx-font-size: 12px;
+                -fx-background-color: %s;
+                -fx-text-fill: %s;
+                -fx-background-radius: 6;
+                -fx-padding: 6 10 6 10;
+                -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 4, 0, 0, 1);
+                """, AppConstants.COLOR_CARD_BACKGROUND, AppConstants.COLOR_TEXT_PRIMARY));
+        previewButton.setTooltip(playTooltip);
+
+        previewButton.setOnMouseEntered(e -> previewButton.setStyle(String.format("""
+                -fx-background-color: rgba(160, 82, 45, 0.10);
+                -fx-background-radius: 6;
+                -fx-cursor: hand;
+                -fx-font-size: 14px;
+                -fx-padding: 2 6 2 6;
+                -fx-text-fill: %s;
+                """, AppConstants.COLOR_PROGRESS_ACTIVE)));
+
+        previewButton.setOnMouseExited(e -> previewButton.setStyle(String.format("""
+                -fx-background-color: transparent;
+                -fx-cursor: hand;
+                -fx-font-size: 14px;
+                -fx-padding: 2 6 2 6;
+                -fx-text-fill: %s;
+                """, AppConstants.COLOR_PROGRESS_ACTIVE)));
+
         previewButton.setOnAction(e -> previewCurrentSound());
 
         // Custom sound path
@@ -139,7 +185,45 @@ public final class SettingsView extends VBox {
             customSoundPathField.setText(new File(customSoundPath).getName());
         }
 
-        browseButton = new Button("Browse...");
+        browseButton = new Button("📂"); // Folder icon
+        browseButton.setStyle(String.format("""
+                -fx-background-color: transparent;
+                -fx-cursor: hand;
+                -fx-font-size: 14px;
+                -fx-padding: 2 6 2 6;
+                -fx-text-fill: %s;
+                """, AppConstants.COLOR_PROGRESS_ACTIVE));
+
+        // Add tooltip with warm colors matching the GUI design
+        Tooltip browseTooltip = new Tooltip("Browse");
+        browseTooltip.setStyle(String.format("""
+                -fx-font-family: 'Segoe UI', sans-serif;
+                -fx-font-size: 12px;
+                -fx-background-color: %s;
+                -fx-text-fill: %s;
+                -fx-background-radius: 6;
+                -fx-padding: 6 10 6 10;
+                -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 4, 0, 0, 1);
+                """, AppConstants.COLOR_CARD_BACKGROUND, AppConstants.COLOR_TEXT_PRIMARY));
+        browseButton.setTooltip(browseTooltip);
+
+        browseButton.setOnMouseEntered(e -> browseButton.setStyle(String.format("""
+                -fx-background-color: rgba(160, 82, 45, 0.10);
+                -fx-background-radius: 6;
+                -fx-cursor: hand;
+                -fx-font-size: 14px;
+                -fx-padding: 2 6 2 6;
+                -fx-text-fill: %s;
+                """, AppConstants.COLOR_PROGRESS_ACTIVE)));
+
+        browseButton.setOnMouseExited(e -> browseButton.setStyle(String.format("""
+                -fx-background-color: transparent;
+                -fx-cursor: hand;
+                -fx-font-size: 14px;
+                -fx-padding: 2 6 2 6;
+                -fx-text-fill: %s;
+                """, AppConstants.COLOR_PROGRESS_ACTIVE)));
+
         browseButton.setOnAction(e -> browseForCustomSound());
 
         // Custom sound row visibility

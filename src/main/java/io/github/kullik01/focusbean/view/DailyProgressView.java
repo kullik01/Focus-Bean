@@ -29,8 +29,8 @@ import javafx.scene.text.FontWeight;
  */
 public final class DailyProgressView extends VBox {
 
-    private static final double RING_SIZE = 100;
-    private static final double RING_STROKE_WIDTH = 6;
+    private static final double RING_SIZE = 140;
+    private static final double RING_STROKE_WIDTH = 5;
     private static final String FONT_FAMILY = "'Segoe UI', 'Helvetica Neue', sans-serif";
 
     private final Label headerLabel;
@@ -82,11 +82,11 @@ public final class DailyProgressView extends VBox {
         // Daily goal with circular progress
         goalProgressCanvas = new Canvas(RING_SIZE, RING_SIZE);
         dailyGoalValueLabel = new Label(formatGoalDisplay(dailyGoalMinutes));
-        dailyGoalValueLabel.setFont(Font.font(FONT_FAMILY, FontWeight.LIGHT, 28));
+        dailyGoalValueLabel.setFont(Font.font(FONT_FAMILY, FontWeight.LIGHT, 34));
         dailyGoalValueLabel.setTextFill(Color.web(AppConstants.COLOR_TEXT_PRIMARY));
 
         dailyGoalUnitLabel = new Label(getGoalUnit(dailyGoalMinutes));
-        dailyGoalUnitLabel.setFont(Font.font(FONT_FAMILY, FontWeight.NORMAL, 12));
+        dailyGoalUnitLabel.setFont(Font.font(FONT_FAMILY, FontWeight.NORMAL, 13));
         dailyGoalUnitLabel.setTextFill(Color.web(AppConstants.COLOR_TEXT_SECONDARY));
 
         VBox goalCenterContent = new VBox(0);
@@ -106,8 +106,9 @@ public final class DailyProgressView extends VBox {
         streakValueLabel.setText("0");
         streakUnitLabel.setText("days");
 
-        HBox statsRow = new HBox(20);
+        HBox statsRow = new HBox(12);
         statsRow.setAlignment(Pos.CENTER);
+        statsRow.setPadding(new Insets(35, 0, 0, 0));
         statsRow.getChildren().addAll(yesterdayBox, goalContainer, streakBox);
 
         // Completed today label
@@ -116,8 +117,8 @@ public final class DailyProgressView extends VBox {
         completedLabel.setTextFill(Color.web(AppConstants.COLOR_TEXT_SECONDARY));
 
         // Layout
-        setSpacing(20);
-        setPadding(new Insets(20));
+        setSpacing(12);
+        setPadding(new Insets(15, 20, 15, 20));
         setAlignment(Pos.TOP_CENTER);
         getChildren().addAll(headerBar, statsRow, completedLabel);
 
