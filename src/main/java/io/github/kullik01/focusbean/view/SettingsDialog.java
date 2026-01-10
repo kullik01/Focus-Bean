@@ -178,7 +178,7 @@ public final class SettingsDialog extends Dialog<UserSettings> {
         // Custom sound path
         customSoundPathField = new TextField();
         customSoundPathField.setPromptText("Select custom sound file...");
-        customSoundPathField.setPrefWidth(200);
+        customSoundPathField.setPrefWidth(150);
         customSoundPathField.setEditable(false);
         if (customSoundPath != null) {
             customSoundPathField.setText(new File(customSoundPath).getName());
@@ -435,7 +435,7 @@ public final class SettingsDialog extends Dialog<UserSettings> {
     private javafx.scene.layout.VBox createValidatedTextField(int min, int logicalMax, int initial,
             TextField textField) {
         textField.setText(String.valueOf(initial));
-        textField.setPrefWidth(100);
+        textField.setPrefWidth(40);
 
         // Error label - ensure it wraps and fits
         Label errorLabel = new Label("Value cannot exceed " + logicalMax + " minutes!");

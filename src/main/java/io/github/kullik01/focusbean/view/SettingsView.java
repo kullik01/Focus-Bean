@@ -164,7 +164,7 @@ public final class SettingsView extends VBox {
         // Custom sound path
         customSoundPathField = new TextField();
         customSoundPathField.setPromptText("Select custom sound file...");
-        customSoundPathField.setPrefWidth(200);
+        customSoundPathField.setPrefWidth(180);
         customSoundPathField.setEditable(false);
         if (customSoundPath != null) {
             customSoundPathField.setText(new File(customSoundPath).getName());
@@ -268,7 +268,7 @@ public final class SettingsView extends VBox {
      */
     private VBox createValidatedTextField(int min, int logicalMax, int initial, TextField textField) {
         textField.setText(String.valueOf(initial));
-        textField.setPrefWidth(100);
+        textField.setPrefWidth(40);
 
         // Error label - ensure it wraps and fits
         Label errorLabel = new Label("Value cannot exceed " + logicalMax + " minutes!");
