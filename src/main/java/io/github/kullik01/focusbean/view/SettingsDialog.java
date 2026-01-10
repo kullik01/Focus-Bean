@@ -237,6 +237,8 @@ public final class SettingsDialog extends Dialog<UserSettings> {
         // Enable/disable sound controls based on checkbox
         soundComboBox.disableProperty().bind(soundNotificationCheckbox.selectedProperty().not());
         previewButton.disableProperty().bind(soundNotificationCheckbox.selectedProperty().not());
+        customSoundPathField.disableProperty().bind(soundNotificationCheckbox.selectedProperty().not());
+        browseButton.disableProperty().bind(soundNotificationCheckbox.selectedProperty().not());
 
         // Layout
         GridPane grid = new GridPane();

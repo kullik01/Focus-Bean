@@ -225,6 +225,8 @@ public final class SettingsView extends VBox {
         // Enable/disable sound controls based on checkbox
         soundComboBox.disableProperty().bind(soundNotificationCheckbox.selectedProperty().not());
         previewButton.disableProperty().bind(soundNotificationCheckbox.selectedProperty().not());
+        customSoundPathField.disableProperty().bind(soundNotificationCheckbox.selectedProperty().not());
+        browseButton.disableProperty().bind(soundNotificationCheckbox.selectedProperty().not());
 
         // Save button
         saveButton = new Button("Save Settings");
