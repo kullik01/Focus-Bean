@@ -11,6 +11,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -33,7 +34,9 @@ public final class DailyProgressView extends VBox {
     private static final String FONT_FAMILY = "'Segoe UI', 'Helvetica Neue', sans-serif";
 
     private final Label headerLabel;
-    private final Button editButton;
+    private final HBox headerBar;
+    private Button settingsButton;
+
     private final Label yesterdayValueLabel;
     private final Label yesterdayUnitLabel;
     private final Label dailyGoalValueLabel;
@@ -57,23 +60,17 @@ public final class DailyProgressView extends VBox {
         this.yesterdayMinutes = 0;
         this.streakDays = 0;
 
-        // Header with edit button
+        // Header
         headerLabel = new Label("Daily progress");
         headerLabel.setFont(Font.font(FONT_FAMILY, FontWeight.NORMAL, 14));
         headerLabel.setTextFill(Color.web(AppConstants.COLOR_TEXT_PRIMARY));
 
-        editButton = new Button("✎");
-        editButton.setStyle("""
-                -fx-background-color: transparent;
-                -fx-text-fill: %s;
-                -fx-cursor: hand;
-                -fx-font-size: 14px;
-                """.formatted(AppConstants.COLOR_TEXT_SECONDARY));
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        HBox headerBar = new HBox();
+        headerBar = new HBox();
         headerBar.setAlignment(Pos.CENTER_LEFT);
-        HBox.setHgrow(headerLabel, Priority.ALWAYS);
-        headerBar.getChildren().addAll(headerLabel, editButton);
+        headerBar.getChildren().addAll(headerLabel, spacer);
 
         // Stats row
         VBox yesterdayBox = createStatBox("Yesterday");
@@ -167,25 +164,19 @@ public final class DailyProgressView extends VBox {
     }
 
     /**
-     * Sets the callback for the edit button.
+     * Sets the settings button to display in the header bar.
+     * The button will be placed at the right end of the header.
      *
-     * @param handler the callback to invoke when edit is clicked
+     * @param button the settings button to display
      */
-    public void setOnEdit(Runnable handler) {
-        editButton.setOnAction(e -> {
-            if (handler != null) {
-                handler.run();
-            }
-        });
-    }
-
-    /**
-     * Returns the edit button for external access.
-     *
-     * @return the edit button
-     */
-    public Button getEditButton() {
-        return editButton;
+    public void setSettingsButton(Button button) {
+        if (this.settingsButton != null) {
+            headerBar.getChildren().remove(this.settingsButton);
+        }
+        this.settingsButton = button;
+        if (button != null) {
+            headerBar.getChildren().add(button);
+        }
     }
 
     /**

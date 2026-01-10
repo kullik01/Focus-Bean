@@ -11,9 +11,11 @@ import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.control.Button;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
@@ -143,10 +145,15 @@ public final class MainView extends BorderPane {
         headerLabel.setFont(Font.font(FONT_FAMILY, FontWeight.NORMAL, 14));
         headerLabel.setTextFill(javafx.scene.paint.Color.web(AppConstants.COLOR_TEXT_PRIMARY));
 
+        Button settingsButton = createSettingsButton();
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
         HBox headerBar = new HBox();
         headerBar.setAlignment(Pos.CENTER_LEFT);
         headerBar.setPadding(new Insets(15, 15, 0, 15));
-        headerBar.getChildren().add(headerLabel);
+        headerBar.getChildren().addAll(headerLabel, spacer, settingsButton);
 
         // Timer content - includes timer display and controls within the card
         VBox timerContent = new VBox(0);
@@ -174,6 +181,9 @@ public final class MainView extends BorderPane {
      * @return the configured card VBox
      */
     private VBox createDailyProgressCard() {
+        // Add settings button to daily progress header
+        dailyProgressView.setSettingsButton(createSettingsButton());
+
         // Card container
         VBox card = new VBox();
         card.setStyle(String.format(STYLE_CARD,
@@ -184,10 +194,73 @@ public final class MainView extends BorderPane {
         card.setMinHeight(340);
         card.getChildren().add(dailyProgressView);
 
-        // Wire edit button to switch to settings tab
-        dailyProgressView.setOnEdit(() -> tabPane.getSelectionModel().select(2));
-
         return card;
+    }
+
+    /**
+     * Creates a styled settings button with a gear icon.
+     * The button navigates to the Settings tab when clicked.
+     *
+     * @return the configured settings button
+     */
+    private Button createSettingsButton() {
+        // Create a clean outline-style gear icon using SVG
+        javafx.scene.shape.SVGPath icon = new javafx.scene.shape.SVGPath();
+        // Clean gear/cog icon path (outline style matching the reference)
+        icon.setContent("M12 15.5A3.5 3.5 0 0 1 8.5 12 3.5 3.5 0 0 1 12 8.5a3.5 3.5 0 0 1 3.5 3.5 "
+                + "3.5 3.5 0 0 1-3.5 3.5m7.43-2.53c.04-.32.07-.64.07-.97 0-.33-.03-.66-.07-1l2.11-1.63"
+                + "c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.31-.61-.22l-2.49 1c-.52-.39-1.06-.73"
+                + "-1.69-.98l-.37-2.65A.506.506 0 0 0 14 2h-4c-.25 0-.46.18-.5.42l-.37 2.65c-.63.25"
+                + "-1.17.59-1.69.98l-2.49-1c-.22-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64L4.57 11"
+                + "c-.04.34-.07.67-.07 1 0 .33.03.65.07.97l-2.11 1.66c-.19.15-.25.42-.12.64l2 3.46c.12"
+                + ".22.39.3.61.22l2.49-1.01c.52.4 1.06.74 1.69.99l.37 2.65c.04.24.25.42.5.42h4c.25 0 "
+                + ".46-.18.5-.42l.37-2.65c.63-.26 1.17-.59 1.69-.99l2.49 1.01c.22.08.49 0 .61-.22l2-3.46"
+                + "c.12-.22.07-.49-.12-.64l-2.11-1.66Z");
+        icon.setFill(javafx.scene.paint.Color.web(AppConstants.COLOR_ACCENT));
+        icon.setScaleX(0.7);
+        icon.setScaleY(0.7);
+
+        Button settingsButton = new Button();
+        settingsButton.setGraphic(icon);
+        settingsButton.setStyle("""
+                -fx-background-color: transparent;
+                -fx-cursor: hand;
+                -fx-padding: 2 6 2 6;
+                """);
+
+        // Add tooltip with warm colors matching the GUI design
+        javafx.scene.control.Tooltip tooltip = new javafx.scene.control.Tooltip("Open Settings");
+        tooltip.setStyle(String.format("""
+                -fx-font-family: 'Segoe UI', sans-serif;
+                -fx-font-size: 12px;
+                -fx-background-color: %s;
+                -fx-text-fill: %s;
+                -fx-background-radius: 6;
+                -fx-padding: 6 10 6 10;
+                -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 4, 0, 0, 1);
+                """, AppConstants.COLOR_CARD_BACKGROUND, AppConstants.COLOR_TEXT_PRIMARY));
+        settingsButton.setTooltip(tooltip);
+
+        settingsButton.setOnMouseEntered(e -> {
+            settingsButton.setStyle("""
+                    -fx-background-color: rgba(160, 82, 45, 0.10);
+                    -fx-background-radius: 6;
+                    -fx-cursor: hand;
+                    -fx-padding: 2 6 2 6;
+                    """);
+        });
+
+        settingsButton.setOnMouseExited(e -> {
+            settingsButton.setStyle("""
+                    -fx-background-color: transparent;
+                    -fx-cursor: hand;
+                    -fx-padding: 2 6 2 6;
+                    """);
+        });
+
+        settingsButton.setOnAction(e -> tabPane.getSelectionModel().select(2));
+
+        return settingsButton;
     }
 
     /**
