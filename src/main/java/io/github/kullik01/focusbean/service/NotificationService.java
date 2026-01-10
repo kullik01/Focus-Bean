@@ -305,7 +305,16 @@ public final class NotificationService {
             // Create a small icon (16x16 is standard for tray)
             BufferedImage image = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
             java.awt.Graphics2D g2d = image.createGraphics();
-            g2d.setColor(new java.awt.Color(0, 120, 212)); // Windows blue
+
+            // Enable anti-aliasing for smooth edges
+            g2d.setRenderingHint(
+                    java.awt.RenderingHints.KEY_ANTIALIASING,
+                    java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
+            g2d.setRenderingHint(
+                    java.awt.RenderingHints.KEY_RENDERING,
+                    java.awt.RenderingHints.VALUE_RENDER_QUALITY);
+
+            g2d.setColor(new java.awt.Color(160, 82, 45)); // Coffee brown (#A0522D)
             g2d.fillOval(2, 2, 12, 12);
             g2d.dispose();
 

@@ -29,6 +29,9 @@ tasks.withType<JavaCompile> {
 application {
     mainModule.set("io.github.kullik01.focusbean")
     mainClass.set("io.github.kullik01.focusbean.Launcher")
+    applicationDefaultJvmArgs = listOf(
+        "-Dapp.name=Focus Bean"
+    )
 }
 
 javafx {
@@ -63,5 +66,18 @@ jlink {
     launcher {
         name = "FocusBean"
         noConsole = true
+    }
+    
+    // Add jpackage configuration for native Windows installer
+    jpackage {
+        installerType = "exe"
+        installerName = "FocusBean-Setup"
+        appVersion = "1.0.0"
+        
+        installerOptions.addAll(listOf(
+            "--win-dir-chooser",
+            "--win-menu",
+            "--win-shortcut"
+        ))
     }
 }
