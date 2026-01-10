@@ -203,7 +203,10 @@ public final class CustomTitleBar extends HBox {
             closeButton.setStyle(STYLE_BUTTON_DEFAULT);
             closeIcon.setStroke(Color.web(AppConstants.COLOR_TEXT_PRIMARY));
         });
-        closeButton.setOnAction(e -> stage.close());
+        closeButton.setOnAction(e -> {
+            stage.getProperties().put("close_requested", true);
+            stage.close();
+        });
 
         return closeButton;
     }

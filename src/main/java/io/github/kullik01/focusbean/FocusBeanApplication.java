@@ -135,6 +135,16 @@ public final class FocusBeanApplication extends Application {
         primaryStage.setTitle(AppConstants.APP_NAME);
         primaryStage.setScene(scene);
         primaryStage.setResizable(false);
+        primaryStage.setAlwaysOnTop(true);
+
+        // Prevent closing unless explicitly requested via the close button
+        primaryStage.setOnCloseRequest(event -> {
+            Object closeRequested = primaryStage.getProperties().get("close_requested");
+            if (closeRequested == null || !Boolean.TRUE.equals(closeRequested)) {
+                LOGGER.info("Preventing close request (not explicit)");
+                event.consume();
+            }
+        });
 
         primaryStage.show();
         LOGGER.info("Application window displayed");
