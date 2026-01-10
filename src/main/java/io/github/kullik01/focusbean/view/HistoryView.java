@@ -53,30 +53,6 @@ public final class HistoryView extends VBox {
                         -fx-text-fill: %s;
                         """;
 
-        private static final String STYLE_CLEAR_BUTTON = """
-                        -fx-background-color: transparent;
-                        -fx-text-fill: #e74c3c;
-                        -fx-font-family: 'Segoe UI', 'Helvetica Neue', sans-serif;
-                        -fx-font-size: 12px;
-                        -fx-cursor: hand;
-                        -fx-padding: 4 8;
-                        -fx-border-color: #e74c3c;
-                        -fx-border-radius: 4;
-                        -fx-background-radius: 4;
-                        """;
-
-        private static final String STYLE_CLEAR_BUTTON_HOVER = """
-                        -fx-background-color: #e74c3c;
-                        -fx-text-fill: white;
-                        -fx-font-family: 'Segoe UI', 'Helvetica Neue', sans-serif;
-                        -fx-font-size: 12px;
-                        -fx-cursor: hand;
-                        -fx-padding: 4 8;
-                        -fx-border-color: #e74c3c;
-                        -fx-border-radius: 4;
-                        -fx-background-radius: 4;
-                        """;
-
         private final TableView<TimerSession> sessionTable;
         private final Label todayStatsLabel;
         private final Label weekStatsLabel;
@@ -122,16 +98,52 @@ public final class HistoryView extends VBox {
         }
 
         /**
-         * Creates and configures the clear history button.
+         * Creates and configures the clear history button as a recycle bin icon.
          *
          * @return the configured button
          */
         private Button createClearHistoryButton() {
-                Button button = new Button(AppConstants.LABEL_CLEAR_HISTORY);
-                button.setStyle(STYLE_CLEAR_BUTTON);
+                // Create a clean outline-style trash can icon using SVG
+                javafx.scene.shape.SVGPath icon = new javafx.scene.shape.SVGPath();
+                // Trash can icon path (outline style matching the settings gear)
+                icon.setContent("M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z");
+                icon.setFill(javafx.scene.paint.Color.web(AppConstants.COLOR_PROGRESS_ACTIVE));
+                icon.setScaleX(0.85);
+                icon.setScaleY(0.85);
 
-                button.setOnMouseEntered(e -> button.setStyle(STYLE_CLEAR_BUTTON_HOVER));
-                button.setOnMouseExited(e -> button.setStyle(STYLE_CLEAR_BUTTON));
+                Button button = new Button();
+                button.setGraphic(icon);
+                button.setStyle("""
+                                -fx-background-color: transparent;
+                                -fx-cursor: hand;
+                                -fx-padding: 2 6 2 6;
+                                """);
+
+                // Add tooltip with warm colors matching the GUI design
+                javafx.scene.control.Tooltip tooltip = new javafx.scene.control.Tooltip("Clear History");
+                tooltip.setStyle(String.format("""
+                                -fx-font-family: 'Segoe UI', sans-serif;
+                                -fx-font-size: 12px;
+                                -fx-background-color: %s;
+                                -fx-text-fill: %s;
+                                -fx-background-radius: 6;
+                                -fx-padding: 6 10 6 10;
+                                -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 4, 0, 0, 1);
+                                """, AppConstants.COLOR_CARD_BACKGROUND, AppConstants.COLOR_TEXT_PRIMARY));
+                button.setTooltip(tooltip);
+
+                button.setOnMouseEntered(e -> button.setStyle("""
+                                -fx-background-color: rgba(160, 82, 45, 0.10);
+                                -fx-background-radius: 6;
+                                -fx-cursor: hand;
+                                -fx-padding: 2 6 2 6;
+                                """));
+
+                button.setOnMouseExited(e -> button.setStyle("""
+                                -fx-background-color: transparent;
+                                -fx-cursor: hand;
+                                -fx-padding: 2 6 2 6;
+                                """));
 
                 button.setOnAction(e -> handleClearHistoryClick());
 

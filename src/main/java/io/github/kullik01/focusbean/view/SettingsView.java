@@ -135,14 +135,20 @@ public final class SettingsView extends VBox {
         }
         soundComboBox.setPrefWidth(180);
 
-        previewButton = new Button("▶");
-        previewButton.setStyle(String.format("""
+        // Create a clean play icon using SVG
+        javafx.scene.shape.SVGPath playIcon = new javafx.scene.shape.SVGPath();
+        playIcon.setContent("M8 5v14l11-7z");
+        playIcon.setFill(javafx.scene.paint.Color.web(AppConstants.COLOR_PROGRESS_ACTIVE));
+        playIcon.setScaleX(0.85);
+        playIcon.setScaleY(0.85);
+
+        previewButton = new Button();
+        previewButton.setGraphic(playIcon);
+        previewButton.setStyle("""
                 -fx-background-color: transparent;
                 -fx-cursor: hand;
-                -fx-font-size: 14px;
                 -fx-padding: 2 6 2 6;
-                -fx-text-fill: %s;
-                """, AppConstants.COLOR_PROGRESS_ACTIVE));
+                """);
 
         // Add tooltip with warm colors matching the GUI design
         Tooltip playTooltip = new Tooltip("Play");
@@ -157,22 +163,18 @@ public final class SettingsView extends VBox {
                 """, AppConstants.COLOR_CARD_BACKGROUND, AppConstants.COLOR_TEXT_PRIMARY));
         previewButton.setTooltip(playTooltip);
 
-        previewButton.setOnMouseEntered(e -> previewButton.setStyle(String.format("""
+        previewButton.setOnMouseEntered(e -> previewButton.setStyle("""
                 -fx-background-color: rgba(160, 82, 45, 0.10);
                 -fx-background-radius: 6;
                 -fx-cursor: hand;
-                -fx-font-size: 14px;
                 -fx-padding: 2 6 2 6;
-                -fx-text-fill: %s;
-                """, AppConstants.COLOR_PROGRESS_ACTIVE)));
+                """));
 
-        previewButton.setOnMouseExited(e -> previewButton.setStyle(String.format("""
+        previewButton.setOnMouseExited(e -> previewButton.setStyle("""
                 -fx-background-color: transparent;
                 -fx-cursor: hand;
-                -fx-font-size: 14px;
                 -fx-padding: 2 6 2 6;
-                -fx-text-fill: %s;
-                """, AppConstants.COLOR_PROGRESS_ACTIVE)));
+                """));
 
         previewButton.setOnAction(e -> previewCurrentSound());
 
