@@ -22,13 +22,13 @@ public final class UserSettings {
     public static final int MIN_DURATION_MINUTES = 1;
 
     /** Maximum allowed duration for work sessions (in minutes). */
-    public static final int MAX_WORK_DURATION_MINUTES = 120;
+    public static final int MAX_WORK_DURATION_MINUTES = 900;
 
     /** Maximum allowed duration for break sessions (in minutes). */
-    public static final int MAX_BREAK_DURATION_MINUTES = 60;
+    public static final int MAX_BREAK_DURATION_MINUTES = 900;
 
     /** Maximum allowed daily goal (in minutes). */
-    public static final int MAX_DAILY_GOAL_MINUTES = 480;
+    public static final int MAX_DAILY_GOAL_MINUTES = 900;
 
     /** Default work session duration (in minutes). */
     public static final int DEFAULT_WORK_DURATION_MINUTES = 25;

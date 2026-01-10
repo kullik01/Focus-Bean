@@ -19,6 +19,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 
 import java.io.File;
@@ -43,9 +44,9 @@ public final class SettingsDialog extends Dialog<UserSettings> {
             -fx-font-size: 14px;
             """;
 
-    private final Spinner<Integer> workSpinner;
-    private final Spinner<Integer> breakSpinner;
-    private final Spinner<Integer> dailyGoalSpinner;
+    private Spinner<Integer> workSpinner;
+    private Spinner<Integer> breakSpinner;
+    private Spinner<Integer> dailyGoalSpinner;
     private final CheckBox soundNotificationCheckbox;
     private final CheckBox popupNotificationCheckbox;
     private final ComboBox<NotificationSound> soundComboBox;
@@ -76,28 +77,25 @@ public final class SettingsDialog extends Dialog<UserSettings> {
 
         // Create spinners
         workSpinner = new Spinner<>();
-        workSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(
+        VBox workBox = createValidatedSpinner(
                 UserSettings.MIN_DURATION_MINUTES,
                 UserSettings.MAX_WORK_DURATION_MINUTES,
-                currentSettings.getWorkDurationMinutes()));
-        workSpinner.setEditable(true);
-        workSpinner.setPrefWidth(100);
+                currentSettings.getWorkDurationMinutes(),
+                workSpinner);
 
         breakSpinner = new Spinner<>();
-        breakSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(
+        VBox breakBox = createValidatedSpinner(
                 UserSettings.MIN_DURATION_MINUTES,
                 UserSettings.MAX_BREAK_DURATION_MINUTES,
-                currentSettings.getBreakDurationMinutes()));
-        breakSpinner.setEditable(true);
-        breakSpinner.setPrefWidth(100);
+                currentSettings.getBreakDurationMinutes(),
+                breakSpinner);
 
         dailyGoalSpinner = new Spinner<>();
-        dailyGoalSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(
+        VBox dailyGoalBox = createValidatedSpinner(
                 UserSettings.MIN_DURATION_MINUTES,
                 UserSettings.MAX_DAILY_GOAL_MINUTES,
-                currentSettings.getDailyGoalMinutes()));
-        dailyGoalSpinner.setEditable(true);
-        dailyGoalSpinner.setPrefWidth(100);
+                currentSettings.getDailyGoalMinutes(),
+                dailyGoalSpinner);
 
         // Create labels
         Label workLabel = new Label("Work Duration (minutes):");
@@ -250,11 +248,11 @@ public final class SettingsDialog extends Dialog<UserSettings> {
         int row = 0;
         grid.add(new Label("Timer Settings"), 0, row++, 2, 1);
         grid.add(workLabel, 0, row);
-        grid.add(workSpinner, 1, row++);
+        grid.add(workBox, 1, row++);
         grid.add(breakLabel, 0, row);
-        grid.add(breakSpinner, 1, row++);
+        grid.add(breakBox, 1, row++);
         grid.add(dailyGoalLabel, 0, row);
-        grid.add(dailyGoalSpinner, 1, row++);
+        grid.add(dailyGoalBox, 1, row++);
 
         grid.add(new Label(""), 0, row++); // Spacer
 
@@ -394,5 +392,83 @@ public final class SettingsDialog extends Dialog<UserSettings> {
      */
     public ComboBox<NotificationSound> getSoundComboBox() {
         return soundComboBox;
+    }
+
+    /**
+     * Creates a styled integer spinner with numeric-only input restriction and
+     * visual validation.
+     *
+     * @param min        minimum value
+     * @param logicalMax the logical maximum value for validation (e.g., 900)
+     * @param initial    initial value
+     * @param spinner    the spinner to configure (must be non-null)
+     * @return the container holding the spinner and error message
+     */
+    private javafx.scene.layout.VBox createValidatedSpinner(int min, int logicalMax, int initial,
+            Spinner<Integer> spinner) {
+        // Allow typing larger values to show validation error
+        int technicalMax = 10000;
+        spinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(min, technicalMax, initial));
+        spinner.setEditable(true);
+        spinner.setPrefWidth(100);
+
+        // Error label - ensure it wraps and fits
+        Label errorLabel = new Label("Value cannot exceed " + logicalMax + " minutes!");
+        errorLabel.setStyle("-fx-text-fill: red; -fx-font-size: 10px;");
+        errorLabel.setWrapText(true);
+        errorLabel.setPrefWidth(150); // Give it enough width to wrap if needed
+        errorLabel.setVisible(false);
+        errorLabel.setManaged(false);
+
+        // Container
+        javafx.scene.layout.VBox container = new javafx.scene.layout.VBox(2, errorLabel, spinner);
+        container.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+
+        // Restrict input to numbers only
+        javafx.scene.control.TextFormatter<Integer> formatter = new javafx.scene.control.TextFormatter<>(
+                new javafx.util.converter.IntegerStringConverter(),
+                initial,
+                c -> {
+                    if (c.getControlNewText().matches("\\d*")) {
+                        return c;
+                    }
+                    return null;
+                });
+        spinner.getEditor().setTextFormatter(formatter);
+        spinner.getValueFactory().valueProperty().bindBidirectional(formatter.valueProperty());
+
+        // Synchronous Validation listener on text property
+        spinner.getEditor().textProperty().addListener((obs, oldVal, newVal) -> {
+            boolean isInvalid = false;
+            if (newVal != null && !newVal.isEmpty()) {
+                try {
+                    int val = Integer.parseInt(newVal);
+                    if (val > logicalMax) {
+                        isInvalid = true;
+                    }
+                } catch (NumberFormatException e) {
+                    // Ignore parsing errors, cleaner handles non-digits
+                }
+            }
+
+            if (isInvalid) {
+                spinner.setStyle("-fx-border-color: red; -fx-border-radius: 3;");
+                errorLabel.setVisible(true);
+                errorLabel.setManaged(true);
+            } else {
+                spinner.setStyle("");
+                errorLabel.setVisible(false);
+                errorLabel.setManaged(false);
+            }
+        });
+
+        // Trigger initial validation
+        if (initial > logicalMax) {
+            spinner.setStyle("-fx-border-color: red; -fx-border-radius: 3;");
+            errorLabel.setVisible(true);
+            errorLabel.setManaged(true);
+        }
+
+        return container;
     }
 }

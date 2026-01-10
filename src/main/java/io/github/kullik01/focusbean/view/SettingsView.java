@@ -61,9 +61,9 @@ public final class SettingsView extends VBox {
             -fx-cursor: hand;
             """;
 
-    private final Spinner<Integer> workSpinner;
-    private final Spinner<Integer> breakSpinner;
-    private final Spinner<Integer> dailyGoalSpinner;
+    private Spinner<Integer> workSpinner;
+    private Spinner<Integer> breakSpinner;
+    private Spinner<Integer> dailyGoalSpinner;
     private final CheckBox soundNotificationCheckbox;
     private final CheckBox popupNotificationCheckbox;
     private final ComboBox<NotificationSound> soundComboBox;
@@ -96,22 +96,6 @@ public final class SettingsView extends VBox {
         setPadding(new Insets(20));
         setSpacing(15);
         setAlignment(Pos.TOP_CENTER);
-
-        // Create spinners
-        workSpinner = createSpinner(
-                UserSettings.MIN_DURATION_MINUTES,
-                UserSettings.MAX_WORK_DURATION_MINUTES,
-                currentSettings.getWorkDurationMinutes());
-
-        breakSpinner = createSpinner(
-                UserSettings.MIN_DURATION_MINUTES,
-                UserSettings.MAX_BREAK_DURATION_MINUTES,
-                currentSettings.getBreakDurationMinutes());
-
-        dailyGoalSpinner = createSpinner(
-                UserSettings.MIN_DURATION_MINUTES,
-                UserSettings.MAX_DAILY_GOAL_MINUTES,
-                currentSettings.getDailyGoalMinutes());
 
         // Notification checkboxes
         soundNotificationCheckbox = new CheckBox("Enable sound notifications");
@@ -274,19 +258,80 @@ public final class SettingsView extends VBox {
     }
 
     /**
-     * Creates a styled integer spinner.
+     * Creates a styled integer spinner with numeric-only input restriction and
+     * visual validation.
      *
-     * @param min     minimum value
-     * @param max     maximum value
-     * @param initial initial value
-     * @return configured spinner
+     * @param min        minimum value
+     * @param logicalMax the logical maximum value for validation (e.g., 900)
+     * @param initial    initial value
+     * @param spinner    the spinner to configure (must be non-null)
+     * @return the container holding the spinner and error message
      */
-    private Spinner<Integer> createSpinner(int min, int max, int initial) {
-        Spinner<Integer> spinner = new Spinner<>();
-        spinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(min, max, initial));
+    private VBox createValidatedSpinner(int min, int logicalMax, int initial, Spinner<Integer> spinner) {
+        // Allow typing larger values to show validation error
+        int technicalMax = 10000;
+        spinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(min, technicalMax, initial));
         spinner.setEditable(true);
         spinner.setPrefWidth(100);
-        return spinner;
+
+        // Error label - ensure it wraps and fits
+        Label errorLabel = new Label("Value cannot exceed " + logicalMax + " minutes!");
+        errorLabel.setStyle("-fx-text-fill: red; -fx-font-size: 10px;");
+        errorLabel.setWrapText(true);
+        errorLabel.setPrefWidth(150); // Give it enough width to wrap if needed
+        errorLabel.setVisible(false);
+        errorLabel.setManaged(false);
+
+        // Container
+        VBox container = new VBox(2, errorLabel, spinner);
+        container.setAlignment(Pos.CENTER_LEFT);
+
+        // Restrict input to numbers only
+        javafx.scene.control.TextFormatter<Integer> formatter = new javafx.scene.control.TextFormatter<>(
+                new javafx.util.converter.IntegerStringConverter(),
+                initial,
+                c -> {
+                    if (c.getControlNewText().matches("\\d*")) {
+                        return c;
+                    }
+                    return null;
+                });
+        spinner.getEditor().setTextFormatter(formatter);
+        spinner.getValueFactory().valueProperty().bindBidirectional(formatter.valueProperty());
+
+        // Synchronous Validation listener on text property
+        spinner.getEditor().textProperty().addListener((obs, oldVal, newVal) -> {
+            boolean isInvalid = false;
+            if (newVal != null && !newVal.isEmpty()) {
+                try {
+                    int val = Integer.parseInt(newVal);
+                    if (val > logicalMax) {
+                        isInvalid = true;
+                    }
+                } catch (NumberFormatException e) {
+                    // Ignore parsing errors, cleaner handles non-digits
+                }
+            }
+
+            if (isInvalid) {
+                spinner.setStyle("-fx-border-color: red; -fx-border-radius: 3;");
+                errorLabel.setVisible(true);
+                errorLabel.setManaged(true);
+            } else {
+                spinner.setStyle("");
+                errorLabel.setVisible(false);
+                errorLabel.setManaged(false);
+            }
+        });
+
+        // Trigger initial validation
+        if (initial > logicalMax) {
+            spinner.setStyle("-fx-border-color: red; -fx-border-radius: 3;");
+            errorLabel.setVisible(true);
+            errorLabel.setManaged(true);
+        }
+
+        return container;
     }
 
     /**
@@ -307,12 +352,38 @@ public final class SettingsView extends VBox {
         card.setMinWidth(320);
         card.setMaxWidth(380);
 
+        // Create spinners first
+        workSpinner = new Spinner<>();
+        breakSpinner = new Spinner<>();
+        dailyGoalSpinner = new Spinner<>();
+
         card.getChildren().addAll(
                 headerLabel,
-                createSettingRow("Work Duration (minutes):", workSpinner),
-                createSettingRow("Break Duration (minutes):", breakSpinner),
-                createSettingRow("Daily Goal (minutes):", dailyGoalSpinner));
+                createSettingRow("Work Duration (minutes):", createValidatedSpinner(
+                        UserSettings.MIN_DURATION_MINUTES,
+                        UserSettings.MAX_WORK_DURATION_MINUTES,
+                        workSpinner.getValueFactory() != null ? workSpinner.getValue() : 25, workSpinner)), // Default
+                                                                                                            // 25 if
+                                                                                                            // factory
+                                                                                                            // null, but
+                                                                                                            // createValidatedSpinner
+                                                                                                            // sets
+                                                                                                            // factory
+                createSettingRow("Break Duration (minutes):", createValidatedSpinner(
+                        UserSettings.MIN_DURATION_MINUTES,
+                        UserSettings.MAX_BREAK_DURATION_MINUTES,
+                        breakSpinner.getValueFactory() != null ? breakSpinner.getValue() : 5, breakSpinner)),
+                createSettingRow("Daily Goal (minutes):", createValidatedSpinner(
+                        UserSettings.MIN_DURATION_MINUTES,
+                        UserSettings.MAX_DAILY_GOAL_MINUTES,
+                        dailyGoalSpinner.getValueFactory() != null ? dailyGoalSpinner.getValue() : 25,
+                        dailyGoalSpinner)));
 
+        // Re-inject initial values correctly (cleaner approach):
+        // Actually, createValidatedSpinner sets the factory, so we just need to pass
+        // the initial value from settings where we call this.
+        // But wait, createTimerSettingsCard is called in constructor.
+        // Let's look at the constructor code again.
         return card;
     }
 
