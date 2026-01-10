@@ -11,8 +11,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.Spinner;
-import javafx.scene.control.SpinnerValueFactory;
+
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
@@ -61,9 +60,9 @@ public final class SettingsView extends VBox {
             -fx-cursor: hand;
             """;
 
-    private Spinner<Integer> workSpinner;
-    private Spinner<Integer> breakSpinner;
-    private Spinner<Integer> dailyGoalSpinner;
+    private TextField workField;
+    private TextField breakField;
+    private TextField dailyGoalField;
     private final CheckBox soundNotificationCheckbox;
     private final CheckBox popupNotificationCheckbox;
     private final ComboBox<NotificationSound> soundComboBox;
@@ -258,21 +257,18 @@ public final class SettingsView extends VBox {
     }
 
     /**
-     * Creates a styled integer spinner with numeric-only input restriction and
+     * Creates a styled text field with numeric-only input restriction and
      * visual validation.
      *
      * @param min        minimum value
      * @param logicalMax the logical maximum value for validation (e.g., 900)
      * @param initial    initial value
-     * @param spinner    the spinner to configure (must be non-null)
-     * @return the container holding the spinner and error message
+     * @param textField  the text field to configure (must be non-null)
+     * @return the container holding the text field and error message
      */
-    private VBox createValidatedSpinner(int min, int logicalMax, int initial, Spinner<Integer> spinner) {
-        // Allow typing larger values to show validation error
-        int technicalMax = 10000;
-        spinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(min, technicalMax, initial));
-        spinner.setEditable(true);
-        spinner.setPrefWidth(100);
+    private VBox createValidatedTextField(int min, int logicalMax, int initial, TextField textField) {
+        textField.setText(String.valueOf(initial));
+        textField.setPrefWidth(100);
 
         // Error label - ensure it wraps and fits
         Label errorLabel = new Label("Value cannot exceed " + logicalMax + " minutes!");
@@ -283,7 +279,7 @@ public final class SettingsView extends VBox {
         errorLabel.setManaged(false);
 
         // Container
-        VBox container = new VBox(2, errorLabel, spinner);
+        VBox container = new VBox(2, errorLabel, textField);
         container.setAlignment(Pos.CENTER_LEFT);
 
         // Restrict input to numbers only
@@ -296,11 +292,10 @@ public final class SettingsView extends VBox {
                     }
                     return null;
                 });
-        spinner.getEditor().setTextFormatter(formatter);
-        spinner.getValueFactory().valueProperty().bindBidirectional(formatter.valueProperty());
+        textField.setTextFormatter(formatter);
 
         // Synchronous Validation listener on text property
-        spinner.getEditor().textProperty().addListener((obs, oldVal, newVal) -> {
+        textField.textProperty().addListener((obs, oldVal, newVal) -> {
             boolean isInvalid = false;
             if (newVal != null && !newVal.isEmpty()) {
                 try {
@@ -314,11 +309,11 @@ public final class SettingsView extends VBox {
             }
 
             if (isInvalid) {
-                spinner.setStyle("-fx-border-color: red; -fx-border-radius: 3;");
+                textField.setStyle("-fx-border-color: red; -fx-border-radius: 3;");
                 errorLabel.setVisible(true);
                 errorLabel.setManaged(true);
             } else {
-                spinner.setStyle("");
+                textField.setStyle("");
                 errorLabel.setVisible(false);
                 errorLabel.setManaged(false);
             }
@@ -326,7 +321,7 @@ public final class SettingsView extends VBox {
 
         // Trigger initial validation
         if (initial > logicalMax) {
-            spinner.setStyle("-fx-border-color: red; -fx-border-radius: 3;");
+            textField.setStyle("-fx-border-color: red; -fx-border-radius: 3;");
             errorLabel.setVisible(true);
             errorLabel.setManaged(true);
         }
@@ -352,38 +347,26 @@ public final class SettingsView extends VBox {
         card.setMinWidth(320);
         card.setMaxWidth(380);
 
-        // Create spinners first
-        workSpinner = new Spinner<>();
-        breakSpinner = new Spinner<>();
-        dailyGoalSpinner = new Spinner<>();
+        // Create text fields first
+        workField = new TextField();
+        breakField = new TextField();
+        dailyGoalField = new TextField();
 
         card.getChildren().addAll(
                 headerLabel,
-                createSettingRow("Work Duration (minutes):", createValidatedSpinner(
+                createSettingRow("Work Duration (minutes):", createValidatedTextField(
                         UserSettings.MIN_DURATION_MINUTES,
                         UserSettings.MAX_WORK_DURATION_MINUTES,
-                        workSpinner.getValueFactory() != null ? workSpinner.getValue() : 25, workSpinner)), // Default
-                                                                                                            // 25 if
-                                                                                                            // factory
-                                                                                                            // null, but
-                                                                                                            // createValidatedSpinner
-                                                                                                            // sets
-                                                                                                            // factory
-                createSettingRow("Break Duration (minutes):", createValidatedSpinner(
+                        25, workField)), // Default 25
+                createSettingRow("Break Duration (minutes):", createValidatedTextField(
                         UserSettings.MIN_DURATION_MINUTES,
                         UserSettings.MAX_BREAK_DURATION_MINUTES,
-                        breakSpinner.getValueFactory() != null ? breakSpinner.getValue() : 5, breakSpinner)),
-                createSettingRow("Daily Goal (minutes):", createValidatedSpinner(
+                        5, breakField)), // Default 5
+                createSettingRow("Daily Goal (minutes):", createValidatedTextField(
                         UserSettings.MIN_DURATION_MINUTES,
                         UserSettings.MAX_DAILY_GOAL_MINUTES,
-                        dailyGoalSpinner.getValueFactory() != null ? dailyGoalSpinner.getValue() : 25,
-                        dailyGoalSpinner)));
+                        25, dailyGoalField))); // Default 25
 
-        // Re-inject initial values correctly (cleaner approach):
-        // Actually, createValidatedSpinner sets the factory, so we just need to pass
-        // the initial value from settings where we call this.
-        // But wait, createTimerSettingsCard is called in constructor.
-        // Let's look at the constructor code again.
         return card;
     }
 
@@ -508,9 +491,9 @@ public final class SettingsView extends VBox {
     public void update(UserSettings settings) {
         Objects.requireNonNull(settings, "settings must not be null");
 
-        workSpinner.getValueFactory().setValue(settings.getWorkDurationMinutes());
-        breakSpinner.getValueFactory().setValue(settings.getBreakDurationMinutes());
-        dailyGoalSpinner.getValueFactory().setValue(settings.getDailyGoalMinutes());
+        workField.setText(String.valueOf(settings.getWorkDurationMinutes()));
+        breakField.setText(String.valueOf(settings.getBreakDurationMinutes()));
+        dailyGoalField.setText(String.valueOf(settings.getDailyGoalMinutes()));
         soundNotificationCheckbox.setSelected(settings.isSoundNotificationEnabled());
         popupNotificationCheckbox.setSelected(settings.isPopupNotificationEnabled());
         soundComboBox.setValue(settings.getNotificationSound());
@@ -529,9 +512,9 @@ public final class SettingsView extends VBox {
      */
     public UserSettings getCurrentSettings() {
         return new UserSettings(
-                workSpinner.getValue(),
-                breakSpinner.getValue(),
-                dailyGoalSpinner.getValue(),
+                Integer.parseInt(workField.getText()),
+                Integer.parseInt(breakField.getText()),
+                Integer.parseInt(dailyGoalField.getText()),
                 soundNotificationCheckbox.isSelected(),
                 popupNotificationCheckbox.isSelected(),
                 soundComboBox.getValue(),
@@ -548,30 +531,30 @@ public final class SettingsView extends VBox {
     }
 
     /**
-     * Returns the work duration spinner for testing purposes.
+     * Returns the work duration text field for testing purposes.
      *
-     * @return the work duration spinner
+     * @return the work duration text field
      */
-    public Spinner<Integer> getWorkSpinner() {
-        return workSpinner;
+    public TextField getWorkField() {
+        return workField;
     }
 
     /**
-     * Returns the break duration spinner for testing purposes.
+     * Returns the break duration text field for testing purposes.
      *
-     * @return the break duration spinner
+     * @return the break duration text field
      */
-    public Spinner<Integer> getBreakSpinner() {
-        return breakSpinner;
+    public TextField getBreakField() {
+        return breakField;
     }
 
     /**
-     * Returns the daily goal spinner for testing purposes.
+     * Returns the daily goal text field for testing purposes.
      *
-     * @return the daily goal spinner
+     * @return the daily goal text field
      */
-    public Spinner<Integer> getDailyGoalSpinner() {
-        return dailyGoalSpinner;
+    public TextField getDailyGoalField() {
+        return dailyGoalField;
     }
 
     /**

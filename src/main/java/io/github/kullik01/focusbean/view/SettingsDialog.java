@@ -13,8 +13,7 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
-import javafx.scene.control.Spinner;
-import javafx.scene.control.SpinnerValueFactory;
+
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.GridPane;
@@ -44,9 +43,9 @@ public final class SettingsDialog extends Dialog<UserSettings> {
             -fx-font-size: 14px;
             """;
 
-    private Spinner<Integer> workSpinner;
-    private Spinner<Integer> breakSpinner;
-    private Spinner<Integer> dailyGoalSpinner;
+    private TextField workField;
+    private TextField breakField;
+    private TextField dailyGoalField;
     private final CheckBox soundNotificationCheckbox;
     private final CheckBox popupNotificationCheckbox;
     private final ComboBox<NotificationSound> soundComboBox;
@@ -75,27 +74,27 @@ public final class SettingsDialog extends Dialog<UserSettings> {
         setTitle(AppConstants.LABEL_SETTINGS);
         setHeaderText("Configure Timer Settings");
 
-        // Create spinners
-        workSpinner = new Spinner<>();
-        VBox workBox = createValidatedSpinner(
+        // Create text fields
+        workField = new TextField();
+        VBox workBox = createValidatedTextField(
                 UserSettings.MIN_DURATION_MINUTES,
                 UserSettings.MAX_WORK_DURATION_MINUTES,
                 currentSettings.getWorkDurationMinutes(),
-                workSpinner);
+                workField);
 
-        breakSpinner = new Spinner<>();
-        VBox breakBox = createValidatedSpinner(
+        breakField = new TextField();
+        VBox breakBox = createValidatedTextField(
                 UserSettings.MIN_DURATION_MINUTES,
                 UserSettings.MAX_BREAK_DURATION_MINUTES,
                 currentSettings.getBreakDurationMinutes(),
-                breakSpinner);
+                breakField);
 
-        dailyGoalSpinner = new Spinner<>();
-        VBox dailyGoalBox = createValidatedSpinner(
+        dailyGoalField = new TextField();
+        VBox dailyGoalBox = createValidatedTextField(
                 UserSettings.MIN_DURATION_MINUTES,
                 UserSettings.MAX_DAILY_GOAL_MINUTES,
                 currentSettings.getDailyGoalMinutes(),
-                dailyGoalSpinner);
+                dailyGoalField);
 
         // Create labels
         Label workLabel = new Label("Work Duration (minutes):");
@@ -278,9 +277,9 @@ public final class SettingsDialog extends Dialog<UserSettings> {
             }
             if (buttonType == saveButtonType) {
                 return new UserSettings(
-                        workSpinner.getValue(),
-                        breakSpinner.getValue(),
-                        dailyGoalSpinner.getValue(),
+                        Integer.parseInt(workField.getText()),
+                        Integer.parseInt(breakField.getText()),
+                        Integer.parseInt(dailyGoalField.getText()),
                         soundNotificationCheckbox.isSelected(),
                         popupNotificationCheckbox.isSelected(),
                         soundComboBox.getValue(),
@@ -370,30 +369,30 @@ public final class SettingsDialog extends Dialog<UserSettings> {
     }
 
     /**
-     * Returns the work duration spinner for testing purposes.
+     * Returns the work duration text field for testing purposes.
      *
-     * @return the work duration spinner
+     * @return the work duration text field
      */
-    public Spinner<Integer> getWorkSpinner() {
-        return workSpinner;
+    public TextField getWorkField() {
+        return workField;
     }
 
     /**
-     * Returns the break duration spinner for testing purposes.
+     * Returns the break duration text field for testing purposes.
      *
-     * @return the break duration spinner
+     * @return the break duration text field
      */
-    public Spinner<Integer> getBreakSpinner() {
-        return breakSpinner;
+    public TextField getBreakField() {
+        return breakField;
     }
 
     /**
-     * Returns the daily goal spinner for testing purposes.
+     * Returns the daily goal text field for testing purposes.
      *
-     * @return the daily goal spinner
+     * @return the daily goal text field
      */
-    public Spinner<Integer> getDailyGoalSpinner() {
-        return dailyGoalSpinner;
+    public TextField getDailyGoalField() {
+        return dailyGoalField;
     }
 
     /**
@@ -424,22 +423,19 @@ public final class SettingsDialog extends Dialog<UserSettings> {
     }
 
     /**
-     * Creates a styled integer spinner with numeric-only input restriction and
+     * Creates a styled text field with numeric-only input restriction and
      * visual validation.
      *
      * @param min        minimum value
      * @param logicalMax the logical maximum value for validation (e.g., 900)
      * @param initial    initial value
-     * @param spinner    the spinner to configure (must be non-null)
-     * @return the container holding the spinner and error message
+     * @param textField  the text field to configure (must be non-null)
+     * @return the container holding the text field and error message
      */
-    private javafx.scene.layout.VBox createValidatedSpinner(int min, int logicalMax, int initial,
-            Spinner<Integer> spinner) {
-        // Allow typing larger values to show validation error
-        int technicalMax = 10000;
-        spinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(min, technicalMax, initial));
-        spinner.setEditable(true);
-        spinner.setPrefWidth(100);
+    private javafx.scene.layout.VBox createValidatedTextField(int min, int logicalMax, int initial,
+            TextField textField) {
+        textField.setText(String.valueOf(initial));
+        textField.setPrefWidth(100);
 
         // Error label - ensure it wraps and fits
         Label errorLabel = new Label("Value cannot exceed " + logicalMax + " minutes!");
@@ -450,7 +446,7 @@ public final class SettingsDialog extends Dialog<UserSettings> {
         errorLabel.setManaged(false);
 
         // Container
-        javafx.scene.layout.VBox container = new javafx.scene.layout.VBox(2, errorLabel, spinner);
+        javafx.scene.layout.VBox container = new javafx.scene.layout.VBox(2, errorLabel, textField);
         container.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
 
         // Restrict input to numbers only
@@ -463,11 +459,10 @@ public final class SettingsDialog extends Dialog<UserSettings> {
                     }
                     return null;
                 });
-        spinner.getEditor().setTextFormatter(formatter);
-        spinner.getValueFactory().valueProperty().bindBidirectional(formatter.valueProperty());
+        textField.setTextFormatter(formatter);
 
         // Synchronous Validation listener on text property
-        spinner.getEditor().textProperty().addListener((obs, oldVal, newVal) -> {
+        textField.textProperty().addListener((obs, oldVal, newVal) -> {
             boolean isInvalid = false;
             if (newVal != null && !newVal.isEmpty()) {
                 try {
@@ -481,11 +476,11 @@ public final class SettingsDialog extends Dialog<UserSettings> {
             }
 
             if (isInvalid) {
-                spinner.setStyle("-fx-border-color: red; -fx-border-radius: 3;");
+                textField.setStyle("-fx-border-color: red; -fx-border-radius: 3;");
                 errorLabel.setVisible(true);
                 errorLabel.setManaged(true);
             } else {
-                spinner.setStyle("");
+                textField.setStyle("");
                 errorLabel.setVisible(false);
                 errorLabel.setManaged(false);
             }
@@ -493,7 +488,7 @@ public final class SettingsDialog extends Dialog<UserSettings> {
 
         // Trigger initial validation
         if (initial > logicalMax) {
-            spinner.setStyle("-fx-border-color: red; -fx-border-radius: 3;");
+            textField.setStyle("-fx-border-color: red; -fx-border-radius: 3;");
             errorLabel.setVisible(true);
             errorLabel.setManaged(true);
         }
