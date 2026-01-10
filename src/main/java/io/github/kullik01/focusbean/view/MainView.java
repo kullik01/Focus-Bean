@@ -142,6 +142,9 @@ public final class MainView extends BorderPane {
 
         // Initialize daily progress
         updateDailyProgress();
+
+        // Load CSS styles
+        getStylesheets().add(getClass().getResource("styles.css").toExternalForm());
     }
 
     /**

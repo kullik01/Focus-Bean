@@ -1,0 +1,249 @@
+/* Global Overrides */
+.root {
+    /* Define the main accent color (Coffee Brown) */
+    -fx-accent: #A0522D;
+    /* Remove default blue focus rings */
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+    /* Match window background base */
+    -fx-base: #F5F2EF;
+    /* Ensure selection color matches accent */
+    -fx-selection-bar: #A0522D;
+    -fx-selection-bar-non-focused: #D7B49E;
+}
+
+/* =========================================================================
+   TabPane Styling
+   ========================================================================= */
+.tab-pane .tab-header-area .tab-header-background {
+    -fx-background-color: transparent;
+}
+
+.tab-pane {
+    -fx-tab-min-width: 80px;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.tab {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-background-radius: 4;
+    -fx-border-width: 0 0 2 0;
+    -fx-border-color: transparent;
+    -fx-padding: 8 16;
+}
+
+.tab:hover {
+    -fx-background-color: rgba(160, 82, 45, 0.1);
+    -fx-cursor: hand;
+}
+
+.tab:selected {
+    -fx-background-color: transparent;
+    -fx-border-color: #A0522D;
+    -fx-border-width: 0 0 2 0;
+}
+
+.tab:focused {
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+}
+
+/* Specific override for the internal focus indicator which causes the blue ring */
+.tab-pane:focused>.tab-header-area>.headers-region>.tab:selected .focus-indicator {
+    -fx-border-style: none;
+    -fx-border-width: 0;
+    -fx-border-color: transparent;
+}
+
+.tab:focused .tab-label {
+    -fx-effect: null;
+}
+
+.tab .tab-label {
+    -fx-text-fill: #636e72;
+    -fx-font-family: 'Segoe UI', 'Helvetica Neue', sans-serif;
+    -fx-font-size: 14px;
+    -fx-alignment: CENTER;
+}
+
+.tab:selected .tab-label {
+    -fx-text-fill: #A0522D;
+    -fx-font-weight: bold;
+}
+
+.tab:hover .tab-label {
+    -fx-text-fill: #5D4037;
+}
+
+/* =========================================================================
+   Text Input (TextField, TextArea, Spinner Editor)
+   ========================================================================= */
+.text-input {
+    -fx-highlight-fill: #A0522D;
+    -fx-highlight-text-fill: white;
+    -fx-border-color: #C19A6B;
+    /* Warm Camel Brown */
+    -fx-border-radius: 3;
+    -fx-background-insets: 0;
+}
+
+.text-input:focused {
+    -fx-border-color: #A0522D;
+    -fx-border-width: 1;
+    -fx-border-radius: 3;
+    -fx-background-insets: 0;
+}
+
+/* =========================================================================
+   Spinner
+   ========================================================================= */
+.spinner {
+    -fx-border-color: #C19A6B;
+    /* Warm Camel Brown */
+    -fx-border-radius: 3;
+    -fx-background-insets: 0;
+}
+
+.spinner:focused,
+.spinner:contains-focus {
+    -fx-border-color: #A0522D;
+    -fx-effect: dropshadow(gaussian, rgba(160, 82, 45, 0.2), 4, 0, 0, 1);
+}
+
+.spinner .increment-arrow-button,
+.spinner .decrement-arrow-button {
+    -fx-background-color: transparent;
+}
+
+.spinner .increment-arrow-button:hover,
+.spinner .decrement-arrow-button:hover {
+    -fx-background-color: rgba(160, 82, 45, 0.1);
+}
+
+.spinner .increment-arrow,
+.spinner .decrement-arrow {
+    -fx-background-color: #8B5A2B;
+}
+
+.spinner .increment-arrow-button:hover .increment-arrow,
+.spinner .decrement-arrow-button:hover .decrement-arrow {
+    -fx-background-color: #A0522D;
+}
+
+/* =========================================================================
+   CheckBox
+   ========================================================================= */
+.check-box .box {
+    -fx-background-color: white;
+    -fx-border-color: #C19A6B;
+    -fx-border-radius: 3;
+}
+
+.check-box:selected .box {
+    -fx-background-color: #A0522D;
+    -fx-border-color: #A0522D;
+}
+
+.check-box:focused .box {
+    -fx-effect: dropshadow(gaussian, rgba(160, 82, 45, 0.3), 4, 0, 0, 1);
+}
+
+.check-box .mark {
+    -fx-background-color: white;
+    -fx-shape: "M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z";
+}
+
+/* =========================================================================
+   ComboBox
+   ========================================================================= */
+.combo-box-base {
+    -fx-background-color: white;
+    -fx-border-color: #C19A6B;
+    -fx-border-radius: 4;
+}
+
+.combo-box-base:focused {
+    -fx-border-color: #A0522D;
+    -fx-effect: dropshadow(gaussian, rgba(160, 82, 45, 0.2), 4, 0, 0, 1);
+}
+
+/* Dropdown list items */
+.combo-box-popup .list-cell:filled:selected,
+.combo-box-popup .list-cell:filled:hover {
+    -fx-background-color: #A0522D;
+    -fx-text-fill: white;
+}
+
+/* =========================================================================
+   TableView
+   ========================================================================= */
+.table-view {
+    -fx-background-color: transparent;
+    -fx-border-color: #C19A6B;
+    /* Warm Camel Brown */
+    -fx-border-radius: 4;
+}
+
+.table-view:focused {
+    -fx-background-color: transparent;
+    -fx-border-color: #A0522D;
+    -fx-background-insets: 0;
+}
+
+/* Header Background - Lighter as requested (#EAE0D5 - Almond/Bone/Light Coffee) */
+.table-view .column-header-background {
+    -fx-background-color: #EAE0D5;
+    -fx-background-radius: 4 4 0 0;
+}
+
+/* Ensure filler matches the lighter header background */
+.table-view .column-header-background .filler {
+    -fx-background-color: #EAE0D5;
+}
+
+.table-view .column-header {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent #C19A6B transparent transparent;
+    /* Lighter separator */
+}
+
+.table-view .column-header .label {
+    -fx-text-fill: #5D4037;
+    /* Dark Brown for readability */
+    -fx-font-weight: bold;
+}
+
+.table-view .table-cell {
+    -fx-border-color: transparent;
+}
+
+/* Selected row styling */
+.table-row-cell:filled:selected {
+    -fx-background-color: rgba(160, 82, 45, 0.15);
+    -fx-background-insets: 0;
+}
+
+.table-row-cell:filled:selected .table-cell {
+    -fx-text-fill: #2d3436;
+    /* Keep text dark for readability */
+}
+
+.table-row-cell:filled:hover {
+    -fx-background-color: rgba(160, 82, 45, 0.05);
+}
+
+/* Empty table placeholder */
+.table-view .placeholder .label {
+    -fx-text-fill: #636e72;
+}
+
+/* =========================================================================
+   Button
+   ========================================================================= */
+.button:focused {
+    -fx-effect: dropshadow(gaussian, rgba(160, 82, 45, 0.4), 5, 0, 0, 1);
+}

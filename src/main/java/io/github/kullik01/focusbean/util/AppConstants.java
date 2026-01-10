@@ -91,8 +91,8 @@ public final class AppConstants {
     // Color Scheme (CSS Color Values)
     // =========================================================================
 
-    /** Background color for work state (soft blue). */
-    public static final String COLOR_WORK_BACKGROUND = "#74b9ff";
+    /** Background color for work state (warm caramel). */
+    public static final String COLOR_WORK_BACKGROUND = "#E6A779";
 
     /** Background color for break state (soft green). */
     public static final String COLOR_BREAK_BACKGROUND = "#55efc4";
