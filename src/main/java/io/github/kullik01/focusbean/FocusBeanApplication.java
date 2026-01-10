@@ -91,8 +91,7 @@ public final class FocusBeanApplication extends Application {
         // Configure stage
         primaryStage.setTitle(AppConstants.APP_NAME);
         primaryStage.setScene(scene);
-        primaryStage.setMinWidth(AppConstants.MIN_WINDOW_WIDTH);
-        primaryStage.setMinHeight(AppConstants.MIN_WINDOW_HEIGHT);
+        primaryStage.setResizable(false);
 
         primaryStage.show();
         LOGGER.info("Application window displayed");
