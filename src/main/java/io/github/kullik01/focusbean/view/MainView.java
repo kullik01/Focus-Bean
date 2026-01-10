@@ -78,11 +78,11 @@ public final class MainView extends BorderPane {
         HBox.setHgrow(focusCard, Priority.ALWAYS);
         HBox.setHgrow(progressCard, Priority.ALWAYS);
 
-        // Create side-by-side card container
+        // Create side-by-side card container with transparent background
         HBox cardContainer = new HBox(15);
         cardContainer.setPadding(new Insets(20));
         cardContainer.setAlignment(Pos.CENTER);
-        cardContainer.setStyle("-fx-background-color: " + AppConstants.COLOR_WINDOW_BACKGROUND + ";");
+        cardContainer.setStyle("-fx-background-color: transparent;");
         cardContainer.getChildren().addAll(focusCard, progressCard);
 
         // Create tabs
@@ -119,6 +119,16 @@ public final class MainView extends BorderPane {
         settingsView.setOnSave(this::applySettings);
 
         setCenter(tabPane);
+
+        // Style TabPane for transparent background (corners handled by clip)
+        tabPane.setStyle("""
+                -fx-background-color: transparent;
+                -fx-tab-header-area-background: transparent;
+                """);
+
+        // Apply background to MainView (corners handled by clip in
+        // FocusBeanApplication)
+        setStyle(String.format("-fx-background-color: %s;", AppConstants.COLOR_WINDOW_BACKGROUND));
 
         // Wire up event handlers
         wireEventHandlers();

@@ -92,7 +92,7 @@ public final class SettingsView extends VBox {
         this.customSoundPath = currentSettings.getCustomSoundPath();
 
         // Configure root container
-        setStyle("-fx-background-color: " + AppConstants.COLOR_WINDOW_BACKGROUND + ";");
+        setStyle("-fx-background-color: transparent;");
         setPadding(new Insets(20));
         setSpacing(15);
         setAlignment(Pos.TOP_CENTER);
