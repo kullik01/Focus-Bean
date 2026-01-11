@@ -158,6 +158,15 @@ public final class HistoryView extends VBox {
                 confirmDialog.setTitle("Clear History");
                 confirmDialog.setHeaderText("Clear all session history?");
 
+                // Set custom brown question mark icon to match GUI style
+                javafx.scene.shape.SVGPath icon = new javafx.scene.shape.SVGPath();
+                // Material Design Help Outline icon path
+                icon.setContent("M11 18h2v-2h-2v2zm1-16C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5 0-2.21-1.79-4-4-4z");
+                icon.setFill(javafx.scene.paint.Color.web("#A0522D")); // Brown
+                icon.setScaleX(1.5);
+                icon.setScaleY(1.5);
+                confirmDialog.setGraphic(icon);
+
                 // Use a Label for content to easily style it red
                 Label contentLabel = new Label("This cannot be undone!");
                 contentLabel.setStyle("-fx-text-fill: red; -fx-font-size: 13px;");
@@ -188,45 +197,45 @@ public final class HistoryView extends VBox {
                                 -fx-background-color: %s;
                                 """, AppConstants.COLOR_WINDOW_BACKGROUND);
 
-                // OK button: default grey styling
+                // OK button: default grey styling, rounder and smaller
                 String okButtonStyle = """
                                 -fx-background-color: #E0E0E0;
                                 -fx-text-fill: #333333;
-                                -fx-background-radius: 4;
-                                -fx-border-radius: 4;
+                                -fx-background-radius: 20;
+                                -fx-border-radius: 20;
                                 -fx-cursor: hand;
-                                -fx-padding: 8 16 8 16;
+                                -fx-padding: 6 12 6 12;
                                 -fx-font-size: 13px;
                                 """;
 
                 String okButtonHoverStyle = """
                                 -fx-background-color: #D0D0D0;
                                 -fx-text-fill: #333333;
-                                -fx-background-radius: 4;
-                                -fx-border-radius: 4;
+                                -fx-background-radius: 20;
+                                -fx-border-radius: 20;
                                 -fx-cursor: hand;
-                                -fx-padding: 8 16 8 16;
+                                -fx-padding: 6 12 6 12;
                                 -fx-font-size: 13px;
                                 """;
 
-                // Cancel button: brown theme styling
+                // Cancel button: brown theme styling, rounder and smaller
                 String cancelButtonStyle = """
                                 -fx-background-color: #A0522D;
                                 -fx-text-fill: white;
-                                -fx-background-radius: 4;
-                                -fx-border-radius: 4;
+                                -fx-background-radius: 20;
+                                -fx-border-radius: 20;
                                 -fx-cursor: hand;
-                                -fx-padding: 8 16 8 16;
+                                -fx-padding: 6 12 6 12;
                                 -fx-font-size: 13px;
                                 """;
 
                 String cancelButtonHoverStyle = """
                                 -fx-background-color: #8B4513;
                                 -fx-text-fill: white;
-                                -fx-background-radius: 4;
-                                -fx-border-radius: 4;
+                                -fx-background-radius: 20;
+                                -fx-border-radius: 20;
                                 -fx-cursor: hand;
-                                -fx-padding: 8 16 8 16;
+                                -fx-padding: 6 12 6 12;
                                 -fx-font-size: 13px;
                                 """;
 
