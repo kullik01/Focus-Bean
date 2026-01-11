@@ -730,8 +730,14 @@ public final class SettingsView extends VBox {
         headerBox.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
         headerBox.setPadding(new javafx.geometry.Insets(10, 0, 15, 0));
 
-        Label headerText = new Label("You have unsaved settings. Save before leaving?");
+        Label headerText = new Label("You have unsaved settings.");
         headerText.setStyle("-fx-font-size: 16px; -fx-text-fill: #333333;");
+
+        Label subText = new Label("Save before leaving?");
+        subText.setStyle("-fx-font-size: 14px; -fx-text-fill: #555555;");
+
+        VBox textBox = new VBox(5, headerText, subText);
+        textBox.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
 
         javafx.scene.shape.SVGPath questionIcon = new javafx.scene.shape.SVGPath();
         questionIcon.setContent(
@@ -743,7 +749,7 @@ public final class SettingsView extends VBox {
         javafx.scene.layout.Region headerSpacer = new javafx.scene.layout.Region();
         HBox.setHgrow(headerSpacer, javafx.scene.layout.Priority.ALWAYS);
 
-        headerBox.getChildren().addAll(headerText, headerSpacer, questionIcon);
+        headerBox.getChildren().addAll(textBox, headerSpacer, questionIcon);
 
         VBox contentBody = new VBox(0);
         contentBody.setPadding(new javafx.geometry.Insets(0, 20, 20, 20));
