@@ -1,13 +1,14 @@
 <p align="center">
-  <img src="https://img.shields.io/badge/Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white" alt="Windows"/>
-  <img src="https://img.shields.io/badge/Java-21-orange?style=for-the-badge&logo=openjdk&logoColor=white" alt="Java 21"/>
-  <img src="https://img.shields.io/badge/JavaFX-21.0.6-blue?style=for-the-badge&logo=java&logoColor=white" alt="JavaFX 21"/>
-  <img src="https://img.shields.io/badge/Gradle-Kotlin_DSL-02303A?style=for-the-badge&logo=gradle&logoColor=white" alt="Gradle"/>
-  <img src="https://img.shields.io/badge/License-BSD_3--Clause-green?style=for-the-badge" alt="License"/>
-  <a href="https://github.com/kullik01/Focus-Bean/releases/tag/v1.0.0">
-    <img src="https://img.shields.io/github/v/release/kullik01/Focus-Bean?style=for-the-badge&color=d08770" alt="GitHub Release"/>
-  </a>
+
+![Windows](https://img.shields.io/badge/Windows-0881d9?style=for-the-badge&logo=windows&logoColor=white)
+[![Java 21](https://img.shields.io/badge/Java-21-f29111?style=for-the-badge&logo=openjdk&logoColor=white)](https://www.oracle.com/de/java/)
+[![JavaFX 21](https://img.shields.io/badge/JavaFX-21.0.6-4aa2c9?style=for-the-badge&logo=java&logoColor=white)](https://openjfx.io/)
+[![Gradle](https://img.shields.io/badge/Gradle-Kotlin_DSL-3f297f?style=for-the-badge&logo=gradle&logoColor=white)](https://docs.gradle.org/current/kotlin-dsl/)
+[![License](https://img.shields.io/badge/License-BSD_3--Clause-green?style=for-the-badge)](https://opensource.org/license/bsd-3-clause)
+[![Release](https://img.shields.io/badge/Release-v1.0.0-602718?style=for-the-badge&color=602718&logo=github)](https://github.com/kullik01/Focus-Bean/releases)
+
 </p>
+
 
 <p align="center">
   <img src="src/main/resources/io/github/kullik01/focusbean/view/FocusBean_full_shadow.png" alt="Focus Bean Logo" width="200"/>
