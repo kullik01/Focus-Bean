@@ -64,6 +64,7 @@ public final class SettingsView extends VBox {
     private TextField workField;
     private TextField breakField;
     private TextField dailyGoalField;
+    private TextField chartDaysField;
     private final CheckBox soundNotificationCheckbox;
     private final CheckBox popupNotificationCheckbox;
     private final ComboBox<NotificationSound> soundComboBox;
@@ -118,7 +119,7 @@ public final class SettingsView extends VBox {
         } else {
             soundComboBox.setValue(NotificationSound.SYSTEM_BEEP);
         }
-        soundComboBox.setPrefWidth(180);
+        soundComboBox.setPrefWidth(155);
 
         // Create a clean play icon using SVG
         javafx.scene.shape.SVGPath playIcon = new javafx.scene.shape.SVGPath();
@@ -129,6 +130,8 @@ public final class SettingsView extends VBox {
 
         previewButton = new Button();
         previewButton.setGraphic(playIcon);
+        previewButton.setPrefWidth(30);
+        previewButton.setAlignment(Pos.CENTER);
         previewButton.setStyle("""
                 -fx-background-color: transparent;
                 -fx-cursor: hand;
@@ -166,19 +169,28 @@ public final class SettingsView extends VBox {
         // Custom sound path
         customSoundPathField = new TextField();
         customSoundPathField.setPromptText("Select custom sound file...");
-        customSoundPathField.setPrefWidth(180);
+        customSoundPathField.setPrefWidth(155);
         customSoundPathField.setEditable(false);
         if (customSoundPath != null) {
             customSoundPathField.setText(new File(customSoundPath).getName());
         }
 
-        browseButton = new Button("📂"); // Folder icon
+        // Create a folder icon using SVG
+        javafx.scene.shape.SVGPath folderIcon = new javafx.scene.shape.SVGPath();
+        folderIcon.setContent(
+                "M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z");
+        folderIcon.setFill(javafx.scene.paint.Color.web(AppConstants.COLOR_PROGRESS_ACTIVE));
+        folderIcon.setScaleX(0.85);
+        folderIcon.setScaleY(0.85);
+
+        browseButton = new Button();
+        browseButton.setGraphic(folderIcon);
+        browseButton.setPrefWidth(30);
+        browseButton.setAlignment(Pos.CENTER);
         browseButton.setStyle(String.format("""
                 -fx-background-color: transparent;
                 -fx-cursor: hand;
-                -fx-font-size: 14px;
                 -fx-padding: 2 6 2 6;
-                -fx-text-fill: %s;
                 """, AppConstants.COLOR_PROGRESS_ACTIVE));
 
         // Add tooltip with warm colors matching the GUI design
@@ -242,6 +254,9 @@ public final class SettingsView extends VBox {
         // Create Timer Settings card
         VBox timerSettingsCard = createTimerSettingsCard();
 
+        // Create History Settings card
+        VBox historySettingsCard = createHistorySettingsCard();
+
         // Create Notifications card
         VBox notificationsCard = createNotificationsCard(soundSelectionRow, customSoundRow);
 
@@ -249,8 +264,9 @@ public final class SettingsView extends VBox {
         HBox cardsContainer = new HBox(15);
         cardsContainer.setAlignment(Pos.TOP_CENTER);
         HBox.setHgrow(timerSettingsCard, Priority.ALWAYS);
+        HBox.setHgrow(historySettingsCard, Priority.ALWAYS);
         HBox.setHgrow(notificationsCard, Priority.ALWAYS);
-        cardsContainer.getChildren().addAll(timerSettingsCard, notificationsCard);
+        cardsContainer.getChildren().addAll(timerSettingsCard, historySettingsCard, notificationsCard);
 
         // Save button container
         HBox saveButtonContainer = new HBox(saveButton);
@@ -272,10 +288,10 @@ public final class SettingsView extends VBox {
      */
     private VBox createValidatedTextField(int min, int logicalMax, int initial, TextField textField) {
         textField.setText(String.valueOf(initial));
-        textField.setPrefWidth(40);
+        textField.setPrefWidth(70);
 
         // Error label - ensure it wraps and fits
-        Label errorLabel = new Label("Value cannot exceed " + logicalMax + " minutes!");
+        Label errorLabel = new Label("Value must be between " + min + " and " + logicalMax);
         errorLabel.setStyle("-fx-text-fill: red; -fx-font-size: 10px;");
         errorLabel.setWrapText(true);
         errorLabel.setPrefWidth(150); // Give it enough width to wrap if needed
@@ -303,13 +319,17 @@ public final class SettingsView extends VBox {
             boolean isInvalid = false;
             if (newVal != null && !newVal.isEmpty()) {
                 try {
-                    int val = Integer.parseInt(newVal);
-                    if (val > logicalMax) {
+                    long valLex = Long.parseLong(newVal); // Use long to detect int overflow
+                    if (valLex > logicalMax || valLex < min) {
                         isInvalid = true;
                     }
                 } catch (NumberFormatException e) {
-                    // Ignore parsing errors, cleaner handles non-digits
+                    // If it doesn't parse as long, it's definitely invalid
+                    isInvalid = true;
                 }
+            } else {
+                // Empty is invalid
+                isInvalid = true;
             }
 
             if (isInvalid) {
@@ -324,7 +344,7 @@ public final class SettingsView extends VBox {
         });
 
         // Trigger initial validation
-        if (initial > logicalMax) {
+        if (initial > logicalMax || initial < min) {
             textField.setStyle("-fx-border-color: red; -fx-border-radius: 3;");
             errorLabel.setVisible(true);
             errorLabel.setManaged(true);
@@ -348,9 +368,10 @@ public final class SettingsView extends VBox {
                 AppConstants.COLOR_CARD_BACKGROUND,
                 AppConstants.COLOR_CARD_BORDER));
         card.setPadding(new Insets(20));
-        card.setMinWidth(320);
-        card.setMaxWidth(380);
+        card.setMinWidth(220);
+        card.setMaxWidth(250);
 
+        // Create text fields first
         // Create text fields first
         workField = new TextField();
         breakField = new TextField();
@@ -358,18 +379,48 @@ public final class SettingsView extends VBox {
 
         card.getChildren().addAll(
                 headerLabel,
-                createSettingRow("Work Duration (minutes):", createValidatedTextField(
+                createSettingRow("Work Duration (min):", createValidatedTextField(
                         UserSettings.MIN_DURATION_MINUTES,
                         UserSettings.MAX_WORK_DURATION_MINUTES,
                         25, workField)), // Default 25
-                createSettingRow("Break Duration (minutes):", createValidatedTextField(
+                createSettingRow("Break Duration (min):", createValidatedTextField(
                         UserSettings.MIN_DURATION_MINUTES,
                         UserSettings.MAX_BREAK_DURATION_MINUTES,
                         5, breakField)), // Default 5
-                createSettingRow("Daily Goal (minutes):", createValidatedTextField(
+                createSettingRow("Daily Goal (min):", createValidatedTextField(
                         UserSettings.MIN_DURATION_MINUTES,
                         UserSettings.MAX_DAILY_GOAL_MINUTES,
                         25, dailyGoalField))); // Default 25
+
+        return card;
+    }
+
+    /**
+     * Creates the History Settings card.
+     *
+     * @return the configured card VBox
+     */
+    private VBox createHistorySettingsCard() {
+        Label headerLabel = new Label("History");
+        headerLabel.setFont(Font.font(FONT_FAMILY, FontWeight.BOLD, 16));
+        headerLabel.setTextFill(javafx.scene.paint.Color.web(AppConstants.COLOR_TEXT_PRIMARY));
+
+        VBox card = new VBox(15);
+        card.setStyle(String.format(STYLE_CARD,
+                AppConstants.COLOR_CARD_BACKGROUND,
+                AppConstants.COLOR_CARD_BORDER));
+        card.setPadding(new Insets(20));
+        card.setMinWidth(220);
+        card.setMaxWidth(250);
+
+        chartDaysField = new TextField();
+
+        card.getChildren().addAll(
+                headerLabel,
+                createSettingRow("Chart Days:", createValidatedTextField(
+                        UserSettings.MIN_CHART_DAYS,
+                        UserSettings.MAX_CHART_DAYS,
+                        7, chartDaysField))); // Default 7
 
         return card;
     }
@@ -397,8 +448,8 @@ public final class SettingsView extends VBox {
                 AppConstants.COLOR_CARD_BACKGROUND,
                 AppConstants.COLOR_CARD_BORDER));
         card.setPadding(new Insets(20));
-        card.setMinWidth(320);
-        card.setMaxWidth(380);
+        card.setMinWidth(220);
+        card.setMaxWidth(250);
 
         card.getChildren().addAll(
                 headerLabel,
@@ -503,11 +554,13 @@ public final class SettingsView extends VBox {
                 settings.isSoundNotificationEnabled(),
                 settings.isPopupNotificationEnabled(),
                 settings.getNotificationSound(),
-                settings.getCustomSoundPath());
+                settings.getCustomSoundPath(),
+                settings.getHistoryChartDays());
 
         workField.setText(String.valueOf(settings.getWorkDurationMinutes()));
         breakField.setText(String.valueOf(settings.getBreakDurationMinutes()));
         dailyGoalField.setText(String.valueOf(settings.getDailyGoalMinutes()));
+        chartDaysField.setText(String.valueOf(settings.getHistoryChartDays()));
         soundNotificationCheckbox.setSelected(settings.isSoundNotificationEnabled());
         popupNotificationCheckbox.setSelected(settings.isPopupNotificationEnabled());
         soundComboBox.setValue(settings.getNotificationSound());
@@ -532,7 +585,8 @@ public final class SettingsView extends VBox {
                 soundNotificationCheckbox.isSelected(),
                 popupNotificationCheckbox.isSelected(),
                 soundComboBox.getValue(),
-                soundComboBox.getValue() == NotificationSound.CUSTOM ? customSoundPath : null);
+                soundComboBox.getValue() == NotificationSound.CUSTOM ? customSoundPath : null,
+                Integer.parseInt(chartDaysField.getText()));
     }
 
     /**
@@ -560,6 +614,32 @@ public final class SettingsView extends VBox {
      */
     public TextField getBreakField() {
         return breakField;
+    }
+
+    /**
+     * Checks if any of the input fields have validation errors.
+     *
+     * @return true if any field contains an invalid value, false otherwise
+     */
+    public boolean hasValidationErrors() {
+        return isFieldInvalid(workField, UserSettings.MAX_WORK_DURATION_MINUTES)
+                || isFieldInvalid(breakField, UserSettings.MAX_BREAK_DURATION_MINUTES)
+                || isFieldInvalid(dailyGoalField, UserSettings.MAX_DAILY_GOAL_MINUTES)
+                || isFieldInvalid(chartDaysField, UserSettings.MAX_CHART_DAYS);
+    }
+
+    private boolean isFieldInvalid(TextField field, int max) {
+        if (field == null)
+            return false;
+        try {
+            String text = field.getText();
+            if (text == null || text.trim().isEmpty())
+                return true; // Empty is invalid
+            int val = Integer.parseInt(text);
+            return val > max; // Invalid if greater than max
+        } catch (NumberFormatException e) {
+            return true; // Invalid if not a number
+        }
     }
 
     /**
@@ -621,10 +701,12 @@ public final class SettingsView extends VBox {
             int currentWork = Integer.parseInt(workField.getText());
             int currentBreak = Integer.parseInt(breakField.getText());
             int currentDailyGoal = Integer.parseInt(dailyGoalField.getText());
+            int currentChartDays = Integer.parseInt(chartDaysField.getText());
 
             return currentWork != originalSettings.getWorkDurationMinutes()
                     || currentBreak != originalSettings.getBreakDurationMinutes()
                     || currentDailyGoal != originalSettings.getDailyGoalMinutes()
+                    || currentChartDays != originalSettings.getHistoryChartDays()
                     || soundNotificationCheckbox.isSelected() != originalSettings.isSoundNotificationEnabled()
                     || popupNotificationCheckbox.isSelected() != originalSettings.isPopupNotificationEnabled()
                     || soundComboBox.getValue() != originalSettings.getNotificationSound()

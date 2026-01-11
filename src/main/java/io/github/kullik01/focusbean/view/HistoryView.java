@@ -2,27 +2,39 @@ package io.github.kullik01.focusbean.view;
 
 import io.github.kullik01.focusbean.model.SessionHistory;
 import io.github.kullik01.focusbean.model.TimerSession;
+import io.github.kullik01.focusbean.model.HistoryViewMode;
 import io.github.kullik01.focusbean.util.AppConstants;
 import io.github.kullik01.focusbean.util.TimeFormatter;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.Alert;
+import javafx.geometry.Side;
+import javafx.scene.chart.BarChart;
+import javafx.scene.chart.CategoryAxis;
+import javafx.scene.chart.NumberAxis;
+import javafx.scene.chart.XYChart;
 import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.shape.SVGPath;
 
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
+import java.util.TreeMap;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 /**
  * Displays session history in a table with statistics summary.
@@ -50,11 +62,19 @@ public final class HistoryView extends VBox {
                         """;
 
         private final TableView<TimerSession> sessionTable;
+        private final BarChart<String, Number> barChart;
+        private final StackPane viewContainer;
         private final Label todayStatsLabel;
         private final Label weekStatsLabel;
-        private final Button clearHistoryButton;
+        private final Button clearButton;
+        private final Button settingsButton;
+        private final Button viewToggleButton;
 
         private Runnable onClearHistory;
+        private Consumer<HistoryViewMode> onViewModeChanged;
+        private Runnable onSettingsClicked;
+        private HistoryViewMode currentMode = HistoryViewMode.TABLE;
+        private int historyChartDays = 7; // Default value
 
         /**
          * Creates a new HistoryView with empty data.
@@ -67,8 +87,7 @@ public final class HistoryView extends VBox {
                 weekStatsLabel = new Label();
                 weekStatsLabel.setStyle(String.format(STYLE_STATS_LABEL, AppConstants.COLOR_TEXT_SECONDARY));
 
-                clearHistoryButton = createClearHistoryButton();
-
+                // 1. Setup Table View
                 sessionTable = new TableView<>();
                 setupTableColumns();
 
@@ -79,20 +98,57 @@ public final class HistoryView extends VBox {
                 sessionTable.setMaxWidth(totalColumnWidth);
                 sessionTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
+                // 2. Setup Bar Chart
+                CategoryAxis xAxis = new CategoryAxis();
+                xAxis.setLabel("Date (Last " + historyChartDays + " Days)");
+                NumberAxis yAxis = new NumberAxis();
+                yAxis.setLabel("Minutes Focus");
+
+                // Dynamically rotate labels if showing many days
+                if (historyChartDays > 14) {
+                        xAxis.setTickLabelRotation(-45);
+                } else {
+                        xAxis.setTickLabelRotation(0);
+                }
+
+                barChart = new BarChart<>(xAxis, yAxis);
+                barChart.setTitle("Last 7 Days Activity");
+                barChart.setLegendSide(Side.BOTTOM);
+                barChart.setAnimated(false); // Disable animation for smoother updates
+                barChart.setMaxWidth(totalColumnWidth);
+
+                // 3. Setup Container
+                viewContainer = new StackPane(sessionTable, barChart);
+                viewContainer.setAlignment(Pos.TOP_CENTER);
+
+                // Initial visibility
+                updateViewVisibility();
+
                 VBox statsBox = new VBox(5, todayStatsLabel, weekStatsLabel);
                 statsBox.setAlignment(Pos.CENTER_LEFT);
 
-                // Header row with stats and clear button
-                Region spacer = new Region();
+                viewToggleButton = createViewToggleButton();
+                settingsButton = createSettingsButton();
+                clearButton = createClearHistoryButton();
+
+                // Header with stats and buttons
+                HBox headerBox = new HBox(15);
+                headerBox.setAlignment(Pos.CENTER_LEFT);
+                headerBox.setPadding(new Insets(0, 0, 15, 0));
+
+                javafx.scene.layout.Region spacer = new javafx.scene.layout.Region();
                 HBox.setHgrow(spacer, Priority.ALWAYS);
-                HBox headerRow = new HBox(10, statsBox, spacer, clearHistoryButton);
-                headerRow.setAlignment(Pos.CENTER_LEFT);
-                headerRow.setMaxWidth(totalColumnWidth); // Match table width
+
+                // Buttons container: Switch View -> Settings -> Clear History
+                HBox buttonContainer = new HBox(8);
+                buttonContainer.getChildren().addAll(viewToggleButton, settingsButton, clearButton);
+
+                headerBox.getChildren().addAll(statsBox, spacer, buttonContainer);
 
                 setSpacing(15);
                 setPadding(new Insets(20));
                 setAlignment(Pos.TOP_CENTER);
-                getChildren().addAll(headerRow, sessionTable);
+                getChildren().addAll(headerBox, viewContainer);
 
                 // Initial empty state
                 updateStats(0, 0, 0, 0);
@@ -147,6 +203,105 @@ public final class HistoryView extends VBox {
                                 """));
 
                 button.setOnAction(e -> handleClearHistoryClick());
+
+                return button;
+        }
+
+        /**
+         * Creates a settings button to jump to configuration.
+         * 
+         * @return the configured settings button
+         */
+        private Button createSettingsButton() {
+                javafx.scene.shape.SVGPath icon = new javafx.scene.shape.SVGPath();
+                // Gear icon
+                icon.setContent("M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z");
+                icon.setFill(javafx.scene.paint.Color.web(AppConstants.COLOR_PROGRESS_ACTIVE));
+                icon.setScaleX(0.85);
+                icon.setScaleY(0.85);
+
+                Button button = new Button();
+                button.setGraphic(icon);
+                button.setStyle("""
+                                -fx-background-color: transparent;
+                                -fx-cursor: hand;
+                                -fx-padding: 2 6 2 6;
+                                """);
+
+                Tooltip tooltip = new Tooltip("Configure History");
+                tooltip.setStyle(String.format("""
+                                        -fx-font-family: 'Segoe UI', sans-serif;
+                                        -fx-font-size: 12px;
+                                        -fx-background-color: %s;
+                                        -fx-text-fill: %s;
+                                        -fx-background-radius: 6;
+                                        -fx-padding: 6 10 6 10;
+                                        -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 4, 0, 0, 1);
+                                """, AppConstants.COLOR_CARD_BACKGROUND, AppConstants.COLOR_TEXT_PRIMARY));
+                button.setTooltip(tooltip);
+
+                button.setOnMouseEntered(e -> button.setStyle("""
+                                        -fx-background-color: rgba(160, 82, 45, 0.10);
+                                        -fx-background-radius: 6;
+                                        -fx-cursor: hand;
+                                        -fx-padding: 2 6 2 6;
+                                """));
+
+                button.setOnMouseExited(e -> button.setStyle("""
+                                        -fx-background-color: transparent;
+                                        -fx-cursor: hand;
+                                        -fx-padding: 2 6 2 6;
+                                """));
+
+                button.setOnAction(e -> {
+                        if (onSettingsClicked != null) {
+                                onSettingsClicked.run();
+                        }
+                });
+
+                return button;
+        }
+
+        /**
+         * Creates the toggle button to switch between list and chart views.
+         * 
+         * @return the configured toggle button
+         */
+        private Button createViewToggleButton() {
+                Button button = new Button();
+                button.setStyle("""
+                                -fx-background-color: transparent;
+                                -fx-cursor: hand;
+                                -fx-padding: 2 6 2 6;
+                                """);
+
+                // Initial tooltip, icon will be set by updateToggleButtonState
+                Tooltip tooltip = new Tooltip("Switch View");
+                tooltip.setStyle(String.format("""
+                                        -fx-font-family: 'Segoe UI', sans-serif;
+                                        -fx-font-size: 12px;
+                                        -fx-background-color: %s;
+                                        -fx-text-fill: %s;
+                                        -fx-background-radius: 6;
+                                        -fx-padding: 6 10 6 10;
+                                        -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 4, 0, 0, 1);
+                                """, AppConstants.COLOR_CARD_BACKGROUND, AppConstants.COLOR_TEXT_PRIMARY));
+                button.setTooltip(tooltip);
+
+                button.setOnMouseEntered(e -> button.setStyle("""
+                                        -fx-background-color: rgba(160, 82, 45, 0.10);
+                                        -fx-background-radius: 6;
+                                        -fx-cursor: hand;
+                                        -fx-padding: 2 6 2 6;
+                                """));
+
+                button.setOnMouseExited(e -> button.setStyle("""
+                                        -fx-background-color: transparent;
+                                        -fx-cursor: hand;
+                                        -fx-padding: 2 6 2 6;
+                                """));
+
+                button.setOnAction(e -> toggleViewMode());
 
                 return button;
         }
@@ -389,8 +544,143 @@ public final class HistoryView extends VBox {
                 updateStats(todaySessions, todayMinutes, weekSessions, weekMinutes);
 
                 // Disable clear button if history is empty
-                clearHistoryButton.setDisable(history.isEmpty());
+                clearButton.setDisable(history.isEmpty());
 
+                // Update chart
+                updateChart(history);
+
+        }
+
+        private void updateChart(SessionHistory history) {
+                // Clear previous data
+                barChart.getData().clear();
+
+                XYChart.Series<String, Number> series = new XYChart.Series<>();
+                series.setName("Work Minutes");
+
+                // Get sessions for the last N days
+                LocalDate today = LocalDate.now();
+                LocalDate sevenDaysAgo = today.minusDays(historyChartDays - 1); // inclusive of today
+
+                try {
+                        List<TimerSession> recentSessions = history.getSessionsInRange(sevenDaysAgo, today);
+
+                        // Group by date and sum duration, ensure all 7 days are represented
+                        Map<LocalDate, Integer> dailyMinutes = new TreeMap<>();
+
+                        // Initialize last N days with 0
+                        for (int i = 0; i < historyChartDays; i++) {
+                                dailyMinutes.put(sevenDaysAgo.plusDays(i), 0);
+                        }
+
+                        // Fill with actual data (only completed work sessions)
+                        Map<LocalDate, Integer> actualData = recentSessions.stream()
+                                        .filter(TimerSession::isWorkSession)
+                                        .filter(TimerSession::completed)
+                                        .collect(Collectors.groupingBy(
+                                                        session -> session.startTime().toLocalDate(),
+                                                        Collectors.summingInt(TimerSession::durationMinutes)));
+
+                        dailyMinutes.putAll(actualData);
+
+                        DateTimeFormatter axisFormatter = DateTimeFormatter.ofPattern("EEE dd");
+
+                        // Update axis label and rotation
+                        CategoryAxis xAxis = (CategoryAxis) barChart.getXAxis();
+                        xAxis.setLabel("Date (Last " + historyChartDays + " Days)");
+                        if (historyChartDays > 14) {
+                                xAxis.setTickLabelRotation(-45);
+                        } else {
+                                xAxis.setTickLabelRotation(0);
+                        }
+
+                        // Update title
+                        barChart.setTitle("Last " + historyChartDays + " Days Activity");
+
+                        for (Map.Entry<LocalDate, Integer> entry : dailyMinutes.entrySet()) {
+                                String label = entry.getKey().format(axisFormatter);
+                                series.getData().add(new XYChart.Data<>(label, entry.getValue()));
+                        }
+
+                        barChart.getData().add(series);
+
+                } catch (Exception e) {
+                        // Graceful fallback if history range fails or is empty
+                        e.printStackTrace();
+                }
+        }
+
+        private void toggleViewMode() {
+                HistoryViewMode newMode = (currentMode == HistoryViewMode.TABLE)
+                                ? HistoryViewMode.CHART
+                                : HistoryViewMode.TABLE;
+                setHistoryViewMode(newMode);
+
+                // Notify listener to save preference
+                if (onViewModeChanged != null) {
+                        onViewModeChanged.accept(newMode);
+                }
+        }
+
+        private void updateViewVisibility() {
+                if (currentMode == HistoryViewMode.TABLE) {
+                        sessionTable.setVisible(true);
+                        barChart.setVisible(false);
+                        // Update icon to show "Chart" potential? No, usually button shows current view
+                        // or switch action.
+                        // Let's keep the generic switch icon.
+                } else {
+                        sessionTable.setVisible(false);
+                        barChart.setVisible(true);
+                }
+        }
+
+        /**
+         * Sets the view mode (Table or Chart).
+         * 
+         * @param mode the mode to set
+         */
+        public void setHistoryViewMode(HistoryViewMode mode) {
+                if (mode != null) {
+                        this.currentMode = mode;
+                        updateViewVisibility();
+                        updateToggleButtonState();
+                }
+        }
+
+        private void updateToggleButtonState() {
+                SVGPath icon = new SVGPath();
+                String tooltipText;
+
+                if (currentMode == HistoryViewMode.TABLE) {
+                        // Current is Table, button should switch to Chart -> Show Chart Icon
+                        // Bar Chart Icon
+                        icon.setContent("M5 9.2h3V19H5zM10.6 5h2.8v14h-2.8zm5.6 8H19v6h-2.8z");
+                        tooltipText = "Switch to Chart View";
+                } else {
+                        // Current is Chart, button should switch to Table -> Show Table/List Icon
+                        // List View Icon (Material Design 'view_list')
+                        icon.setContent("M4 14h4v-4H4v4zm0 5h4v-4H4v4zM4 9h4V5H4v4zm5 5h12v-4H9v4zm0 5h12v-4H9v4zM9 5v4h12V5H9z");
+                        tooltipText = "Switch to Table View";
+                }
+
+                icon.setFill(javafx.scene.paint.Color.web(AppConstants.COLOR_PROGRESS_ACTIVE));
+                icon.setScaleX(0.85);
+                icon.setScaleY(0.85);
+
+                viewToggleButton.setGraphic(icon);
+                if (viewToggleButton.getTooltip() != null) {
+                        viewToggleButton.getTooltip().setText(tooltipText);
+                }
+        }
+
+        /**
+         * Sets the callback for when the view mode is changed by the user.
+         * 
+         * @param callback the consumer to accept the new mode
+         */
+        public void setOnViewModeChanged(Consumer<HistoryViewMode> callback) {
+                this.onViewModeChanged = callback;
         }
 
         /**
@@ -503,7 +793,20 @@ public final class HistoryView extends VBox {
          * @return the clear history button
          */
         public Button getClearHistoryButton() {
-                return clearHistoryButton;
+                return clearButton;
+        }
+
+        public void setHistoryChartDays(int days) {
+                this.historyChartDays = days;
+        }
+
+        /**
+         * Sets the callback to be invoked when the settings button is clicked.
+         * 
+         * @param onSettingsClicked the callback handler
+         */
+        public void setOnSettingsClicked(Runnable onSettingsClicked) {
+                this.onSettingsClicked = onSettingsClicked;
         }
 
 }

@@ -97,13 +97,13 @@ public final class SettingsDialog extends Dialog<UserSettings> {
                 dailyGoalField);
 
         // Create labels
-        Label workLabel = new Label("Work Duration (minutes):");
+        Label workLabel = new Label("Work Duration (min):");
         workLabel.setStyle(STYLE_LABEL);
 
-        Label breakLabel = new Label("Break Duration (minutes):");
+        Label breakLabel = new Label("Break Duration (min):");
         breakLabel.setStyle(STYLE_LABEL);
 
-        Label dailyGoalLabel = new Label("Daily Goal (minutes):");
+        Label dailyGoalLabel = new Label("Daily Goal (min):");
         dailyGoalLabel.setStyle(STYLE_LABEL);
 
         // Notification settings

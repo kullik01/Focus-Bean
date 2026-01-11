@@ -120,12 +120,16 @@ public final class MainView extends BorderPane {
                 final Tab targetTab = newTab;
                 settingsView.showUnsavedChangesDialog(saveAndProceed -> {
                     if (saveAndProceed) {
+                        // Check validation first - if invalid, abort switch
+                        if (settingsView.hasValidationErrors()) {
+                            return;
+                        }
+
                         // Save settings and switch to target tab
                         applySettings();
                         settingsView.markSettingsSaved();
-                        handlingTabChange[0] = true;
+                        // Allows recursive listener to fire and update pages
                         tabPane.getSelectionModel().select(targetTab);
-                        handlingTabChange[0] = false;
                     }
                     // If Cancel, we already reverted to settingsTab, so do nothing
                 });
@@ -134,6 +138,7 @@ public final class MainView extends BorderPane {
 
             // Normal tab change handling
             if (newTab == historyTab) {
+                historyView.setHistoryChartDays(controller.getSettings().getHistoryChartDays());
                 historyView.update(controller.getHistory());
             } else if (newTab == settingsTab) {
                 settingsView.update(controller.getSettings());
@@ -145,6 +150,20 @@ public final class MainView extends BorderPane {
             controller.clearHistory();
             historyView.update(controller.getHistory());
             updateDailyProgress();
+        });
+
+        // Wire history view mode change handling
+        historyView.setHistoryChartDays(controller.getSettings().getHistoryChartDays());
+        historyView.setHistoryViewMode(controller.getSettings().getHistoryViewMode());
+        historyView.setOnViewModeChanged(mode -> {
+            controller.getSettings().setHistoryViewMode(mode);
+            controller.saveData();
+        });
+
+        // Wire settings button to switch to settings tab
+        historyView.setOnSettingsClicked(() -> {
+            // Settings tab is at index 2
+            tabPane.getSelectionModel().select(2);
         });
 
         // Wire settings save callback with change tracking
@@ -384,6 +403,7 @@ public final class MainView extends BorderPane {
         controller.getSettings().setPopupNotificationEnabled(settings.isPopupNotificationEnabled());
         controller.getSettings().setNotificationSound(settings.getNotificationSound());
         controller.getSettings().setCustomSoundPath(settings.getCustomSoundPath());
+        controller.getSettings().setHistoryChartDays(settings.getHistoryChartDays());
 
         // Update display if idle
         if (controller.getCurrentState() == TimerState.IDLE) {

@@ -372,3 +372,50 @@
     -fx-background-color: #F5F2EF;
     -fx-border-color: transparent;
 }
+
+/* =========================================================================
+   BarChart Styling
+   ========================================================================= */
+.chart-bar {
+    -fx-bar-fill: #A0522D;
+    /* Coffee Brown */
+    -fx-background-radius: 4 4 0 0;
+}
+
+.chart-bar:hover {
+    -fx-bar-fill: #8B4513;
+    /* Darker on hover */
+}
+
+.chart-legend {
+    -fx-background-color: transparent;
+}
+
+.chart-legend-item-symbol {
+    -fx-background-color: #A0522D;
+    -fx-background-radius: 4;
+}
+
+.chart-legend-item {
+    -fx-text-fill: #5D4037;
+}
+
+.axis {
+    -fx-tick-label-fill: #5D4037;
+}
+
+.axis:left {
+    -fx-border-color: transparent;
+}
+
+.axis:bottom {
+    -fx-border-color: transparent;
+}
+
+.axis-label {
+    -fx-text-fill: #5D4037;
+}
+
+.chart-content {
+    -fx-padding: 10px;
+}

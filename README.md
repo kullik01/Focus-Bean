@@ -1,28 +1,30 @@
 <p align="center">
+  <img src="https://img.shields.io/badge/Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white" alt="Windows"/>
   <img src="https://img.shields.io/badge/Java-21-orange?style=for-the-badge&logo=openjdk&logoColor=white" alt="Java 21"/>
   <img src="https://img.shields.io/badge/JavaFX-21.0.6-blue?style=for-the-badge&logo=java&logoColor=white" alt="JavaFX 21"/>
   <img src="https://img.shields.io/badge/Gradle-Kotlin_DSL-02303A?style=for-the-badge&logo=gradle&logoColor=white" alt="Gradle"/>
   <img src="https://img.shields.io/badge/License-BSD_3--Clause-green?style=for-the-badge" alt="License"/>
 </p>
 
-<h1 align="center">☕ Focus Bean</h1>
+<h1 align="center">Focus Bean</h1>
 
 <p align="center">
   <strong>A modern, elegant timer application designed for deep work and productivity.</strong>
 </p>
 
 <p align="center">
-  Built with JavaFX and inspired by the sleek design of Clock Focus Sessions.
+  Built with JavaFX and featuring a warm, coffee-themed design.
 </p>
 
 ---
 
 ## ✨ Features
 
-### 🎯 **Timer**
-- Configurable work and break session durations
+### ⏲️ **Timer**
+- Configurable work and break session durations (1–900 minutes)
 - Visual countdown timer with modern circular display
 - Pause, resume, skip, and reset functionality
+- Automatic session transitions with notifications
 - Keyboard shortcuts for quick control
 
 ### 📊 **Daily Progress Tracking**
@@ -33,22 +35,25 @@
 
 ### 📜 **Session History**
 - Complete log of work and break sessions
+- Toggle between **table view** and **bar chart view**
+- Configurable chart display period (1–365 days)
 - Daily and weekly statistics summary
-- Session status tracking (completed vs. skipped)
+- Clear history functionality with confirmation dialog
 - Persistent data storage across application restarts
 
-### ⚙️ **Customizable Settings**
-- Adjustable work duration (1–120 minutes)
-- Adjustable break duration (1–60 minutes)
-- Configurable daily focus goal (1–480 minutes)
-- Settings persisted locally
+### 🔔 **Notifications**
+- **Sound notifications** with multiple built-in sounds
+- **Custom sound support** – use your own audio files (WAV, MP3)
+- Sound preview directly in settings
+- **System tray popup notifications** for session completion
+- Independently configurable sound and popup settings
 
 ### 🖥️ **Modern UI Design**
-- Clean, card-based layout
-- Light theme with subtle shadows
-- Responsive window sizing
-
----
+- Custom title bar with minimize/close controls
+- Clean, card-based layout with rounded corners
+- Warm, coffee-themed color palette
+- Custom application icon support
+- Consistent styling throughout the application
 
 ## 🚀 Getting Started
 
@@ -97,7 +102,6 @@ The output will be located in `build/distributions/FocusBean-{version}.zip`.
 | `Space`        | Start / Pause / Resume timer          |
 | `R`            | Reset timer                           |
 | `S`            | Skip current session                  |
-| `Ctrl + ,`     | Open settings                         |
 
 ---
 
@@ -109,7 +113,7 @@ Focus Bean follows a clean **MVC (Model-View-Controller)** architecture:
 src/main/java/io/github/kullik01/focusbean/
 ├── controller/     # Application logic and event handling
 ├── model/          # Data models (UserSettings, TimerSession, SessionHistory)
-├── service/        # Core services (TimerService, PersistenceService)
+├── service/        # Core services (TimerService, PersistenceService, NotificationService)
 ├── util/           # Utilities and constants
 └── view/           # JavaFX UI components
 ```
@@ -121,9 +125,12 @@ src/main/java/io/github/kullik01/focusbean/
 | `TimerController`     | Coordinates timer logic, state transitions, and data flow |
 | `TimerService`        | Manages the countdown using JavaFX Timeline               |
 | `PersistenceService`  | Handles JSON-based data storage to local filesystem       |
+| `NotificationService` | Manages sound and system tray notifications               |
 | `MainView`            | Assembles UI components into the main window              |
+| `CustomTitleBar`      | Provides custom window chrome with minimize/close buttons |
 | `DailyProgressView`   | Displays circular progress and daily stats                |
-| `HistoryView`         | Shows session history table with statistics               |
+| `HistoryView`         | Shows session history table/chart with statistics         |
+| `SettingsView`        | Provides embedded settings panel                          |
 
 ---
 
@@ -141,12 +148,13 @@ The project uses **JUnit 5** for unit testing.
 
 ## 📦 Dependencies
 
-| Dependency         | Version | Purpose                          |
-|--------------------|---------|----------------------------------|
-| JavaFX Controls    | 21.0.6  | UI components                    |
-| JavaFX Graphics    | 21.0.6  | Rendering and animation          |
+| Dependency         | Version | Purpose                            |
+|--------------------|---------|----------------------------------- |
+| JavaFX Controls    | 21.0.6  | UI components                      |
+| JavaFX Graphics    | 21.0.6  | Rendering and animation            |
+| JavaFX Media       | 21.0.6  | Audio playback for notifications   |
 | Gson               | 2.11.0  | JSON serialization/deserialization |
-| JUnit Jupiter      | 5.10.2  | Unit testing framework           |
+| JUnit Jupiter      | 5.10.2  | Unit testing framework             |
 
 ---
 
@@ -155,10 +163,18 @@ The project uses **JUnit 5** for unit testing.
 Focus Bean stores user data in the system's application data directory:
 
 - **Windows:** `%APPDATA%/FocusBean/`
-- **macOS/Linux:** `~/.focusbean/` *(platform-dependent)*
 
 Files stored:
 - `session_history.json` – Session logs and user settings
+
+---
+
+## 🎨 Custom Logo
+
+You can use your own application logo by placing a `logo.png` file in:
+- `src/main/resources/io/github/kullik01/focusbean/view/`
+
+The logo will be used for both the taskbar icon and the custom title bar. If no custom logo is found, the application uses a default coffee bean icon.
 
 ---
 
@@ -182,7 +198,7 @@ This project is licensed under the **BSD 3-Clause License** – see the [LICENSE
 
 ## 🙏 Acknowledgements
 - Built with [JavaFX](https://openjfx.io/)
-- Icons and design elements follow the [Fluent Design System](https://fluent2.microsoft.design/)
+- JSON serialization by [Gson](https://github.com/google/gson)
 
 ---
 

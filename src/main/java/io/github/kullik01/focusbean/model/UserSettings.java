@@ -37,7 +37,16 @@ public final class UserSettings {
     public static final int DEFAULT_BREAK_DURATION_MINUTES = 5;
 
     /** Default daily goal (in minutes). */
-    public static final int DEFAULT_DAILY_GOAL_MINUTES = 25;
+    public static final int DEFAULT_DAILY_GOAL_MINUTES = 25; // 4 pomodoros
+
+    /** Default number of days to show in history chart. */
+    public static final int DEFAULT_CHART_DAYS = 7;
+
+    /** Minimum number of days to show in history chart. */
+    public static final int MIN_CHART_DAYS = 1;
+
+    /** Maximum number of days to show in history chart. */
+    public static final int MAX_CHART_DAYS = 30;
 
     /** Default value for sound notification. */
     public static final boolean DEFAULT_SOUND_NOTIFICATION_ENABLED = true;
@@ -48,13 +57,18 @@ public final class UserSettings {
     /** Default notification sound. */
     public static final NotificationSound DEFAULT_NOTIFICATION_SOUND = NotificationSound.CHIME;
 
+    /** Default history view mode. */
+    public static final HistoryViewMode DEFAULT_HISTORY_VIEW_MODE = HistoryViewMode.TABLE;
+
     private int workDurationMinutes;
     private int breakDurationMinutes;
     private int dailyGoalMinutes;
+    private int historyChartDays;
     private boolean soundNotificationEnabled;
     private boolean popupNotificationEnabled;
     private NotificationSound notificationSound;
     private String customSoundPath;
+    private HistoryViewMode historyViewMode;
 
     /**
      * Creates a new UserSettings instance with default values.
@@ -71,10 +85,13 @@ public final class UserSettings {
         this.workDurationMinutes = DEFAULT_WORK_DURATION_MINUTES;
         this.breakDurationMinutes = DEFAULT_BREAK_DURATION_MINUTES;
         this.dailyGoalMinutes = DEFAULT_DAILY_GOAL_MINUTES;
+        this.historyChartDays = DEFAULT_CHART_DAYS;
         this.soundNotificationEnabled = DEFAULT_SOUND_NOTIFICATION_ENABLED;
         this.popupNotificationEnabled = DEFAULT_POPUP_NOTIFICATION_ENABLED;
         this.notificationSound = DEFAULT_NOTIFICATION_SOUND;
         this.customSoundPath = null;
+        this.historyViewMode = DEFAULT_HISTORY_VIEW_MODE;
+        validate();
     }
 
     /**
@@ -89,10 +106,13 @@ public final class UserSettings {
         setWorkDurationMinutes(workDurationMinutes);
         setBreakDurationMinutes(breakDurationMinutes);
         this.dailyGoalMinutes = DEFAULT_DAILY_GOAL_MINUTES;
+        this.historyChartDays = DEFAULT_CHART_DAYS;
         this.soundNotificationEnabled = DEFAULT_SOUND_NOTIFICATION_ENABLED;
         this.popupNotificationEnabled = DEFAULT_POPUP_NOTIFICATION_ENABLED;
         this.notificationSound = DEFAULT_NOTIFICATION_SOUND;
         this.customSoundPath = null;
+        this.historyViewMode = DEFAULT_HISTORY_VIEW_MODE;
+        validate();
     }
 
     /**
@@ -108,10 +128,13 @@ public final class UserSettings {
         setWorkDurationMinutes(workDurationMinutes);
         setBreakDurationMinutes(breakDurationMinutes);
         setDailyGoalMinutes(dailyGoalMinutes);
+        this.historyChartDays = DEFAULT_CHART_DAYS;
         this.soundNotificationEnabled = DEFAULT_SOUND_NOTIFICATION_ENABLED;
         this.popupNotificationEnabled = DEFAULT_POPUP_NOTIFICATION_ENABLED;
         this.notificationSound = DEFAULT_NOTIFICATION_SOUND;
         this.customSoundPath = null;
+        this.historyViewMode = DEFAULT_HISTORY_VIEW_MODE;
+        validate();
     }
 
     /**
@@ -129,10 +152,13 @@ public final class UserSettings {
         setWorkDurationMinutes(workDurationMinutes);
         setBreakDurationMinutes(breakDurationMinutes);
         setDailyGoalMinutes(dailyGoalMinutes);
+        this.historyChartDays = DEFAULT_CHART_DAYS;
         this.soundNotificationEnabled = soundNotificationEnabled;
         this.popupNotificationEnabled = popupNotificationEnabled;
         this.notificationSound = DEFAULT_NOTIFICATION_SOUND;
         this.customSoundPath = null;
+        this.historyViewMode = DEFAULT_HISTORY_VIEW_MODE;
+        validate();
     }
 
     /**
@@ -154,10 +180,43 @@ public final class UserSettings {
         setWorkDurationMinutes(workDurationMinutes);
         setBreakDurationMinutes(breakDurationMinutes);
         setDailyGoalMinutes(dailyGoalMinutes);
+        this.historyChartDays = DEFAULT_CHART_DAYS;
         this.soundNotificationEnabled = soundNotificationEnabled;
         this.popupNotificationEnabled = popupNotificationEnabled;
         this.notificationSound = notificationSound != null ? notificationSound : DEFAULT_NOTIFICATION_SOUND;
         this.customSoundPath = customSoundPath;
+        this.historyViewMode = DEFAULT_HISTORY_VIEW_MODE;
+        validate();
+    }
+
+    /**
+     * Creates a new UserSettings instance with full configuration including sound
+     * selection and history chart days.
+     *
+     * @param workDurationMinutes      the work session duration in minutes
+     * @param breakDurationMinutes     the break session duration in minutes
+     * @param dailyGoalMinutes         the daily goal in minutes
+     * @param soundNotificationEnabled whether sound notifications are enabled
+     * @param popupNotificationEnabled whether popup notifications are enabled
+     * @param notificationSound        the selected notification sound
+     * @param customSoundPath          the path to custom sound file, or null
+     * @param historyChartDays         the number of days to show in the history
+     *                                 chart
+     * @throws IllegalArgumentException if any duration is outside the allowed range
+     */
+    public UserSettings(int workDurationMinutes, int breakDurationMinutes, int dailyGoalMinutes,
+            boolean soundNotificationEnabled, boolean popupNotificationEnabled,
+            NotificationSound notificationSound, String customSoundPath, int historyChartDays) {
+        setWorkDurationMinutes(workDurationMinutes);
+        setBreakDurationMinutes(breakDurationMinutes);
+        setDailyGoalMinutes(dailyGoalMinutes);
+        setHistoryChartDays(historyChartDays);
+        this.soundNotificationEnabled = soundNotificationEnabled;
+        this.popupNotificationEnabled = popupNotificationEnabled;
+        this.notificationSound = notificationSound != null ? notificationSound : DEFAULT_NOTIFICATION_SOUND;
+        this.customSoundPath = customSoundPath;
+        this.historyViewMode = DEFAULT_HISTORY_VIEW_MODE;
+        validate();
     }
 
     /**
@@ -169,14 +228,17 @@ public final class UserSettings {
      */
     public static UserSettings copyOf(UserSettings other) {
         Objects.requireNonNull(other, "other must not be null");
-        return new UserSettings(
+        UserSettings copy = new UserSettings(
                 other.workDurationMinutes,
                 other.breakDurationMinutes,
                 other.dailyGoalMinutes,
                 other.soundNotificationEnabled,
                 other.popupNotificationEnabled,
                 other.notificationSound,
-                other.customSoundPath);
+                other.customSoundPath,
+                other.historyChartDays);
+        copy.setHistoryViewMode(other.historyViewMode);
+        return copy;
     }
 
     /**
@@ -265,6 +327,28 @@ public final class UserSettings {
     }
 
     /**
+     * Returns the number of days to show in the history chart.
+     *
+     * @return days to show
+     */
+    public int getHistoryChartDays() {
+        return historyChartDays;
+    }
+
+    /**
+     * Sets the number of days to show in the history chart.
+     *
+     * @param historyChartDays days to show
+     * @throws IllegalArgumentException if the value is outside the range
+     *                                  [{@value #MIN_CHART_DAYS},
+     *                                  {@value #MAX_CHART_DAYS}]
+     */
+    public void setHistoryChartDays(int historyChartDays) {
+        validateDuration(historyChartDays, MIN_CHART_DAYS, MAX_CHART_DAYS, "historyChartDays");
+        this.historyChartDays = historyChartDays;
+    }
+
+    /**
      * Returns whether sound notifications are enabled.
      *
      * @return {@code true} if sound notifications are enabled
@@ -337,6 +421,37 @@ public final class UserSettings {
     }
 
     /**
+     * Returns the selected history view mode.
+     *
+     * @return the history view mode
+     */
+    public HistoryViewMode getHistoryViewMode() {
+        return historyViewMode;
+    }
+
+    /**
+     * Sets the history view mode.
+     *
+     * @param historyViewMode the history view mode to use
+     */
+    public void setHistoryViewMode(HistoryViewMode historyViewMode) {
+        this.historyViewMode = historyViewMode != null ? historyViewMode : DEFAULT_HISTORY_VIEW_MODE;
+    }
+
+    /**
+     * Validates all current settings.
+     *
+     * @throws IllegalArgumentException if any setting is outside its allowed range
+     */
+    private void validate() {
+        validateDuration(workDurationMinutes, MIN_DURATION_MINUTES, MAX_WORK_DURATION_MINUTES, "workDurationMinutes");
+        validateDuration(breakDurationMinutes, MIN_DURATION_MINUTES, MAX_BREAK_DURATION_MINUTES,
+                "breakDurationMinutes");
+        validateDuration(dailyGoalMinutes, MIN_DURATION_MINUTES, MAX_DAILY_GOAL_MINUTES, "dailyGoalMinutes");
+        validateDuration(historyChartDays, MIN_CHART_DAYS, MAX_CHART_DAYS, "historyChartDays");
+    }
+
+    /**
      * Validates that a duration value falls within the specified range.
      *
      * @param value     the value to validate
@@ -364,23 +479,27 @@ public final class UserSettings {
         return workDurationMinutes == that.workDurationMinutes
                 && breakDurationMinutes == that.breakDurationMinutes
                 && dailyGoalMinutes == that.dailyGoalMinutes
+                && historyChartDays == that.historyChartDays
                 && soundNotificationEnabled == that.soundNotificationEnabled
                 && popupNotificationEnabled == that.popupNotificationEnabled
                 && notificationSound == that.notificationSound
-                && Objects.equals(customSoundPath, that.customSoundPath);
+                && Objects.equals(customSoundPath, that.customSoundPath)
+                && historyViewMode == that.historyViewMode;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(workDurationMinutes, breakDurationMinutes, dailyGoalMinutes,
-                soundNotificationEnabled, popupNotificationEnabled, notificationSound, customSoundPath);
+        return Objects.hash(workDurationMinutes, breakDurationMinutes, dailyGoalMinutes, historyChartDays,
+                soundNotificationEnabled, popupNotificationEnabled, notificationSound, customSoundPath,
+                historyViewMode);
     }
 
     @Override
     public String toString() {
         return String.format(
-                "UserSettings[work=%dmin, break=%dmin, dailyGoal=%dmin, sound=%s, popup=%s, notifSound=%s, customPath=%s]",
+                "UserSettings[work=%dmin, break=%dmin, dailyGoal=%dmin, sound=%s, popup=%s, notifSound=%s, customPath=%s, historyViewMode=%s]",
                 workDurationMinutes, breakDurationMinutes, dailyGoalMinutes,
-                soundNotificationEnabled, popupNotificationEnabled, notificationSound, customSoundPath);
+                soundNotificationEnabled, popupNotificationEnabled, notificationSound, customSoundPath,
+                historyViewMode);
     }
 }
