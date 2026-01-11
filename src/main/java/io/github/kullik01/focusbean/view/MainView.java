@@ -99,8 +99,40 @@ public final class MainView extends BorderPane {
         tabPane.setTabMinWidth(80);
         tabPane.getSelectionModel().select(timerTab);
 
-        // Update views when tab is selected
+        // Flag to prevent recursive listener calls when programmatically reverting
+        // selection
+        final boolean[] handlingTabChange = { false };
+
+        // Update views when tab is selected, with unsaved settings check
         tabPane.getSelectionModel().selectedItemProperty().addListener((obs, oldTab, newTab) -> {
+            if (handlingTabChange[0]) {
+                return; // Skip if we're programmatically reverting
+            }
+
+            // Check for unsaved settings when leaving the Settings tab
+            if (oldTab == settingsTab && newTab != settingsTab && settingsView.hasUnsavedChanges()) {
+                handlingTabChange[0] = true;
+                // Revert selection temporarily while dialog is shown
+                tabPane.getSelectionModel().select(settingsTab);
+                handlingTabChange[0] = false;
+
+                // Show the unsaved changes dialog
+                final Tab targetTab = newTab;
+                settingsView.showUnsavedChangesDialog(saveAndProceed -> {
+                    if (saveAndProceed) {
+                        // Save settings and switch to target tab
+                        applySettings();
+                        settingsView.markSettingsSaved();
+                        handlingTabChange[0] = true;
+                        tabPane.getSelectionModel().select(targetTab);
+                        handlingTabChange[0] = false;
+                    }
+                    // If Cancel, we already reverted to settingsTab, so do nothing
+                });
+                return;
+            }
+
+            // Normal tab change handling
             if (newTab == historyTab) {
                 historyView.update(controller.getHistory());
             } else if (newTab == settingsTab) {
@@ -115,8 +147,11 @@ public final class MainView extends BorderPane {
             updateDailyProgress();
         });
 
-        // Wire settings save callback
-        settingsView.setOnSave(this::applySettings);
+        // Wire settings save callback with change tracking
+        settingsView.setOnSave(() -> {
+            applySettings();
+            settingsView.markSettingsSaved();
+        });
 
         setCenter(tabPane);
 

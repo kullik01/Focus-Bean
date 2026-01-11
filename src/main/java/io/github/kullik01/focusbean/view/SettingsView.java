@@ -23,6 +23,7 @@ import javafx.stage.FileChooser;
 
 import java.io.File;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 /**
  * View component for displaying and editing application settings.
@@ -75,6 +76,7 @@ public final class SettingsView extends VBox {
     private String customSoundPath;
 
     private Runnable onSave;
+    private UserSettings originalSettings;
 
     /**
      * Creates a new SettingsView with the given settings and notification service.
@@ -493,6 +495,16 @@ public final class SettingsView extends VBox {
     public void update(UserSettings settings) {
         Objects.requireNonNull(settings, "settings must not be null");
 
+        // Store a copy of the original settings for change detection
+        this.originalSettings = new UserSettings(
+                settings.getWorkDurationMinutes(),
+                settings.getBreakDurationMinutes(),
+                settings.getDailyGoalMinutes(),
+                settings.isSoundNotificationEnabled(),
+                settings.isPopupNotificationEnabled(),
+                settings.getNotificationSound(),
+                settings.getCustomSoundPath());
+
         workField.setText(String.valueOf(settings.getWorkDurationMinutes()));
         breakField.setText(String.valueOf(settings.getBreakDurationMinutes()));
         dailyGoalField.setText(String.valueOf(settings.getDailyGoalMinutes()));
@@ -593,5 +605,245 @@ public final class SettingsView extends VBox {
      */
     public Button getSaveButton() {
         return saveButton;
+    }
+
+    /**
+     * Checks if there are unsaved changes in the settings.
+     *
+     * @return true if current control values differ from the original settings
+     */
+    public boolean hasUnsavedChanges() {
+        if (originalSettings == null) {
+            return false;
+        }
+
+        try {
+            int currentWork = Integer.parseInt(workField.getText());
+            int currentBreak = Integer.parseInt(breakField.getText());
+            int currentDailyGoal = Integer.parseInt(dailyGoalField.getText());
+
+            return currentWork != originalSettings.getWorkDurationMinutes()
+                    || currentBreak != originalSettings.getBreakDurationMinutes()
+                    || currentDailyGoal != originalSettings.getDailyGoalMinutes()
+                    || soundNotificationCheckbox.isSelected() != originalSettings.isSoundNotificationEnabled()
+                    || popupNotificationCheckbox.isSelected() != originalSettings.isPopupNotificationEnabled()
+                    || soundComboBox.getValue() != originalSettings.getNotificationSound()
+                    || !Objects.equals(customSoundPath, originalSettings.getCustomSoundPath());
+        } catch (NumberFormatException e) {
+            // If parsing fails, consider it as a change (invalid input)
+            return true;
+        }
+    }
+
+    /**
+     * Updates the original settings snapshot to match the current values.
+     * Call this after settings are saved to reset the change detection.
+     */
+    public void markSettingsSaved() {
+        this.originalSettings = getCurrentSettings();
+    }
+
+    /**
+     * Shows a confirmation dialog for unsaved settings.
+     * Styled to match the Delete History dialog.
+     *
+     * @param onResult callback invoked with true if OK (save and proceed),
+     *                 false if Cancel (stay on settings)
+     */
+    public void showUnsavedChangesDialog(Consumer<Boolean> onResult) {
+        javafx.stage.Stage dialogStage = new javafx.stage.Stage();
+        dialogStage.initStyle(javafx.stage.StageStyle.TRANSPARENT);
+        dialogStage.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+        dialogStage.setTitle("Unsaved Settings");
+
+        // Load custom logo if available
+        javafx.scene.image.Image logoImage = null;
+        try {
+            String logoPath = "/io/github/kullik01/focusbean/view/logo.png";
+            if (getClass().getResource(logoPath) == null) {
+                logoPath = "/logo.png";
+            }
+            if (getClass().getResource(logoPath) != null) {
+                logoImage = new javafx.scene.image.Image(
+                        getClass().getResource(logoPath).toExternalForm());
+                dialogStage.getIcons().add(logoImage);
+            }
+        } catch (Exception e) {
+            // Ignore
+        }
+
+        // --- 1. Title Bar ---
+        HBox titleBar = new HBox(10);
+        titleBar.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        titleBar.setPadding(new javafx.geometry.Insets(10, 15, 10, 15));
+        titleBar.setStyle("-fx-background-color: transparent;");
+
+        // Logo/Icon
+        if (logoImage != null) {
+            javafx.scene.image.ImageView logoView = new javafx.scene.image.ImageView(logoImage);
+            logoView.setFitHeight(24);
+            logoView.setFitWidth(24);
+            titleBar.getChildren().add(logoView);
+        } else {
+            javafx.scene.shape.Circle fallbackIcon = new javafx.scene.shape.Circle(8,
+                    javafx.scene.paint.Color.web("#5D4037"));
+            titleBar.getChildren().add(fallbackIcon);
+        }
+
+        // Title Text
+        Label titleLabel = new Label("Unsaved Settings");
+        titleLabel.setStyle(
+                "-fx-font-family: 'Segoe UI Semibold'; -fx-font-size: 14px; -fx-text-fill: #333333;");
+        titleBar.getChildren().add(titleLabel);
+
+        javafx.scene.layout.Region spacer = new javafx.scene.layout.Region();
+        HBox.setHgrow(spacer, javafx.scene.layout.Priority.ALWAYS);
+        titleBar.getChildren().add(spacer);
+
+        Button closeBtn = new Button("✕");
+        closeBtn.setStyle(
+                "-fx-background-color: transparent; -fx-text-fill: #5D4037; -fx-font-size: 14px; -fx-cursor: hand; -fx-padding: 0 5 0 5;");
+        closeBtn.setOnMouseEntered(e -> closeBtn.setStyle(
+                "-fx-background-color: rgba(93, 64, 55, 0.1); -fx-text-fill: #5D4037; -fx-font-size: 14px; -fx-cursor: hand; -fx-padding: 0 5 0 5; -fx-background-radius: 4;"));
+        closeBtn.setOnMouseExited(e -> closeBtn.setStyle(
+                "-fx-background-color: transparent; -fx-text-fill: #5D4037; -fx-font-size: 14px; -fx-cursor: hand; -fx-padding: 0 5 0 5;"));
+        closeBtn.setOnAction(e -> {
+            dialogStage.close();
+            onResult.accept(false);
+        });
+        titleBar.getChildren().add(closeBtn);
+
+        // Drag support
+        final double[] xOffset = new double[1];
+        final double[] yOffset = new double[1];
+        titleBar.setOnMousePressed(event -> {
+            xOffset[0] = event.getSceneX();
+            yOffset[0] = event.getSceneY();
+        });
+        titleBar.setOnMouseDragged(event -> {
+            dialogStage.setX(event.getScreenX() - xOffset[0]);
+            dialogStage.setY(event.getScreenY() - yOffset[0]);
+        });
+
+        // --- 2. Content ---
+        HBox headerBox = new HBox(15);
+        headerBox.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        headerBox.setPadding(new javafx.geometry.Insets(10, 0, 15, 0));
+
+        Label headerText = new Label("You have unsaved settings. Save before leaving?");
+        headerText.setStyle("-fx-font-size: 16px; -fx-text-fill: #333333;");
+
+        javafx.scene.shape.SVGPath questionIcon = new javafx.scene.shape.SVGPath();
+        questionIcon.setContent(
+                "M11 18h2v-2h-2v2zm1-16C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5 0-2.21-1.79-4-4-4z");
+        questionIcon.setFill(javafx.scene.paint.Color.web("#A0522D"));
+        questionIcon.setScaleX(1.5);
+        questionIcon.setScaleY(1.5);
+
+        javafx.scene.layout.Region headerSpacer = new javafx.scene.layout.Region();
+        HBox.setHgrow(headerSpacer, javafx.scene.layout.Priority.ALWAYS);
+
+        headerBox.getChildren().addAll(headerText, headerSpacer, questionIcon);
+
+        VBox contentBody = new VBox(0);
+        contentBody.setPadding(new javafx.geometry.Insets(0, 20, 20, 20));
+        contentBody.getChildren().add(headerBox);
+
+        // --- 3. Button Bar ---
+        HBox buttonBar = new HBox(10);
+        buttonBar.setAlignment(javafx.geometry.Pos.CENTER_RIGHT);
+        buttonBar.setPadding(new javafx.geometry.Insets(20, 20, 20, 20));
+
+        Button okButton = new Button("OK");
+        okButton.setDefaultButton(true);
+        String okButtonStyle = """
+                -fx-background-color: #E0E0E0;
+                -fx-text-fill: #333333;
+                -fx-background-radius: 20;
+                -fx-cursor: hand;
+                -fx-padding: 6 16 6 16;
+                -fx-font-size: 13px;
+                -fx-min-width: 70;
+                """;
+        String okButtonHoverStyle = """
+                -fx-background-color: #D0D0D0;
+                -fx-text-fill: #333333;
+                -fx-background-radius: 20;
+                -fx-cursor: hand;
+                -fx-padding: 6 16 6 16;
+                -fx-font-size: 13px;
+                -fx-min-width: 70;
+                """;
+        okButton.setStyle(okButtonStyle);
+        okButton.setOnMouseEntered(e -> okButton.setStyle(okButtonHoverStyle));
+        okButton.setOnMouseExited(e -> okButton.setStyle(okButtonStyle));
+        okButton.setOnAction(e -> {
+            dialogStage.close();
+            onResult.accept(true);
+        });
+
+        Button cancelButton = new Button("Cancel");
+        cancelButton.setCancelButton(true);
+        String cancelButtonStyle = """
+                -fx-background-color: #A0522D;
+                -fx-text-fill: white;
+                -fx-background-radius: 20;
+                -fx-cursor: hand;
+                -fx-padding: 6 16 6 16;
+                -fx-font-size: 13px;
+                """;
+        String cancelButtonHoverStyle = """
+                -fx-background-color: #8B4513;
+                -fx-text-fill: white;
+                -fx-background-radius: 20;
+                -fx-cursor: hand;
+                -fx-padding: 6 16 6 16;
+                -fx-font-size: 13px;
+                """;
+        cancelButton.setStyle(cancelButtonStyle);
+        cancelButton.setOnMouseEntered(e -> cancelButton.setStyle(cancelButtonHoverStyle));
+        cancelButton.setOnMouseExited(e -> cancelButton.setStyle(cancelButtonStyle));
+        cancelButton.setOnAction(e -> {
+            dialogStage.close();
+            onResult.accept(false);
+        });
+
+        buttonBar.getChildren().addAll(okButton, cancelButton);
+
+        // --- 4. Main Window Structure ---
+        VBox dialogLayout = new VBox(0);
+        dialogLayout.getChildren().addAll(titleBar, contentBody, buttonBar);
+
+        // Styling the Visual Box (nested background for perfect border)
+        dialogLayout.setStyle(String.format("""
+                -fx-background-color: #D7B49E, %s;
+                -fx-background-insets: 0, 1.5;
+                -fx-background-radius: 12, 10.5;
+                -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 10, 0, 0, 4);
+                """, AppConstants.COLOR_WINDOW_BACKGROUND));
+
+        dialogLayout.setMinWidth(380);
+
+        // Root Container (Transparent with Padding) to prevent clipping
+        javafx.scene.layout.StackPane root = new javafx.scene.layout.StackPane(dialogLayout);
+        root.setPadding(new javafx.geometry.Insets(20));
+        root.setStyle("-fx-background-color: transparent;");
+
+        javafx.scene.Scene scene = new javafx.scene.Scene(root);
+        scene.setFill(javafx.scene.paint.Color.TRANSPARENT);
+        scene.getStylesheets().add(getClass().getResource("/io/github/kullik01/focusbean/view/styles.css")
+                .toExternalForm());
+
+        dialogStage.setScene(scene);
+
+        // Ensure on top if main window is
+        if (getScene() != null && getScene().getWindow() != null) {
+            javafx.stage.Stage mainStage = (javafx.stage.Stage) getScene().getWindow();
+            if (mainStage.isAlwaysOnTop()) {
+                dialogStage.setAlwaysOnTop(true);
+            }
+        }
+
+        dialogStage.showAndWait();
     }
 }
