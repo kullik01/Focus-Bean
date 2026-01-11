@@ -284,12 +284,12 @@
 .table-view .column-header-background .filler {
     -fx-background-color: #EAE0D5;
     -fx-background-radius: 0 8 0 0;
+    -fx-border-color: transparent;
 }
 
 .table-view .column-header {
     -fx-background-color: transparent;
-    -fx-border-color: transparent #C19A6B transparent transparent;
-    /* Lighter separator */
+    -fx-border-color: transparent;
 }
 
 .table-view .column-header .label {

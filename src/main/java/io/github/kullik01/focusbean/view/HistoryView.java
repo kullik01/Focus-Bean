@@ -11,6 +11,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
+import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.HBox;
@@ -34,8 +35,10 @@ import java.util.Optional;
  */
 public final class HistoryView extends VBox {
 
-        private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy, HH:mm");
-        private static final double TABLE_COLUMN_DATE_WIDTH = 140;
+        private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
+        private static final double TABLE_COLUMN_DATE_WIDTH = 100;
+        private static final double TABLE_COLUMN_TIME_WIDTH = 60;
         private static final double TABLE_COLUMN_TYPE_WIDTH = 80;
         private static final double TABLE_COLUMN_DURATION_WIDTH = 80;
         private static final double TABLE_COLUMN_STATUS_WIDTH = 80;
@@ -69,6 +72,13 @@ public final class HistoryView extends VBox {
                 sessionTable = new TableView<>();
                 setupTableColumns();
 
+                // Set table width to exactly fit all columns (no empty space on right)
+                double totalColumnWidth = TABLE_COLUMN_DATE_WIDTH + TABLE_COLUMN_TIME_WIDTH
+                                + TABLE_COLUMN_TYPE_WIDTH + TABLE_COLUMN_DURATION_WIDTH
+                                + TABLE_COLUMN_STATUS_WIDTH + 2; // +2 for border
+                sessionTable.setMaxWidth(totalColumnWidth);
+                sessionTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+
                 VBox statsBox = new VBox(5, todayStatsLabel, weekStatsLabel);
                 statsBox.setAlignment(Pos.CENTER_LEFT);
 
@@ -76,7 +86,8 @@ public final class HistoryView extends VBox {
                 Region spacer = new Region();
                 HBox.setHgrow(spacer, Priority.ALWAYS);
                 HBox headerRow = new HBox(10, statsBox, spacer, clearHistoryButton);
-                headerRow.setAlignment(Pos.TOP_LEFT);
+                headerRow.setAlignment(Pos.CENTER_LEFT);
+                headerRow.setMaxWidth(totalColumnWidth); // Match table width
 
                 setSpacing(15);
                 setPadding(new Insets(20));
@@ -410,34 +421,71 @@ public final class HistoryView extends VBox {
         private void setupTableColumns() {
                 TableColumn<TimerSession, String> dateColumn = new TableColumn<>("Date");
                 dateColumn.setPrefWidth(TABLE_COLUMN_DATE_WIDTH);
+                dateColumn.setResizable(false);
                 dateColumn.setCellValueFactory(
                                 cellData -> new SimpleStringProperty(
                                                 cellData.getValue().startTime().format(DATE_FORMATTER)));
+                dateColumn.setCellFactory(column -> createCenteredCell());
+
+                TableColumn<TimerSession, String> timeColumn = new TableColumn<>("Time");
+                timeColumn.setPrefWidth(TABLE_COLUMN_TIME_WIDTH);
+                timeColumn.setResizable(false);
+                timeColumn.setCellValueFactory(
+                                cellData -> new SimpleStringProperty(
+                                                cellData.getValue().startTime().format(TIME_FORMATTER)));
+                timeColumn.setCellFactory(column -> createCenteredCell());
 
                 TableColumn<TimerSession, String> typeColumn = new TableColumn<>("Type");
                 typeColumn.setPrefWidth(TABLE_COLUMN_TYPE_WIDTH);
+                typeColumn.setResizable(false);
                 typeColumn
                                 .setCellValueFactory(cellData -> new SimpleStringProperty(
                                                 cellData.getValue().type().getDisplayName()));
+                typeColumn.setCellFactory(column -> createCenteredCell());
 
                 TableColumn<TimerSession, String> durationColumn = new TableColumn<>("Duration");
                 durationColumn.setPrefWidth(TABLE_COLUMN_DURATION_WIDTH);
+                durationColumn.setResizable(false);
                 durationColumn.setCellValueFactory(
                                 cellData -> new SimpleStringProperty(cellData.getValue().durationMinutes() + " min"));
+                durationColumn.setCellFactory(column -> createCenteredCell());
 
                 TableColumn<TimerSession, String> statusColumn = new TableColumn<>("Status");
                 statusColumn.setPrefWidth(TABLE_COLUMN_STATUS_WIDTH);
+                statusColumn.setResizable(false);
                 statusColumn.setCellValueFactory(
                                 cellData -> new SimpleStringProperty(
                                                 cellData.getValue().completed() ? "Completed" : "Skipped"));
+                statusColumn.setCellFactory(column -> createCenteredCell());
 
                 sessionTable.getColumns().add(dateColumn);
+                sessionTable.getColumns().add(timeColumn);
                 sessionTable.getColumns().add(typeColumn);
                 sessionTable.getColumns().add(durationColumn);
                 sessionTable.getColumns().add(statusColumn);
 
                 // Placeholder for empty table
                 sessionTable.setPlaceholder(new Label("No sessions recorded yet"));
+        }
+
+        /**
+         * Creates a table cell with centered text alignment.
+         *
+         * @return a new TableCell with centered content
+         */
+        private TableCell<TimerSession, String> createCenteredCell() {
+                return new TableCell<>() {
+                        @Override
+                        protected void updateItem(String item, boolean empty) {
+                                super.updateItem(item, empty);
+                                if (empty || item == null) {
+                                        setText(null);
+                                } else {
+                                        setText(item);
+                                        setAlignment(Pos.CENTER);
+                                }
+                        }
+                };
         }
 
         /**
