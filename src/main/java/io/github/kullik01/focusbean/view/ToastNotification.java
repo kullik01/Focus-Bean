@@ -111,9 +111,10 @@ public class ToastNotification extends Stage {
         // ~ 170
         // Window Y = MaxY - Margin - (Visual Height + Top Padding)
         // We'll trust the visual bounds max Y to be the top of taskbar
-        // Added extra 5px to marginY to account for Shadow Y-Offset (5px) in CSS
-        double estimatedVisualHeight = 110;
-        setY(bounds.getMaxY() - visualMargin - (estimatedVisualHeight + 20) - 5);
+        // Removed extra 5px cushion to let shadow overlap margin slightly (tighter
+        // look)
+        double estimatedVisualHeight = 100;
+        setY(bounds.getMaxY() - visualMargin - (estimatedVisualHeight + 20));
 
         // Show animation
         root.setOpacity(0);
