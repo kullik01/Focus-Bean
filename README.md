@@ -64,7 +64,7 @@ The easiest way to run Focus Bean is using the portable release:
 
 1. **Download**: Go to the **[Releases](../../releases)** page and download the latest `FocusBean-{version}.zip`.
 2. **Extract**: Unzip the downloaded file to a location of your choice.
-3. **Run**: Open the extracted folder and double-click `FocusBean.exe` (inside the `FocusBean-1.0.0` folder).
+3. **Run**: Open the extracted folder and double-click `FocusBean.exe` (inside the `FocusBean-{version}` folder).
 
 Or, if you prefer to build from source:
 ### Prerequisites
