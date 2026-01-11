@@ -19,7 +19,6 @@
 ---
 
 ## ✨ Features
-
 ### ⏲️ **Timer**
 - Configurable work and break session durations (1–900 minutes)
 - Visual countdown timer with modern circular display
@@ -56,7 +55,6 @@
 - Consistent styling throughout the application
 
 ## 🚀 Getting Started
-
 ### Prerequisites
 
 - **Java 21** or later (JDK)
