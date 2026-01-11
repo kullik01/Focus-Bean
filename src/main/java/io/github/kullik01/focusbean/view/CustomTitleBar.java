@@ -6,6 +6,8 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -115,15 +117,39 @@ public final class CustomTitleBar extends HBox {
      * @return the configured title section HBox
      */
     private HBox createTitleSection() {
-        // Coffee bean icon using SVG
-        SVGPath coffeeIcon = new SVGPath();
-        coffeeIcon.setContent(
-                "M12 2C9.8 2 8 3.8 8 6c0 2.1 1.6 3.8 3.7 4v2.3c-2.9.4-5.2 2.9-5.2 6 "
-                        + "0 3.3 2.7 6 6 6s6-2.7 6-6c0-3.1-2.3-5.6-5.2-6V10c2.1-.2 3.7-1.9 "
-                        + "3.7-4 0-2.2-1.8-4-4-4z");
-        coffeeIcon.setFill(Color.web(AppConstants.COLOR_ACCENT));
-        coffeeIcon.setScaleX(0.7);
-        coffeeIcon.setScaleY(0.7);
+        javafx.scene.Node iconNode;
+        // Try to load custom logo
+        try {
+            String logoPath = "/io/github/kullik01/focusbean/view/logo.png";
+            java.net.URL logoUrl = getClass().getResource(logoPath);
+            if (logoUrl == null) {
+                // Fallback to root
+                logoUrl = getClass().getResource("/logo.png");
+            }
+
+            if (logoUrl != null) {
+                Image logoImage = new Image(logoUrl.toExternalForm());
+                ImageView imageView = new ImageView(logoImage);
+                imageView.setFitHeight(20);
+                imageView.setFitWidth(20);
+                imageView.setPreserveRatio(true);
+                imageView.setSmooth(true);
+                iconNode = imageView;
+            } else {
+                throw new Exception("Logo not found");
+            }
+        } catch (Exception e) {
+            // Coffee bean icon using SVG
+            SVGPath coffeeIcon = new SVGPath();
+            coffeeIcon.setContent(
+                    "M12 2C9.8 2 8 3.8 8 6c0 2.1 1.6 3.8 3.7 4v2.3c-2.9.4-5.2 2.9-5.2 6 "
+                            + "0 3.3 2.7 6 6 6s6-2.7 6-6c0-3.1-2.3-5.6-5.2-6V10c2.1-.2 3.7-1.9 "
+                            + "3.7-4 0-2.2-1.8-4-4-4z");
+            coffeeIcon.setFill(Color.web(AppConstants.COLOR_ACCENT));
+            coffeeIcon.setScaleX(0.7);
+            coffeeIcon.setScaleY(0.7);
+            iconNode = coffeeIcon;
+        }
 
         Label titleLabel = new Label(AppConstants.APP_NAME);
         titleLabel.setFont(Font.font(FONT_FAMILY, FontWeight.MEDIUM, 13));
@@ -132,7 +158,7 @@ public final class CustomTitleBar extends HBox {
         HBox titleSection = new HBox(8);
         titleSection.setAlignment(Pos.CENTER_LEFT);
         titleSection.setPadding(new Insets(0, 0, 0, 10));
-        titleSection.getChildren().addAll(coffeeIcon, titleLabel);
+        titleSection.getChildren().addAll(iconNode, titleLabel);
 
         return titleSection;
     }

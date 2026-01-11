@@ -11,6 +11,7 @@ import io.github.kullik01.focusbean.view.CustomTitleBar;
 import io.github.kullik01.focusbean.view.MainView;
 import javafx.application.Application;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
@@ -136,6 +137,21 @@ public final class FocusBeanApplication extends Application {
         primaryStage.setScene(scene);
         primaryStage.setResizable(false);
         primaryStage.setAlwaysOnTop(true);
+
+        // Load application icon
+        try {
+            String logoPath = "/io/github/kullik01/focusbean/view/logo.png";
+            if (getClass().getResource(logoPath) != null) {
+                primaryStage.getIcons().add(new Image(getClass().getResourceAsStream(logoPath)));
+            } else {
+                // Fallback to searching in root if not found in package
+                if (getClass().getResource("/logo.png") != null) {
+                    primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("/logo.png")));
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.log(Level.WARNING, "Failed to load application icon", e);
+        }
 
         // Prevent closing unless explicitly requested via the close button
         primaryStage.setOnCloseRequest(event -> {

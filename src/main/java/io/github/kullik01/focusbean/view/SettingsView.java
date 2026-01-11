@@ -97,7 +97,7 @@ public final class SettingsView extends VBox {
         setAlignment(Pos.TOP_CENTER);
 
         // Notification checkboxes
-        soundNotificationCheckbox = new CheckBox("Enable sound notifications");
+        soundNotificationCheckbox = new CheckBox("Enable sound notification");
         soundNotificationCheckbox.setSelected(currentSettings.isSoundNotificationEnabled());
         soundNotificationCheckbox.setStyle(STYLE_LABEL);
 
@@ -337,7 +337,7 @@ public final class SettingsView extends VBox {
      * @return the configured card VBox
      */
     private VBox createTimerSettingsCard() {
-        Label headerLabel = new Label("Timer Settings");
+        Label headerLabel = new Label("Timer");
         headerLabel.setFont(Font.font(FONT_FAMILY, FontWeight.BOLD, 16));
         headerLabel.setTextFill(javafx.scene.paint.Color.web(AppConstants.COLOR_TEXT_PRIMARY));
 
@@ -380,7 +380,7 @@ public final class SettingsView extends VBox {
      * @return the configured card VBox
      */
     private VBox createNotificationsCard(HBox soundSelectionRow, HBox customSoundRow) {
-        Label headerLabel = new Label("Notifications");
+        Label headerLabel = new Label("Notification");
         headerLabel.setFont(Font.font(FONT_FAMILY, FontWeight.BOLD, 16));
         headerLabel.setTextFill(javafx.scene.paint.Color.web(AppConstants.COLOR_TEXT_PRIMARY));
 

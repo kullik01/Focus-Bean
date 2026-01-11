@@ -107,7 +107,7 @@ public final class SettingsDialog extends Dialog<UserSettings> {
         dailyGoalLabel.setStyle(STYLE_LABEL);
 
         // Notification settings
-        soundNotificationCheckbox = new CheckBox("Enable sound notifications");
+        soundNotificationCheckbox = new CheckBox("Enable sound notification");
         soundNotificationCheckbox.setSelected(currentSettings.isSoundNotificationEnabled());
         soundNotificationCheckbox.setStyle(STYLE_LABEL);
 
@@ -257,7 +257,7 @@ public final class SettingsDialog extends Dialog<UserSettings> {
 
         grid.add(new Label(""), 0, row++); // Spacer
 
-        grid.add(new Label("Notifications"), 0, row++, 2, 1);
+        grid.add(new Label("Notification"), 0, row++, 2, 1);
         grid.add(soundNotificationCheckbox, 0, row++, 2, 1);
         grid.add(soundLabel, 0, row);
         grid.add(soundRow, 1, row++);

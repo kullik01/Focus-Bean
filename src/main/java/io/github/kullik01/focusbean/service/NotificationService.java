@@ -324,7 +324,7 @@ public final class NotificationService {
             // Add to system tray to enable notifications
             systemTray.add(trayIcon);
 
-            LOGGER.fine("System tray icon added for notifications");
+            LOGGER.fine("System tray icon added for notification");
         } catch (Exception e) {
             LOGGER.log(Level.WARNING, "Failed to initialize system tray", e);
             trayIcon = null;

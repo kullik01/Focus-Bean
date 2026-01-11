@@ -46,17 +46,9 @@ public final class HistoryView extends VBox {
                         -fx-text-fill: %s;
                         """;
 
-        private static final String STYLE_HEADER_LABEL = """
-                        -fx-font-family: 'Segoe UI', 'Helvetica Neue', sans-serif;
-                        -fx-font-size: 16px;
-                        -fx-font-weight: 600;
-                        -fx-text-fill: %s;
-                        """;
-
         private final TableView<TimerSession> sessionTable;
         private final Label todayStatsLabel;
         private final Label weekStatsLabel;
-        private final Label headerLabel;
         private final Button clearHistoryButton;
 
         private Runnable onClearHistory;
@@ -65,10 +57,6 @@ public final class HistoryView extends VBox {
          * Creates a new HistoryView with empty data.
          */
         public HistoryView() {
-                headerLabel = new Label(AppConstants.LABEL_HISTORY);
-                headerLabel.setStyle(String.format(STYLE_HEADER_LABEL, AppConstants.COLOR_TEXT_PRIMARY));
-
-                clearHistoryButton = createClearHistoryButton();
 
                 todayStatsLabel = new Label();
                 todayStatsLabel.setStyle(String.format(STYLE_STATS_LABEL, AppConstants.COLOR_TEXT_SECONDARY));
@@ -76,22 +64,24 @@ public final class HistoryView extends VBox {
                 weekStatsLabel = new Label();
                 weekStatsLabel.setStyle(String.format(STYLE_STATS_LABEL, AppConstants.COLOR_TEXT_SECONDARY));
 
+                clearHistoryButton = createClearHistoryButton();
+
                 sessionTable = new TableView<>();
                 setupTableColumns();
-
-                // Header row with title and clear button
-                Region spacer = new Region();
-                HBox.setHgrow(spacer, Priority.ALWAYS);
-                HBox headerRow = new HBox(10, headerLabel, spacer, clearHistoryButton);
-                headerRow.setAlignment(Pos.CENTER_LEFT);
 
                 VBox statsBox = new VBox(5, todayStatsLabel, weekStatsLabel);
                 statsBox.setAlignment(Pos.CENTER_LEFT);
 
+                // Header row with stats and clear button
+                Region spacer = new Region();
+                HBox.setHgrow(spacer, Priority.ALWAYS);
+                HBox headerRow = new HBox(10, statsBox, spacer, clearHistoryButton);
+                headerRow.setAlignment(Pos.TOP_LEFT);
+
                 setSpacing(15);
                 setPadding(new Insets(20));
                 setAlignment(Pos.TOP_CENTER);
-                getChildren().addAll(headerRow, statsBox, sessionTable);
+                getChildren().addAll(headerRow, sessionTable);
 
                 // Initial empty state
                 updateStats(0, 0, 0, 0);
@@ -158,7 +148,22 @@ public final class HistoryView extends VBox {
                 confirmDialog.setTitle("Clear History");
                 confirmDialog.setHeaderText("Clear all session history?");
 
-                // Set custom brown question mark icon to match GUI style
+                // Load custom logo if available
+                javafx.scene.image.Image logoImage = null;
+                try {
+                        String logoPath = "/io/github/kullik01/focusbean/view/logo.png";
+                        if (getClass().getResource(logoPath) == null) {
+                                logoPath = "/logo.png";
+                        }
+                        if (getClass().getResource(logoPath) != null) {
+                                logoImage = new javafx.scene.image.Image(
+                                                getClass().getResource(logoPath).toExternalForm());
+                        }
+                } catch (Exception e) {
+                        // Ignore and fallback to SVG
+                }
+
+                // Always set custom brown question mark icon for the dialog graphic
                 javafx.scene.shape.SVGPath icon = new javafx.scene.shape.SVGPath();
                 // Material Design Help Outline icon path
                 icon.setContent("M11 18h2v-2h-2v2zm1-16C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5 0-2.21-1.79-4-4-4z");
@@ -178,6 +183,9 @@ public final class HistoryView extends VBox {
                 confirmDialog.setResizable(false);
                 confirmDialog.getDialogPane().setMinWidth(300);
 
+                // FINAL variable for lambda use
+                final javafx.scene.image.Image finalLogoImage = logoImage;
+
                 // Ensure dialog appears on top of always-on-top main window
                 confirmDialog.setOnShown(event -> {
                         try {
@@ -186,6 +194,10 @@ public final class HistoryView extends VBox {
                                 if (dialogStage != null) {
                                         dialogStage.setAlwaysOnTop(true);
                                         dialogStage.toFront();
+                                        // Set window icon if available (upper left corner)
+                                        if (finalLogoImage != null) {
+                                                dialogStage.getIcons().add(finalLogoImage);
+                                        }
                                 }
                         } catch (Exception e) {
                                 // Ignore if we can't access the stage
@@ -275,6 +287,12 @@ public final class HistoryView extends VBox {
         }
 
         /**
+         * Creates and configures the clear history button as a recycle bin icon.
+         *
+         * @return the configured button
+         */
+
+        /**
          * Updates the view with data from the given session history.
          *
          * @param history the session history to display
@@ -297,6 +315,7 @@ public final class HistoryView extends VBox {
 
                 // Disable clear button if history is empty
                 clearHistoryButton.setDisable(history.isEmpty());
+
         }
 
         /**
@@ -374,4 +393,5 @@ public final class HistoryView extends VBox {
         public Button getClearHistoryButton() {
                 return clearHistoryButton;
         }
+
 }
