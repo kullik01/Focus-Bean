@@ -59,6 +59,18 @@ public final class FocusBeanApplication extends Application {
      * @param primaryStage the primary stage to configure
      */
     private void initializeApplication(Stage primaryStage) {
+        // Set AppUserModelID for Windows notifications
+        if (System.getProperty("os.name").toLowerCase().contains("win")) {
+            try {
+                com.sun.jna.platform.win32.Shell32.INSTANCE.SetCurrentProcessExplicitAppUserModelID(
+                        new com.sun.jna.WString("Focus Bean"));
+                LOGGER.info("Set AppUserModelID to io.github.kullik01.focusbean");
+            } catch (Throwable t) {
+                // Use Throwable to catch potential linkage errors if JNA fails to load
+                LOGGER.log(Level.WARNING, "Failed to set AppUserModelID", t);
+            }
+        }
+
         // Initialize persistence
         persistenceService = new PersistenceService();
         PersistenceService.LoadedData loadedData = persistenceService.load();

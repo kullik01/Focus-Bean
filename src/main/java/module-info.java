@@ -24,6 +24,10 @@ module io.github.kullik01.focusbean {
   // Desktop toolkit for system beep fallback
   requires java.desktop;
 
+  // JNA for Windows integration (AppUserModelID)
+  requires com.sun.jna;
+  requires com.sun.jna.platform;
+
   // Export packages for JavaFX reflection access
   exports io.github.kullik01.focusbean;
   exports io.github.kullik01.focusbean.controller;

@@ -302,8 +302,10 @@ public final class NotificationService {
         try {
             SystemTray systemTray = SystemTray.getSystemTray();
 
-            // Create a small icon (16x16 is standard for tray)
-            BufferedImage image = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
+            // Create a larger icon for better quality in notifications
+            // Windows will downscale it for the tray but use the resolution for toasts
+            int size = 256;
+            BufferedImage image = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
             java.awt.Graphics2D g2d = image.createGraphics();
 
             // Enable anti-aliasing for smooth edges
@@ -314,8 +316,11 @@ public final class NotificationService {
                     java.awt.RenderingHints.KEY_RENDERING,
                     java.awt.RenderingHints.VALUE_RENDER_QUALITY);
 
-            g2d.setColor(new java.awt.Color(160, 82, 45)); // Coffee brown (#A0522D)
-            g2d.fillOval(2, 2, 12, 12);
+            g2d.setColor(new java.awt.Color(93, 64, 55)); // Dark Coffee Brown (#5D4037)
+
+            // Draw circle with slight padding
+            int padding = size / 8;
+            g2d.fillOval(padding, padding, size - (2 * padding), size - (2 * padding));
             g2d.dispose();
 
             trayIcon = new TrayIcon(image, "Focus Bean");
