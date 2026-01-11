@@ -6,7 +6,9 @@
   <img src="https://img.shields.io/badge/License-BSD_3--Clause-green?style=for-the-badge" alt="License"/>
 </p>
 
-<h1 align="center">Focus Bean</h1>
+<p align="center">
+  <img src="src/main/resources/io/github/kullik01/focusbean/view/FocusBean_full_shadow.png" alt="Focus Bean Logo" width="200"/>
+</p>
 
 <p align="center">
   <strong>A modern, elegant timer application designed for deep work and productivity.</strong>
