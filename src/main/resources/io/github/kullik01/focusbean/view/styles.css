@@ -247,3 +247,41 @@
 .button:focused {
     -fx-effect: dropshadow(gaussian, rgba(160, 82, 45, 0.4), 5, 0, 0, 1);
 }
+
+/* =========================================================================
+   Dialog/Alert Styling
+   ========================================================================= */
+.dialog-pane {
+    -fx-background-color: #F5F2EF;
+}
+
+.dialog-pane>.header-panel {
+    -fx-background-color: #F5F2EF;
+}
+
+.dialog-pane>.content {
+    -fx-background-color: #F5F2EF;
+}
+
+.dialog-pane .button {
+    -fx-background-color: #A0522D;
+    -fx-text-fill: white;
+    -fx-background-radius: 4;
+    -fx-border-radius: 4;
+    -fx-cursor: hand;
+    -fx-padding: 8 16 8 16;
+}
+
+.dialog-pane .button:hover {
+    -fx-background-color: #8B4513;
+}
+
+.dialog-pane .button:default {
+    -fx-background-color: #A0522D;
+    -fx-border-color: #8B4513;
+    -fx-border-width: 2;
+}
+
+.dialog-pane .button:default:hover {
+    -fx-background-color: #8B4513;
+}

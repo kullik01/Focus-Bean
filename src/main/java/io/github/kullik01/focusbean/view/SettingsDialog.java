@@ -247,7 +247,7 @@ public final class SettingsDialog extends Dialog<UserSettings> {
         grid.setPadding(new Insets(20));
 
         int row = 0;
-        grid.add(new Label("Timer Settings"), 0, row++, 2, 1);
+        grid.add(new Label("Timer"), 0, row++, 2, 1);
         grid.add(workLabel, 0, row);
         grid.add(workBox, 1, row++);
         grid.add(breakLabel, 0, row);

@@ -34,7 +34,7 @@ import java.util.Optional;
  */
 public final class HistoryView extends VBox {
 
-        private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy, HH:mm");
         private static final double TABLE_COLUMN_DATE_WIDTH = 140;
         private static final double TABLE_COLUMN_TYPE_WIDTH = 80;
         private static final double TABLE_COLUMN_DURATION_WIDTH = 80;
@@ -157,10 +157,97 @@ public final class HistoryView extends VBox {
                 Alert confirmDialog = new Alert(Alert.AlertType.CONFIRMATION);
                 confirmDialog.setTitle("Clear History");
                 confirmDialog.setHeaderText("Clear all session history?");
-                confirmDialog.setContentText("This cannot be undone.");
-                confirmDialog.setResizable(true);
+
+                // Use a Label for content to easily style it red
+                Label contentLabel = new Label("This cannot be undone!");
+                contentLabel.setStyle("-fx-text-fill: red; -fx-font-size: 13px;");
+                confirmDialog.getDialogPane().setContent(contentLabel);
+
+                // Configure dialog window behavior
+                // Dialos are modal by default. The main window has setAlwaysOnTop(true),
+                // so we need to ensure dialog shows with higher priority
+                confirmDialog.setResizable(false);
                 confirmDialog.getDialogPane().setMinWidth(300);
 
+                // Ensure dialog appears on top of always-on-top main window
+                confirmDialog.setOnShown(event -> {
+                        try {
+                                javafx.stage.Stage dialogStage = (javafx.stage.Stage) confirmDialog.getDialogPane()
+                                                .getScene().getWindow();
+                                if (dialogStage != null) {
+                                        dialogStage.setAlwaysOnTop(true);
+                                        dialogStage.toFront();
+                                }
+                        } catch (Exception e) {
+                                // Ignore if we can't access the stage
+                        }
+                });
+
+                // Apply brown coffee theme styling to match GUI
+                String dialogStyle = String.format("""
+                                -fx-background-color: %s;
+                                """, AppConstants.COLOR_WINDOW_BACKGROUND);
+
+                // OK button: default grey styling
+                String okButtonStyle = """
+                                -fx-background-color: #E0E0E0;
+                                -fx-text-fill: #333333;
+                                -fx-background-radius: 4;
+                                -fx-border-radius: 4;
+                                -fx-cursor: hand;
+                                -fx-padding: 8 16 8 16;
+                                -fx-font-size: 13px;
+                                """;
+
+                String okButtonHoverStyle = """
+                                -fx-background-color: #D0D0D0;
+                                -fx-text-fill: #333333;
+                                -fx-background-radius: 4;
+                                -fx-border-radius: 4;
+                                -fx-cursor: hand;
+                                -fx-padding: 8 16 8 16;
+                                -fx-font-size: 13px;
+                                """;
+
+                // Cancel button: brown theme styling
+                String cancelButtonStyle = """
+                                -fx-background-color: #A0522D;
+                                -fx-text-fill: white;
+                                -fx-background-radius: 4;
+                                -fx-border-radius: 4;
+                                -fx-cursor: hand;
+                                -fx-padding: 8 16 8 16;
+                                -fx-font-size: 13px;
+                                """;
+
+                String cancelButtonHoverStyle = """
+                                -fx-background-color: #8B4513;
+                                -fx-text-fill: white;
+                                -fx-background-radius: 4;
+                                -fx-border-radius: 4;
+                                -fx-cursor: hand;
+                                -fx-padding: 8 16 8 16;
+                                -fx-font-size: 13px;
+                                """;
+
+                confirmDialog.getDialogPane().setStyle(dialogStyle);
+
+                // Style buttons using reliable lookupButton method
+                Button okButton = (Button) confirmDialog.getDialogPane().lookupButton(ButtonType.OK);
+                if (okButton != null) {
+                        okButton.setStyle(okButtonStyle);
+                        okButton.setOnMouseEntered(e -> okButton.setStyle(okButtonHoverStyle));
+                        okButton.setOnMouseExited(e -> okButton.setStyle(okButtonStyle));
+                }
+
+                Button cancelButton = (Button) confirmDialog.getDialogPane().lookupButton(ButtonType.CANCEL);
+                if (cancelButton != null) {
+                        cancelButton.setStyle(cancelButtonStyle);
+                        cancelButton.setOnMouseEntered(e -> cancelButton.setStyle(cancelButtonHoverStyle));
+                        cancelButton.setOnMouseExited(e -> cancelButton.setStyle(cancelButtonStyle));
+                }
+
+                // Ensure dialog appears in front of main window
                 Optional<ButtonType> result = confirmDialog.showAndWait();
                 if (result.isPresent() && result.get() == ButtonType.OK) {
                         if (onClearHistory != null) {
