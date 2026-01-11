@@ -87,14 +87,16 @@
     -fx-highlight-text-fill: white;
     -fx-border-color: #C19A6B;
     /* Warm Camel Brown */
-    -fx-border-radius: 3;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
     -fx-background-insets: 0;
 }
 
 .text-input:focused {
     -fx-border-color: #A0522D;
     -fx-border-width: 1;
-    -fx-border-radius: 3;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
     -fx-background-insets: 0;
 }
 
@@ -140,7 +142,8 @@
 .check-box .box {
     -fx-background-color: white;
     -fx-border-color: #C19A6B;
-    -fx-border-radius: 3;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
 }
 
 .check-box:selected .box {
@@ -163,7 +166,8 @@
 .combo-box-base {
     -fx-background-color: white;
     -fx-border-color: #C19A6B;
-    -fx-border-radius: 4;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
 }
 
 .combo-box-base:focused {
@@ -171,38 +175,115 @@
     -fx-effect: dropshadow(gaussian, rgba(160, 82, 45, 0.2), 4, 0, 0, 1);
 }
 
-/* Dropdown list items */
-.combo-box-popup .list-cell:filled:selected,
-.combo-box-popup .list-cell:filled:hover {
+/* Dropdown popup container */
+.combo-box-popup {
+    -fx-background-color: transparent;
+}
+
+.combo-box-popup>.list-view {
+    -fx-background-color: #F5F2EF;
+    -fx-background-radius: 8;
+    -fx-background-insets: 0;
+    -fx-border-color: #C19A6B;
+    -fx-border-radius: 8;
+    -fx-border-insets: 0;
+    -fx-padding: 6 0;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.15), 8, 0, 0, 2);
+}
+
+/* Virtual flow needs transparent background for rounded corners */
+.combo-box-popup>.list-view>.virtual-flow {
+    -fx-background-color: transparent;
+}
+
+.combo-box-popup>.list-view>.virtual-flow>.clipped-container {
+    -fx-background-color: transparent;
+}
+
+.combo-box-popup>.list-view>.virtual-flow>.clipped-container>.sheet {
+    -fx-background-color: transparent;
+}
+
+/* Corner region (scrollbar corner) */
+.combo-box-popup>.list-view>.corner {
+    -fx-background-color: transparent;
+}
+
+/* All list cells - base styling */
+.combo-box-popup .list-cell {
+    -fx-background-color: #F5F2EF;
+    -fx-padding: 4 10;
+    -fx-text-fill: #5D4037;
+}
+
+/* Empty cells also need proper background */
+.combo-box-popup .list-cell:empty {
+    -fx-background-color: #F5F2EF;
+}
+
+/* Dropdown list items - selected state */
+.combo-box-popup .list-cell:filled:selected {
     -fx-background-color: #A0522D;
+    -fx-background-radius: 6;
     -fx-text-fill: white;
+}
+
+/* Dropdown list items - hover state (subtle brown tint) */
+.combo-box-popup .list-cell:filled:hover {
+    -fx-background-color: rgba(160, 82, 45, 0.15);
+    -fx-background-radius: 6;
+    -fx-text-fill: #5D4037;
 }
 
 /* =========================================================================
    TableView
    ========================================================================= */
 .table-view {
-    -fx-background-color: transparent;
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 8;
+    -fx-background-insets: 0;
     -fx-border-color: #C19A6B;
     /* Warm Camel Brown */
-    -fx-border-radius: 4;
+    -fx-border-radius: 8;
+    -fx-padding: 0 0 6 0;
 }
 
 .table-view:focused {
-    -fx-background-color: transparent;
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 8;
     -fx-border-color: #A0522D;
+    -fx-border-radius: 8;
     -fx-background-insets: 0;
+}
+
+/* Internal virtual flow needs transparent background */
+.table-view>.virtual-flow {
+    -fx-background-color: transparent;
+}
+
+.table-view>.virtual-flow>.clipped-container {
+    -fx-background-color: transparent;
+}
+
+.table-view>.virtual-flow>.clipped-container>.sheet {
+    -fx-background-color: transparent;
+}
+
+/* Corner region (scrollbar corner) */
+.table-view>.virtual-flow>.corner {
+    -fx-background-color: #ffffff;
 }
 
 /* Header Background - Lighter as requested (#EAE0D5 - Almond/Bone/Light Coffee) */
 .table-view .column-header-background {
     -fx-background-color: #EAE0D5;
-    -fx-background-radius: 4 4 0 0;
+    -fx-background-radius: 8 8 0 0;
 }
 
 /* Ensure filler matches the lighter header background */
 .table-view .column-header-background .filler {
     -fx-background-color: #EAE0D5;
+    -fx-background-radius: 0 8 0 0;
 }
 
 .table-view .column-header {
@@ -224,6 +305,7 @@
 /* Selected row styling */
 .table-row-cell:filled:selected {
     -fx-background-color: rgba(160, 82, 45, 0.15);
+    -fx-background-radius: 6;
     -fx-background-insets: 0;
 }
 
@@ -234,6 +316,7 @@
 
 .table-row-cell:filled:hover {
     -fx-background-color: rgba(160, 82, 45, 0.05);
+    -fx-background-radius: 6;
 }
 
 /* Empty table placeholder */
@@ -244,7 +327,14 @@
 /* =========================================================================
    Button
    ========================================================================= */
+.button {
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+}
+
 .button:focused {
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
     -fx-effect: dropshadow(gaussian, rgba(160, 82, 45, 0.4), 5, 0, 0, 1);
 }
 

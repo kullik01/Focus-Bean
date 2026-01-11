@@ -57,7 +57,7 @@ public final class SettingsView extends VBox {
             -fx-font-size: 14px;
             -fx-font-weight: bold;
             -fx-padding: 10 30;
-            -fx-background-radius: 6;
+            -fx-background-radius: 12;
             -fx-cursor: hand;
             """;
 
