@@ -37,7 +37,7 @@
 ### 📜 **Session History**
 - Complete log of work and break sessions
 - Toggle between **table view** and **bar chart view**
-- Configurable chart display period (1–365 days)
+- Configurable chart display period (1–30 days)
 - Daily and weekly statistics summary
 - Clear history functionality with confirmation dialog
 - Persistent data storage across application restarts
