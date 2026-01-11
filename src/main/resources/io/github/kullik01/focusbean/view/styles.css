@@ -263,25 +263,19 @@
     -fx-background-color: #F5F2EF;
 }
 
-.dialog-pane .button {
-    -fx-background-color: #A0522D;
-    -fx-text-fill: white;
-    -fx-background-radius: 4;
-    -fx-border-radius: 4;
-    -fx-cursor: hand;
-    -fx-padding: 8 16 8 16;
+/* Button styling removed to respect manual overrides in specific dialogs */
+
+/* Specific styling for the header separator line */
+.dialog-pane>.header-panel {
+    -fx-background-color: #F5F2EF;
+    /* Remove default background insets that create the gray line */
+    -fx-background-insets: 0;
+    /* Add explicit bottom border matching the theme */
+    -fx-border-color: #D7B49E;
+    -fx-border-width: 0 0 1 0;
 }
 
-.dialog-pane .button:hover {
-    -fx-background-color: #8B4513;
-}
-
-.dialog-pane .button:default {
-    -fx-background-color: #A0522D;
-    -fx-border-color: #8B4513;
-    -fx-border-width: 2;
-}
-
-.dialog-pane .button:default:hover {
-    -fx-background-color: #8B4513;
+.dialog-pane>.button-bar {
+    -fx-background-color: #F5F2EF;
+    -fx-border-color: transparent;
 }

@@ -211,7 +211,7 @@ public final class NotificationService {
 
         try {
             // Use custom toast notification instead of system tray
-            io.github.kullik01.focusbean.view.ToastNotification.show(title, message);
+            io.github.kullik01.focusbean.view.ToastNotification.show(title, message, this::stopSound);
             LOGGER.log(Level.FINE, "Displayed toast notification: {0}", title);
         } catch (Exception e) {
             LOGGER.log(Level.WARNING, "Failed to show toast notification", e);

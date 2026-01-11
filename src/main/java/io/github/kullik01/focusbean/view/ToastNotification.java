@@ -26,7 +26,10 @@ public class ToastNotification extends Stage {
     private static final double TOAST_HEIGHT = 100;
     private static final double SCREEN_MARGIN = 20;
 
-    public ToastNotification(String title, String message) {
+    private final Runnable onCloseAction;
+
+    public ToastNotification(String title, String message, Runnable onCloseAction) {
+        this.onCloseAction = onCloseAction;
         initStyle(StageStyle.TRANSPARENT);
         setAlwaysOnTop(true);
 
@@ -132,6 +135,11 @@ public class ToastNotification extends Stage {
     }
 
     private void closeToast() {
+        // Stop sound immediately
+        if (onCloseAction != null) {
+            onCloseAction.run();
+        }
+
         Timeline fadeOut = new Timeline(
                 new KeyFrame(Duration.ZERO, new KeyValue(getScene().getRoot().opacityProperty(), 1)),
                 new KeyFrame(Duration.millis(300), e -> close(),
@@ -140,6 +148,10 @@ public class ToastNotification extends Stage {
     }
 
     public static void show(String title, String message) {
-        Platform.runLater(() -> new ToastNotification(title, message));
+        show(title, message, null);
+    }
+
+    public static void show(String title, String message, Runnable onCloseAction) {
+        Platform.runLater(() -> new ToastNotification(title, message, onCloseAction));
     }
 }
