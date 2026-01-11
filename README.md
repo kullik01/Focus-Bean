@@ -4,7 +4,9 @@
   <img src="https://img.shields.io/badge/JavaFX-21.0.6-blue?style=for-the-badge&logo=java&logoColor=white" alt="JavaFX 21"/>
   <img src="https://img.shields.io/badge/Gradle-Kotlin_DSL-02303A?style=for-the-badge&logo=gradle&logoColor=white" alt="Gradle"/>
   <img src="https://img.shields.io/badge/License-BSD_3--Clause-green?style=for-the-badge" alt="License"/>
-  <img src="https://img.shields.io/github/v/release/kullik01/Focus-Bean?style=for-the-badge&color=d08770" alt="GitHub Release"/>
+  <a href="https://github.com/kullik01/Focus-Bean/releases/tag/v1.0.0">
+    <img src="https://img.shields.io/github/v/release/kullik01/Focus-Bean?style=for-the-badge&color=d08770" alt="GitHub Release"/>
+  </a>
 </p>
 
 <p align="center">
