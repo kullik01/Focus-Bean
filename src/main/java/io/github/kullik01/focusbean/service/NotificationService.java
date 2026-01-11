@@ -374,4 +374,40 @@ public final class NotificationService {
         Toolkit.getDefaultToolkit().beep();
         LOGGER.fine("Played system beep");
     }
+
+    /**
+     * Shuts down the notification service and releases all resources.
+     *
+     * <p>
+     * This method removes the system tray icon and disposes of any media players
+     * to allow the JVM to exit cleanly.
+     * </p>
+     */
+    public void shutdown() {
+        LOGGER.info("Shutting down NotificationService");
+
+        // Stop and dispose media player
+        if (currentSound != null) {
+            try {
+                currentSound.stop();
+                currentSound.dispose();
+                currentSound = null;
+            } catch (Exception e) {
+                LOGGER.log(Level.WARNING, "Error disposing media player", e);
+            }
+        }
+
+        // Remove tray icon from system tray
+        if (trayIcon != null && SystemTray.isSupported()) {
+            try {
+                SystemTray.getSystemTray().remove(trayIcon);
+                trayIcon = null;
+                LOGGER.fine("System tray icon removed");
+            } catch (Exception e) {
+                LOGGER.log(Level.WARNING, "Error removing tray icon", e);
+            }
+        }
+
+        LOGGER.info("NotificationService shutdown complete");
+    }
 }

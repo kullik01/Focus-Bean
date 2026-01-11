@@ -220,9 +220,12 @@ public final class FocusBeanApplication extends Application {
         LOGGER.info("Shutting down Focus Bean application");
 
         if (controller != null) {
-            controller.saveData();
-            LOGGER.info("Data saved successfully");
+            controller.shutdown();
+            LOGGER.info("Controller shutdown complete");
         }
+
+        // Force JVM exit to ensure all threads terminate
+        System.exit(0);
     }
 
     /**

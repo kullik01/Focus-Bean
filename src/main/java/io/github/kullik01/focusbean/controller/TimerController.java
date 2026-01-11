@@ -417,4 +417,27 @@ public final class TimerController {
         currentSessionDuration = 0;
         currentSessionType = null;
     }
+
+    /**
+     * Shuts down the controller and releases all resources.
+     *
+     * <p>
+     * This method saves data to disk, stops the timer, and shuts down
+     * all services to allow the JVM to exit cleanly.
+     * </p>
+     */
+    public void shutdown() {
+        LOGGER.info("Shutting down TimerController");
+
+        // Save data first
+        saveData();
+
+        // Stop timer if running
+        timerService.reset();
+
+        // Shutdown notification service (removes tray icon, disposes media)
+        notificationService.shutdown();
+
+        LOGGER.info("TimerController shutdown complete");
+    }
 }

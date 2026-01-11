@@ -3,7 +3,7 @@ plugins {
     application
     id("org.javamodularity.moduleplugin") version "1.8.15"
     id("org.openjfx.javafxplugin") version "0.0.13"
-    id("org.beryx.jlink") version "2.25.0"
+    id("org.beryx.jlink") version "3.2.0"
 }
 
 group = "io.github.kullik01"
@@ -72,14 +72,23 @@ jlink {
     
     // Add jpackage configuration for native Windows installer
     jpackage {
+        // Use JAVA_HOME for jpackage tool location
+        jpackageHome = System.getenv("JAVA_HOME") ?: ""
+        
         installerType = "exe"
         installerName = "FocusBean-Setup"
         appVersion = "1.0.0"
+        // Application metadata for the exe
+        imageOptions = listOf(
+            "--icon", "src/main/resources/io/github/kullik01/focusbean/view/logo.ico",
+            "--description", "Focus Bean application",
+            "--vendor", "Hannah Kullik",
+        )
         
-        installerOptions.addAll(listOf(
+        installerOptions = listOf(
             "--win-dir-chooser",
             "--win-menu",
             "--win-shortcut"
-        ))
+        )
     }
 }
