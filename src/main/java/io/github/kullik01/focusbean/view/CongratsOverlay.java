@@ -29,7 +29,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public final class CongratsOverlay extends StackPane {
 
-    private static final int DURATION_MS = 10000;
+    private static final int DURATION_MS = 15000;
     private static final int OVERLAY_FADE_OUT_MS = 800;
     private static final int TEXT_FADE_IN_MS = 650;
     private static final int TEXT_FADE_OUT_MS = 800;
@@ -63,24 +63,27 @@ public final class CongratsOverlay extends StackPane {
         confettiLayer.prefHeightProperty().bind(heightProperty());
 
         Label title = new Label("🎉 Daily Goal Reached! 🎉");
-        title.setFont(Font.font("Segoe UI", FontWeight.BOLD, 28));
+        title.setFont(Font.font("Segoe UI", FontWeight.BOLD, 14));
         title.setTextFill(Color.web(AppConstants.COLOR_TEXT_PRIMARY));
 
-        Label subtitle = new Label("Great focus today! Keep it up next time! ☕");
-        subtitle.setFont(Font.font("Segoe UI", FontWeight.SEMI_BOLD, 15));
+        Label subtitle = new Label("Great focus today! Keep it up! ☕");
+        subtitle.setFont(Font.font("Segoe UI", FontWeight.SEMI_BOLD, 10));
         subtitle.setTextFill(Color.web(AppConstants.COLOR_TEXT_SECONDARY));
 
-        textBox = new VBox(4, title, subtitle);
+        textBox = new VBox(0, title, subtitle);
         textBox.setAlignment(Pos.CENTER);
         textBox.setOpacity(0);
-        textBox.setMaxWidth(380);
+        textBox.setMaxWidth(200);
+        textBox.setMaxHeight(50);
+        textBox.setMinWidth(200);
+        textBox.setMinHeight(50);
         textBox.setStyle(String.format("""
                 -fx-background-color: rgba(245, 242, 239, 0.96);
                 -fx-border-color: %s;
                 -fx-border-width: 1;
-                -fx-background-radius: 14;
-                -fx-border-radius: 14;
-                -fx-padding: 8 16 8 16;
+                -fx-background-radius: 6;
+                -fx-border-radius: 6;
+                -fx-padding: 1 10 1 10;
                 """, AppConstants.COLOR_CARD_BORDER));
 
         getChildren().addAll(confettiLayer, textBox);
