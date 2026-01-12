@@ -172,6 +172,9 @@ public final class MainView extends BorderPane {
                 historyView.update(controller.getHistory());
             } else if (newTab == settingsTab) {
                 settingsView.update(controller.getSettings());
+            } else if (newTab == timerTab) {
+                // Refresh timer display to ensure sync after tab switch
+                refreshTimerDisplay();
             }
         });
 
@@ -406,11 +409,14 @@ public final class MainView extends BorderPane {
                 updateDailyProgress();
             }
 
-            // Set total seconds for progress calculation
-            if (newState == TimerState.WORK) {
-                timerDisplay.setTotalSeconds(controller.getSettings().getWorkDurationSeconds());
-            } else if (newState == TimerState.BREAK) {
-                timerDisplay.setTotalSeconds(controller.getSettings().getBreakDurationSeconds());
+            // Set total seconds for progress calculation ONLY when starting a NEW session
+            // (from IDLE), not when resuming from PAUSED
+            if (oldState == TimerState.IDLE) {
+                if (newState == TimerState.WORK) {
+                    timerDisplay.setTotalSeconds(controller.getSettings().getWorkDurationSeconds());
+                } else if (newState == TimerState.BREAK) {
+                    timerDisplay.setTotalSeconds(controller.getSettings().getBreakDurationSeconds());
+                }
             }
         });
     }
@@ -451,6 +457,27 @@ public final class MainView extends BorderPane {
         controller.saveData();
 
         LOGGER.info("Settings applied from Settings tab");
+    }
+
+    /**
+     * Refreshes the timer display to ensure sync after tab switch.
+     * Only updates when idle - running sessions are kept in sync by property
+     * bindings.
+     */
+    private void refreshTimerDisplay() {
+        TimerState state = controller.getCurrentState();
+
+        // Only refresh display when idle (running sessions sync via property bindings)
+        if (state == TimerState.IDLE) {
+            if (controller.getPendingSessionType() == TimerState.BREAK) {
+                timerDisplay.showDuration(controller.getSettings().getBreakDurationMinutes(), "Break");
+            } else {
+                timerDisplay.showDuration(controller.getSettings().getWorkDurationMinutes());
+            }
+        }
+
+        // Always update daily progress
+        updateDailyProgress();
     }
 
     /**
