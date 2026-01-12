@@ -42,10 +42,12 @@ import javafx.scene.control.TabPane;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.control.Button;
+import javafx.scene.Node;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
@@ -83,6 +85,10 @@ public final class MainView extends BorderPane {
     private final HistoryView historyView;
     private final SettingsView settingsView;
     private final TabPane tabPane;
+
+    private final StackPane contentRoot;
+    private int lastCelebratedGoalMinutes = -1;
+    private int completedTodayMinutesBeforeWork = 0;
 
     /**
      * Creates the main view wired to the given controller.
@@ -128,6 +134,9 @@ public final class MainView extends BorderPane {
         tabPane = new TabPane(timerTab, historyTab, settingsTab);
         tabPane.setTabMinWidth(80);
         tabPane.getSelectionModel().select(timerTab);
+
+        contentRoot = new StackPane(tabPane);
+        contentRoot.setStyle("-fx-background-color: transparent;");
 
         // Flag to prevent recursive listener calls when programmatically reverting
         // selection
@@ -183,6 +192,14 @@ public final class MainView extends BorderPane {
             controller.clearHistory();
             historyView.update(controller.getHistory());
             updateDailyProgress();
+
+            lastCelebratedGoalMinutes = -1;
+            completedTodayMinutesBeforeWork = controller.getHistory().getTodaysTotalWorkMinutes();
+
+            controller.setPendingSessionType(TimerState.WORK);
+            if (controller.getCurrentState() == TimerState.IDLE) {
+                timerDisplay.showDuration(controller.getSettings().getWorkDurationMinutes());
+            }
         });
 
         // Wire history view mode change handling
@@ -205,7 +222,7 @@ public final class MainView extends BorderPane {
             settingsView.markSettingsSaved();
         });
 
-        setCenter(tabPane);
+        setCenter(contentRoot);
 
         // Style TabPane for transparent background (corners handled by clip)
         tabPane.setStyle("""
@@ -229,6 +246,11 @@ public final class MainView extends BorderPane {
 
         // Initialize daily progress
         updateDailyProgress();
+
+        int completedNow = controller.getHistory().getTodaysTotalWorkMinutes();
+        int goalNow = controller.getSettings().getDailyGoalMinutes();
+        lastCelebratedGoalMinutes = goalNow > 0 && completedNow >= goalNow ? goalNow : -1;
+        completedTodayMinutesBeforeWork = completedNow;
 
         // Load CSS styles
         getStylesheets().add(getClass().getResource("styles.css").toExternalForm());
@@ -311,7 +333,7 @@ public final class MainView extends BorderPane {
                 + "3.5 3.5 0 0 1-3.5 3.5m7.43-2.53c.04-.32.07-.64.07-.97 0-.33-.03-.66-.07-1l2.11-1.63"
                 + "c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.31-.61-.22l-2.49 1c-.52-.39-1.06-.73"
                 + "-1.69-.98l-.37-2.65A.506.506 0 0 0 14 2h-4c-.25 0-.46.18-.5.42l-.37 2.65c-.63.25"
-                + "-1.17.59-1.69.98l-2.49-1c-.22-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64L4.57 11"
+                + "-1.17.59-1.69.98l-2.49 1c-.22-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64L4.57 11"
                 + "c-.04.34-.07.67-.07 1 0 .33.03.65.07.97l-2.11 1.66c-.19.15-.25.42-.12.64l2 3.46c.12"
                 + ".22.39.3.61.22l2.49-1.01c.52.4 1.06.74 1.69.99l.37 2.65c.04.24.25.42.5.42h4c.25 0 "
                 + ".46-.18.5-.42l.37-2.65c.63-.26 1.17-.59 1.69-.99l2.49 1.01c.22.08.49 0 .61-.22l2-3.46"
@@ -414,12 +436,39 @@ public final class MainView extends BorderPane {
             // (from IDLE), not when resuming from PAUSED
             if (oldState == TimerState.IDLE) {
                 if (newState == TimerState.WORK) {
+                    completedTodayMinutesBeforeWork = controller.getHistory().getTodaysTotalWorkMinutes();
                     timerDisplay.setTotalSeconds(controller.getSettings().getWorkDurationSeconds());
                 } else if (newState == TimerState.BREAK) {
                     timerDisplay.setTotalSeconds(controller.getSettings().getBreakDurationSeconds());
                 }
             }
+
+            if (newState == TimerState.IDLE && oldState == TimerState.WORK) {
+                int completed = controller.getHistory().getTodaysTotalWorkMinutes();
+                int goal = controller.getSettings().getDailyGoalMinutes();
+                if (goal > 0
+                        && goal != lastCelebratedGoalMinutes
+                        && completedTodayMinutesBeforeWork < goal
+                        && completed >= goal) {
+                    showCongratsOverlay();
+                    lastCelebratedGoalMinutes = goal;
+                }
+            }
         });
+    }
+
+    private void showCongratsOverlay() {
+        for (Node child : contentRoot.getChildren()) {
+            if (child instanceof CongratsOverlay) {
+                return;
+            }
+        }
+
+        CongratsOverlay overlay = new CongratsOverlay();
+        overlay.prefWidthProperty().bind(contentRoot.widthProperty());
+        overlay.prefHeightProperty().bind(contentRoot.heightProperty());
+        contentRoot.getChildren().add(overlay);
+        overlay.play();
     }
 
     /**
@@ -453,6 +502,14 @@ public final class MainView extends BorderPane {
 
         // Update daily progress
         updateDailyProgress();
+
+        int completedNow = controller.getHistory().getTodaysTotalWorkMinutes();
+        int goalNow = controller.getSettings().getDailyGoalMinutes();
+        if (goalNow <= 0) {
+            lastCelebratedGoalMinutes = -1;
+        } else if (completedNow >= goalNow) {
+            lastCelebratedGoalMinutes = goalNow;
+        }
 
         // Save updated settings
         controller.saveData();

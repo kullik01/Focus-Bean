@@ -346,6 +346,10 @@ public final class TimerController {
         return pendingSessionType;
     }
 
+    public void setPendingSessionType(TimerState pendingSessionType) {
+        this.pendingSessionType = pendingSessionType;
+    }
+
     /**
      * Starts a timer session with the given parameters.
      *
