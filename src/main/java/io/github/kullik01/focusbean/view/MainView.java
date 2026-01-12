@@ -435,9 +435,13 @@ public final class MainView extends BorderPane {
         controller.getSettings().setCustomSoundPath(settings.getCustomSoundPath());
         controller.getSettings().setHistoryChartDays(settings.getHistoryChartDays());
 
-        // Update display if idle
+        // Update display if idle - respect pending session type
         if (controller.getCurrentState() == TimerState.IDLE) {
-            timerDisplay.showDuration(settings.getWorkDurationMinutes());
+            if (controller.getPendingSessionType() == TimerState.BREAK) {
+                timerDisplay.showDuration(settings.getBreakDurationMinutes(), "Break");
+            } else {
+                timerDisplay.showDuration(settings.getWorkDurationMinutes());
+            }
         }
 
         // Update daily progress
@@ -483,7 +487,7 @@ public final class MainView extends BorderPane {
         TimerState state = controller.getCurrentState();
 
         switch (state) {
-            case IDLE -> controller.startWork();
+            case IDLE -> controller.startOrResume();
             case WORK, BREAK -> controller.pause();
             case PAUSED -> controller.resume();
         }

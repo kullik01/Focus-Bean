@@ -96,7 +96,7 @@ class UserSettingsTest {
     @DisplayName("Should reject chart days below minimum")
     void rejectChartDaysBelowMin() {
         UserSettings settings = new UserSettings();
-        assertThrows(IllegalArgumentException.class, () -> settings.setHistoryChartDays(2));
+        assertThrows(IllegalArgumentException.class, () -> settings.setHistoryChartDays(0));
     }
 
     @Test
@@ -118,8 +118,8 @@ class UserSettingsTest {
         assertEquals(60, maxSettings.getBreakDurationMinutes());
 
         UserSettings chartSettings = new UserSettings();
-        chartSettings.setHistoryChartDays(3);
-        assertEquals(3, chartSettings.getHistoryChartDays());
+        chartSettings.setHistoryChartDays(1);
+        assertEquals(1, chartSettings.getHistoryChartDays());
 
         chartSettings.setHistoryChartDays(30);
         assertEquals(30, chartSettings.getHistoryChartDays());

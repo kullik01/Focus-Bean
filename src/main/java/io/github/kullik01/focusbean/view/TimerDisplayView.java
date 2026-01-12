@@ -189,16 +189,18 @@ public final class TimerDisplayView extends StackPane {
      * Updates the time display labels based on remaining seconds.
      */
     private void updateTimeDisplay() {
-        int minutes = remainingSeconds / 60;
-        int seconds = remainingSeconds % 60;
-
         if (remainingSeconds >= 60) {
-            // Show minutes format
-            timeLabel.setText(String.valueOf(minutes));
+            // Show ceiling-rounded minutes (e.g., 119 sec = 2 min, 60 sec = 1 min)
+            int displayMinutes = (remainingSeconds + 59) / 60;
+            timeLabel.setText(String.valueOf(displayMinutes));
             unitLabel.setText("min");
+        } else if (remainingSeconds >= 10) {
+            // Show SS format for 10-59 seconds
+            timeLabel.setText(String.format("%02d", remainingSeconds));
+            unitLabel.setText("sec");
         } else {
-            // Show seconds format when under a minute
-            timeLabel.setText(String.valueOf(seconds));
+            // Show S format for last 9 seconds
+            timeLabel.setText(String.valueOf(remainingSeconds));
             unitLabel.setText("sec");
         }
     }

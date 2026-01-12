@@ -44,6 +44,8 @@ dependencies {
     implementation("net.java.dev.jna:jna:5.14.0")
     implementation("net.java.dev.jna:jna-platform:5.14.0")
     testImplementation("org.junit.jupiter:junit-jupiter:${junitVersion}")
+    testImplementation("org.mockito:mockito-core:5.11.0")
+    testImplementation("org.mockito:mockito-junit-jupiter:5.11.0")
 }
 
 tasks.withType<Test> {
@@ -53,7 +55,9 @@ tasks.withType<Test> {
         "--add-reads", "io.github.kullik01.focusbean=ALL-UNNAMED",
         "--add-opens", "java.base/java.lang=ALL-UNNAMED",
         "--add-opens", "java.base/java.lang.reflect=ALL-UNNAMED",
-        "--add-opens", "io.github.kullik01.focusbean/io.github.kullik01.focusbean.model=ALL-UNNAMED"
+        "--add-opens", "io.github.kullik01.focusbean/io.github.kullik01.focusbean.model=ALL-UNNAMED",
+        "--add-opens", "io.github.kullik01.focusbean/io.github.kullik01.focusbean.controller=ALL-UNNAMED",
+        "--add-opens", "io.github.kullik01.focusbean/io.github.kullik01.focusbean.service=ALL-UNNAMED"
     )
 }
 
