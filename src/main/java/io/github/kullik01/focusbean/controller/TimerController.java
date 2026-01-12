@@ -182,17 +182,26 @@ public final class TimerController {
      *
      * <p>
      * Any current session will be discarded without being recorded.
-     * The pending session type is reset to WORK.
+     * The pending session type is preserved so the user can restart the same type
+     * of session.
      * </p>
      */
     public void reset() {
+        // Preserve the session type for restart (if was in break, stay ready for break)
+        TimerState sessionToPreserve = currentSessionType;
+        if (sessionToPreserve == null && timerService.getStateBeforePause() != null) {
+            // If paused, get the state before pause
+            sessionToPreserve = timerService.getStateBeforePause();
+        }
+
         currentSessionStartTime = null;
         currentSessionDuration = 0;
         currentSessionType = null;
-        pendingSessionType = null;
+        pendingSessionType = sessionToPreserve;
         timerService.reset();
 
-        LOGGER.info("Timer reset, current session discarded");
+        LOGGER.log(Level.INFO, "Timer reset, pending session type: {0}",
+                sessionToPreserve != null ? sessionToPreserve : "WORK (default)");
     }
 
     /**

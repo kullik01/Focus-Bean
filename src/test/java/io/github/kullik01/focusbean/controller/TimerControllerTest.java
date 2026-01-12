@@ -110,8 +110,9 @@ class TimerControllerTest {
     }
 
     @Test
-    @DisplayName("reset should clear pending session type")
-    void resetClearsPendingSessionType() {
+    @DisplayName("reset should preserve null pending session type when no session was active")
+    void resetPreservesNullPendingSessionType() {
+        // When reset from initial state (no session active), pending should stay null
         controller.reset();
         assertNull(controller.getPendingSessionType());
     }
