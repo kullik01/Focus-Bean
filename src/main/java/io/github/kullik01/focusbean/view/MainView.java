@@ -330,6 +330,7 @@ public final class MainView extends BorderPane {
 
         // Add tooltip with warm colors matching the GUI design
         javafx.scene.control.Tooltip tooltip = new javafx.scene.control.Tooltip("Open Settings");
+        tooltip.setShowDelay(new javafx.util.Duration(0));
         tooltip.setStyle(String.format("""
                 -fx-font-family: 'Segoe UI', sans-serif;
                 -fx-font-size: 12px;

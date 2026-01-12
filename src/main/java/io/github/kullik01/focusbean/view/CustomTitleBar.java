@@ -275,6 +275,7 @@ public final class CustomTitleBar extends HBox {
      */
     private Tooltip createTooltip(String text) {
         Tooltip tooltip = new Tooltip(text);
+        tooltip.setShowDelay(new javafx.util.Duration(0));
         tooltip.setStyle(String.format("""
                 -fx-font-family: 'Segoe UI', sans-serif;
                 -fx-font-size: 12px;

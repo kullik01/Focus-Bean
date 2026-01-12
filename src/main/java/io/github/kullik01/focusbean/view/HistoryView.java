@@ -83,7 +83,7 @@ public final class HistoryView extends VBox {
         private static final double TABLE_COLUMN_TIME_WIDTH = 60;
         private static final double TABLE_COLUMN_TYPE_WIDTH = 80;
         private static final double TABLE_COLUMN_DURATION_WIDTH = 80;
-        private static final double TABLE_COLUMN_STATUS_WIDTH = 80;
+        private static final double TABLE_COLUMN_STATUS_WIDTH = 100;
 
         private static final String STYLE_STATS_LABEL = """
                         -fx-font-family: 'Segoe UI', 'Helvetica Neue', sans-serif;
@@ -164,16 +164,22 @@ public final class HistoryView extends VBox {
                 // Header with stats and buttons
                 HBox headerBox = new HBox(15);
                 headerBox.setAlignment(Pos.CENTER_LEFT);
-                headerBox.setPadding(new Insets(0, 0, 15, 0));
+                headerBox.setPadding(new Insets(0, 0, 8, 0));
+                headerBox.setMaxWidth(totalColumnWidth);
 
                 javafx.scene.layout.Region spacer = new javafx.scene.layout.Region();
                 HBox.setHgrow(spacer, Priority.ALWAYS);
 
                 // Buttons container: Switch View -> Settings -> Clear History
                 HBox buttonContainer = new HBox(8);
+                buttonContainer.setAlignment(Pos.CENTER);
                 buttonContainer.getChildren().addAll(viewToggleButton, settingsButton, clearButton);
 
-                headerBox.getChildren().addAll(statsBox, spacer, buttonContainer);
+                // Wrap buttons in VBox with CENTER alignment for vertical centering
+                VBox buttonWrapper = new VBox(buttonContainer);
+                buttonWrapper.setAlignment(Pos.CENTER);
+
+                headerBox.getChildren().addAll(statsBox, spacer, buttonWrapper);
 
                 setSpacing(15);
                 setPadding(new Insets(20));
@@ -208,6 +214,7 @@ public final class HistoryView extends VBox {
 
                 // Add tooltip with warm colors matching the GUI design
                 javafx.scene.control.Tooltip tooltip = new javafx.scene.control.Tooltip("Clear History");
+                tooltip.setShowDelay(new javafx.util.Duration(0));
                 tooltip.setStyle(String.format("""
                                 -fx-font-family: 'Segoe UI', sans-serif;
                                 -fx-font-size: 12px;
@@ -259,6 +266,7 @@ public final class HistoryView extends VBox {
                                 """);
 
                 Tooltip tooltip = new Tooltip("Configure History");
+                tooltip.setShowDelay(new javafx.util.Duration(0));
                 tooltip.setStyle(String.format("""
                                         -fx-font-family: 'Segoe UI', sans-serif;
                                         -fx-font-size: 12px;
@@ -307,6 +315,7 @@ public final class HistoryView extends VBox {
 
                 // Initial tooltip, icon will be set by updateToggleButtonState
                 Tooltip tooltip = new Tooltip("Switch View");
+                tooltip.setShowDelay(new javafx.util.Duration(0));
                 tooltip.setStyle(String.format("""
                                         -fx-font-family: 'Segoe UI', sans-serif;
                                         -fx-font-size: 12px;

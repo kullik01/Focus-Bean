@@ -179,6 +179,7 @@ public final class SettingsDialog extends Dialog<UserSettings> {
 
         // Add tooltip with warm colors matching the GUI design
         Tooltip playTooltip = new Tooltip("Play");
+        playTooltip.setShowDelay(new javafx.util.Duration(0));
         playTooltip.setStyle(String.format("""
                 -fx-font-family: 'Segoe UI', sans-serif;
                 -fx-font-size: 12px;
@@ -225,6 +226,7 @@ public final class SettingsDialog extends Dialog<UserSettings> {
 
         // Add tooltip with warm colors matching the GUI design
         Tooltip browseTooltip = new Tooltip("Browse");
+        browseTooltip.setShowDelay(new javafx.util.Duration(0));
         browseTooltip.setStyle(String.format("""
                 -fx-font-family: 'Segoe UI', sans-serif;
                 -fx-font-size: 12px;
