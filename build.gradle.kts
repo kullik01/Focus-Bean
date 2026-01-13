@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "io.github.kullik01"
-version = "1.0.0"
+version = "1.0.1"
 
 repositories {
     mavenCentral()
@@ -81,7 +81,7 @@ jlink {
         
         installerType = "exe"
         installerName = "FocusBean-Setup"
-        appVersion = "1.0.0"
+        appVersion = "1.0.1"
         // Application metadata for the exe
         imageOptions = listOf(
             "--icon", "src/main/resources/io/github/kullik01/focusbean/view/logo.ico",
