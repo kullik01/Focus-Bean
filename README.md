@@ -5,7 +5,7 @@
 [![JavaFX 21](https://img.shields.io/badge/JavaFX-21.0.6-4aa2c9?style=for-the-badge&logo=java&logoColor=white)](https://openjfx.io/)
 [![Gradle](https://img.shields.io/badge/Gradle-Kotlin_DSL-3f297f?style=for-the-badge&logo=gradle&logoColor=white)](https://docs.gradle.org/current/kotlin-dsl/)
 [![License](https://img.shields.io/badge/License-BSD_3--Clause-green?style=for-the-badge)](https://opensource.org/license/bsd-3-clause)
-[![Release](https://img.shields.io/badge/Release-v1.0.0-602718?style=for-the-badge&color=602718&logo=github)](https://github.com/kullik01/Focus-Bean/releases)
+[![Release](https://img.shields.io/badge/Release-v1.0.1-602718?style=for-the-badge&color=602718&logo=github)](https://github.com/kullik01/Focus-Bean/releases)
 
 </p>
 
