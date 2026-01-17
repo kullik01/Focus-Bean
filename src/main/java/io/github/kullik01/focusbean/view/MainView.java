@@ -276,6 +276,11 @@ public final class MainView extends BorderPane {
         if (settingsView != null) {
             settingsView.applyTheme(darkMode);
         }
+
+        // Update HistoryView
+        if (historyView != null) {
+            historyView.applyTheme(darkMode);
+        }
     }
 
     /**

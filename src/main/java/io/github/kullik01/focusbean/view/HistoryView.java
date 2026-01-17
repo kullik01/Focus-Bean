@@ -105,6 +105,7 @@ public final class HistoryView extends VBox {
         private Runnable onSettingsClicked;
         private HistoryViewMode currentMode = HistoryViewMode.TABLE;
         private int historyChartDays = 7; // Default value
+        private boolean darkModeEnabled = false;
 
         /**
          * Creates a new HistoryView with empty data.
@@ -349,15 +350,22 @@ public final class HistoryView extends VBox {
          * Handles the clear history button click by showing a confirmation dialog.
          */
         private void handleClearHistoryClick() {
-                // Create a manual Stage instead of Alert to have full control over the Scene
-                // and transparency
+                // Determine colors based on dark mode
+                String windowBg = darkModeEnabled ? AppConstants.COLOR_WINDOW_BACKGROUND_DARK : AppConstants.COLOR_WINDOW_BACKGROUND;
+                String borderColor = darkModeEnabled ? AppConstants.COLOR_CARD_BORDER_DARK : "#D7B49E";
+                String textColor = darkModeEnabled ? AppConstants.COLOR_TEXT_PRIMARY_DARK : "#333333";
+                String closeBtnColor = darkModeEnabled ? AppConstants.COLOR_TEXT_PRIMARY_DARK : "#5D4037";
+                String okBtnBg = darkModeEnabled ? "#3D332B" : "#E0E0E0";
+                String okBtnBgHover = darkModeEnabled ? "#4D4339" : "#D0D0D0";
+                String okBtnText = darkModeEnabled ? AppConstants.COLOR_TEXT_PRIMARY_DARK : "#333333";
+                String stylesheetPath = darkModeEnabled ? "/io/github/kullik01/focusbean/view/styles-dark.css"
+                                : "/io/github/kullik01/focusbean/view/styles.css";
+
                 javafx.stage.Stage dialogStage = new javafx.stage.Stage();
                 dialogStage.initStyle(javafx.stage.StageStyle.TRANSPARENT);
-                dialogStage.initModality(javafx.stage.Modality.APPLICATION_MODAL); // Block interaction with main window
+                dialogStage.initModality(javafx.stage.Modality.APPLICATION_MODAL);
                 dialogStage.setTitle("Clear History");
 
-                // Load custom logo if available (for taskbar/icon, though transparent stage
-                // might not show it)
                 javafx.scene.image.Image logoImage = null;
                 try {
                         String logoPath = "/io/github/kullik01/focusbean/view/logo.png";
@@ -373,13 +381,11 @@ public final class HistoryView extends VBox {
                         // Ignore
                 }
 
-                // --- 1. Title Bar ---
                 HBox titleBar = new HBox(10);
                 titleBar.setAlignment(Pos.CENTER_LEFT);
                 titleBar.setPadding(new Insets(10, 15, 10, 15));
                 titleBar.setStyle("-fx-background-color: transparent;");
 
-                // Logo/Icon
                 if (logoImage != null) {
                         javafx.scene.image.ImageView logoView = new javafx.scene.image.ImageView(logoImage);
                         logoView.setFitHeight(24);
@@ -391,10 +397,9 @@ public final class HistoryView extends VBox {
                         titleBar.getChildren().add(fallbackIcon);
                 }
 
-                // Title Text
                 Label titleLabel = new Label("Clear History");
                 titleLabel.setStyle(
-                                "-fx-font-family: 'Segoe UI Semibold'; -fx-font-size: 14px; -fx-text-fill: #333333;");
+                                "-fx-font-family: 'Segoe UI Semibold'; -fx-font-size: 14px; -fx-text-fill: " + textColor + ";");
                 titleBar.getChildren().add(titleLabel);
 
                 Region spacer = new Region();
@@ -402,16 +407,14 @@ public final class HistoryView extends VBox {
                 titleBar.getChildren().add(spacer);
 
                 Button closeBtn = new Button("✕");
-                closeBtn.setStyle(
-                                "-fx-background-color: transparent; -fx-text-fill: #5D4037; -fx-font-size: 14px; -fx-cursor: hand; -fx-padding: 0 5 0 5;");
-                closeBtn.setOnMouseEntered(e -> closeBtn.setStyle(
-                                "-fx-background-color: rgba(93, 64, 55, 0.1); -fx-text-fill: #5D4037; -fx-font-size: 14px; -fx-cursor: hand; -fx-padding: 0 5 0 5; -fx-background-radius: 4;"));
-                closeBtn.setOnMouseExited(e -> closeBtn.setStyle(
-                                "-fx-background-color: transparent; -fx-text-fill: #5D4037; -fx-font-size: 14px; -fx-cursor: hand; -fx-padding: 0 5 0 5;"));
+                String closeBtnStyle = "-fx-background-color: transparent; -fx-text-fill: " + closeBtnColor + "; -fx-font-size: 14px; -fx-cursor: hand; -fx-padding: 0 5 0 5;";
+                String closeBtnHoverStyle = "-fx-background-color: rgba(93, 64, 55, 0.15); -fx-text-fill: " + closeBtnColor + "; -fx-font-size: 14px; -fx-cursor: hand; -fx-padding: 0 5 0 5; -fx-background-radius: 4;";
+                closeBtn.setStyle(closeBtnStyle);
+                closeBtn.setOnMouseEntered(e -> closeBtn.setStyle(closeBtnHoverStyle));
+                closeBtn.setOnMouseExited(e -> closeBtn.setStyle(closeBtnStyle));
                 closeBtn.setOnAction(e -> dialogStage.close());
                 titleBar.getChildren().add(closeBtn);
 
-                // Drag support
                 final double[] xOffset = new double[1];
                 final double[] yOffset = new double[1];
                 titleBar.setOnMousePressed(event -> {
@@ -423,13 +426,12 @@ public final class HistoryView extends VBox {
                         dialogStage.setY(event.getScreenY() - yOffset[0]);
                 });
 
-                // --- 2. Content ---
                 HBox legacyHeaderBox = new HBox(15);
                 legacyHeaderBox.setAlignment(Pos.CENTER_LEFT);
                 legacyHeaderBox.setPadding(new Insets(10, 0, 15, 0));
 
                 Label legacyHeaderText = new Label("Clear all session history?");
-                legacyHeaderText.setStyle("-fx-font-size: 16px; -fx-text-fill: #333333;");
+                legacyHeaderText.setStyle("-fx-font-size: 16px; -fx-text-fill: " + textColor + ";");
 
                 javafx.scene.shape.SVGPath questionIcon = new javafx.scene.shape.SVGPath();
                 questionIcon.setContent(
@@ -444,37 +446,36 @@ public final class HistoryView extends VBox {
                 legacyHeaderBox.getChildren().addAll(legacyHeaderText, headerSpacer, questionIcon);
 
                 Label warningLabel = new Label("This cannot be undone!");
-                warningLabel.setStyle("-fx-text-fill: red; -fx-font-size: 13px;");
+                warningLabel.setStyle("-fx-text-fill: #E74C3C; -fx-font-size: 13px;");
 
                 VBox contentBody = new VBox(0);
-                contentBody.setPadding(new Insets(0, 20, 20, 20)); // Padding for content
+                contentBody.setPadding(new Insets(0, 20, 20, 20));
                 contentBody.getChildren().addAll(legacyHeaderBox, warningLabel);
 
-                // --- 3. Button Bar ---
                 HBox buttonBar = new HBox(10);
                 buttonBar.setAlignment(Pos.CENTER_RIGHT);
                 buttonBar.setPadding(new Insets(20, 20, 20, 20));
 
                 Button okButton = new Button("OK");
                 okButton.setDefaultButton(true);
-                String okButtonStyle = """
-                                -fx-background-color: #E0E0E0;
-                                -fx-text-fill: #333333;
+                String okButtonStyle = String.format("""
+                                -fx-background-color: %s;
+                                -fx-text-fill: %s;
                                 -fx-background-radius: 20;
                                 -fx-cursor: hand;
                                 -fx-padding: 6 16 6 16;
                                 -fx-font-size: 13px;
                                 -fx-min-width: 70;
-                                """;
-                String okButtonHoverStyle = """
-                                -fx-background-color: #D0D0D0;
-                                -fx-text-fill: #333333;
+                                """, okBtnBg, okBtnText);
+                String okButtonHoverStyle = String.format("""
+                                -fx-background-color: %s;
+                                -fx-text-fill: %s;
                                 -fx-background-radius: 20;
                                 -fx-cursor: hand;
                                 -fx-padding: 6 16 6 16;
                                 -fx-font-size: 13px;
                                 -fx-min-width: 70;
-                                """;
+                                """, okBtnBgHover, okBtnText);
                 okButton.setStyle(okButtonStyle);
                 okButton.setOnMouseEntered(e -> okButton.setStyle(okButtonHoverStyle));
                 okButton.setOnMouseExited(e -> okButton.setStyle(okButtonStyle));
@@ -510,34 +511,28 @@ public final class HistoryView extends VBox {
 
                 buttonBar.getChildren().addAll(okButton, cancelButton);
 
-                // --- 4. Main Window Structure ---
                 VBox dialogLayout = new VBox(0);
                 dialogLayout.getChildren().addAll(titleBar, contentBody, buttonBar);
 
-                // --- Styling the Visual Box ---
-                // Nested background for perfect border
                 dialogLayout.setStyle(String.format("""
-                                -fx-background-color: #D7B49E, %s;
+                                -fx-background-color: %s, %s;
                                 -fx-background-insets: 0, 1.5;
                                 -fx-background-radius: 12, 10.5;
-                                -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 10, 0, 0, 4);
-                                """, AppConstants.COLOR_WINDOW_BACKGROUND));
+                                -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 10, 0, 0, 4);
+                                """, borderColor, windowBg));
 
                 dialogLayout.setMinWidth(320);
 
-                // Root Container (Transparent with Padding) to prevent clipping
                 javafx.scene.layout.StackPane root = new javafx.scene.layout.StackPane(dialogLayout);
-                root.setPadding(new Insets(20)); // Safe zone for shadow/borders
+                root.setPadding(new Insets(20));
                 root.setStyle("-fx-background-color: transparent;");
 
                 javafx.scene.Scene scene = new javafx.scene.Scene(root);
                 scene.setFill(javafx.scene.paint.Color.TRANSPARENT);
-                scene.getStylesheets().add(getClass().getResource("/io/github/kullik01/focusbean/view/styles.css")
-                                .toExternalForm());
+                scene.getStylesheets().add(getClass().getResource(stylesheetPath).toExternalForm());
 
                 dialogStage.setScene(scene);
 
-                // Ensure on top
                 javafx.stage.Stage mainStage = (javafx.stage.Stage) this.getScene().getWindow();
                 if (mainStage != null && mainStage.isAlwaysOnTop()) {
                         dialogStage.setAlwaysOnTop(true);
@@ -720,6 +715,20 @@ public final class HistoryView extends VBox {
          */
         public void setOnViewModeChanged(Consumer<HistoryViewMode> callback) {
                 this.onViewModeChanged = callback;
+        }
+
+        /**
+         * Applies the specified theme to this view.
+         *
+         * @param darkMode true to apply dark theme, false for light theme
+         */
+        public void applyTheme(boolean darkMode) {
+                this.darkModeEnabled = darkMode;
+
+                // Update stats label colors
+                String textColor = darkMode ? AppConstants.COLOR_TEXT_SECONDARY_DARK : AppConstants.COLOR_TEXT_SECONDARY;
+                todayStatsLabel.setStyle(String.format(STYLE_STATS_LABEL, textColor));
+                weekStatsLabel.setStyle(String.format(STYLE_STATS_LABEL, textColor));
         }
 
         /**
