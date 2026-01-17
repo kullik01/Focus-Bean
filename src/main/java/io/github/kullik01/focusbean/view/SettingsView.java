@@ -134,7 +134,7 @@ public final class SettingsView extends VBox {
         soundNotificationCheckbox.setSelected(currentSettings.isSoundNotificationEnabled());
         soundNotificationCheckbox.setStyle(STYLE_LABEL);
 
-        popupNotificationCheckbox = new CheckBox("Show Windows notification");
+        popupNotificationCheckbox = new CheckBox("Show notification");
         popupNotificationCheckbox.setSelected(currentSettings.isPopupNotificationEnabled());
         popupNotificationCheckbox.setStyle(STYLE_LABEL);
 
