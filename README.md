@@ -60,7 +60,7 @@ sudo zypper install -y libgtk-3-0 libasound2 gstreamer-plugins-base gstreamer-pl
 ```
 
 #### Install & Run
-1. **Download**: Get `FocusBean-{version}.zip` from the **[Releases](../../releases)** page.
+1. **Download**: Get `FocusBean-{version}-Linux.zip` from the **[Releases](../../releases)** page.
 2. **Install**: Open a terminal and run the following to install to `~/.focusbean`:
    ```bash
    mkdir -p ~/.focusbean
@@ -81,7 +81,7 @@ sudo zypper install -y libgtk-3-0 libasound2 gstreamer-plugins-base gstreamer-pl
 - **🔔 Notifications**: Custom sound support (MP3/WAV) and system tray alerts for session transitions.
 - **🖥️ Modern UI**: Clean, coffee-themed design with custom window controls.
 - **⌨️ Shortcuts**: Space (Start/Pause), R (Reset), S (Settings).
-- **🗂️ Local Data**: All data is stored locally in your home directory:
+- **🗂️ Local Data**: All data is stored locally:
   - Windows: `%APPDATA%/FocusBean/`
   - Linux: `~/.local/share/FocusBean/`
 

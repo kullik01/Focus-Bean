@@ -90,6 +90,9 @@ public final class UserSettings {
     /** Default history view mode. */
     public static final HistoryViewMode DEFAULT_HISTORY_VIEW_MODE = HistoryViewMode.TABLE;
 
+    /** Default value for dark mode. */
+    public static final boolean DEFAULT_DARK_MODE_ENABLED = false;
+
     private int workDurationMinutes;
     private int breakDurationMinutes;
     private int dailyGoalMinutes;
@@ -99,6 +102,7 @@ public final class UserSettings {
     private NotificationSound notificationSound;
     private String customSoundPath;
     private HistoryViewMode historyViewMode;
+    private boolean darkModeEnabled;
 
     /**
      * Creates a new UserSettings instance with default values.
@@ -121,6 +125,7 @@ public final class UserSettings {
         this.notificationSound = DEFAULT_NOTIFICATION_SOUND;
         this.customSoundPath = null;
         this.historyViewMode = DEFAULT_HISTORY_VIEW_MODE;
+        this.darkModeEnabled = DEFAULT_DARK_MODE_ENABLED;
         validate();
     }
 
@@ -142,6 +147,7 @@ public final class UserSettings {
         this.notificationSound = DEFAULT_NOTIFICATION_SOUND;
         this.customSoundPath = null;
         this.historyViewMode = DEFAULT_HISTORY_VIEW_MODE;
+        this.darkModeEnabled = DEFAULT_DARK_MODE_ENABLED;
         validate();
     }
 
@@ -164,6 +170,7 @@ public final class UserSettings {
         this.notificationSound = DEFAULT_NOTIFICATION_SOUND;
         this.customSoundPath = null;
         this.historyViewMode = DEFAULT_HISTORY_VIEW_MODE;
+        this.darkModeEnabled = DEFAULT_DARK_MODE_ENABLED;
         validate();
     }
 
@@ -188,6 +195,7 @@ public final class UserSettings {
         this.notificationSound = DEFAULT_NOTIFICATION_SOUND;
         this.customSoundPath = null;
         this.historyViewMode = DEFAULT_HISTORY_VIEW_MODE;
+        this.darkModeEnabled = DEFAULT_DARK_MODE_ENABLED;
         validate();
     }
 
@@ -216,6 +224,7 @@ public final class UserSettings {
         this.notificationSound = notificationSound != null ? notificationSound : DEFAULT_NOTIFICATION_SOUND;
         this.customSoundPath = customSoundPath;
         this.historyViewMode = DEFAULT_HISTORY_VIEW_MODE;
+        this.darkModeEnabled = DEFAULT_DARK_MODE_ENABLED;
         validate();
     }
 
@@ -246,6 +255,7 @@ public final class UserSettings {
         this.notificationSound = notificationSound != null ? notificationSound : DEFAULT_NOTIFICATION_SOUND;
         this.customSoundPath = customSoundPath;
         this.historyViewMode = DEFAULT_HISTORY_VIEW_MODE;
+        this.darkModeEnabled = DEFAULT_DARK_MODE_ENABLED;
         validate();
     }
 
@@ -268,6 +278,7 @@ public final class UserSettings {
                 other.customSoundPath,
                 other.historyChartDays);
         copy.setHistoryViewMode(other.historyViewMode);
+        copy.setDarkModeEnabled(other.darkModeEnabled);
         return copy;
     }
 
@@ -469,6 +480,24 @@ public final class UserSettings {
     }
 
     /**
+     * Returns whether dark mode is enabled.
+     *
+     * @return {@code true} if dark mode is enabled
+     */
+    public boolean isDarkModeEnabled() {
+        return darkModeEnabled;
+    }
+
+    /**
+     * Sets whether dark mode is enabled.
+     *
+     * @param darkModeEnabled {@code true} to enable dark mode
+     */
+    public void setDarkModeEnabled(boolean darkModeEnabled) {
+        this.darkModeEnabled = darkModeEnabled;
+    }
+
+    /**
      * Validates all current settings.
      *
      * @throws IllegalArgumentException if any setting is outside its allowed range
@@ -514,22 +543,23 @@ public final class UserSettings {
                 && popupNotificationEnabled == that.popupNotificationEnabled
                 && notificationSound == that.notificationSound
                 && Objects.equals(customSoundPath, that.customSoundPath)
-                && historyViewMode == that.historyViewMode;
+                && historyViewMode == that.historyViewMode
+                && darkModeEnabled == that.darkModeEnabled;
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(workDurationMinutes, breakDurationMinutes, dailyGoalMinutes, historyChartDays,
                 soundNotificationEnabled, popupNotificationEnabled, notificationSound, customSoundPath,
-                historyViewMode);
+                historyViewMode, darkModeEnabled);
     }
 
     @Override
     public String toString() {
         return String.format(
-                "UserSettings[work=%dmin, break=%dmin, dailyGoal=%dmin, sound=%s, popup=%s, notifSound=%s, customPath=%s, historyViewMode=%s]",
+                "UserSettings[work=%dmin, break=%dmin, dailyGoal=%dmin, sound=%s, popup=%s, notifSound=%s, customPath=%s, historyViewMode=%s, darkMode=%s]",
                 workDurationMinutes, breakDurationMinutes, dailyGoalMinutes,
                 soundNotificationEnabled, popupNotificationEnabled, notificationSound, customSoundPath,
-                historyViewMode);
+                historyViewMode, darkModeEnabled);
     }
 }

@@ -83,6 +83,9 @@ public final class MainView extends BorderPane {
     private final HistoryView historyView;
     private final SettingsView settingsView;
     private final TabPane tabPane;
+    private VBox focusCard;
+    private VBox progressCard;
+    private Label focusHeaderLabel;
 
     /**
      * Creates the main view wired to the given controller.
@@ -230,8 +233,49 @@ public final class MainView extends BorderPane {
         // Initialize daily progress
         updateDailyProgress();
 
-        // Load CSS styles
-        getStylesheets().add(getClass().getResource("styles.css").toExternalForm());
+        // Load CSS styles based on current dark mode setting
+        applyTheme(controller.getSettings().isDarkModeEnabled());
+    }
+
+    /**
+     * Applies the specified theme.
+     *
+     * @param darkMode true to apply dark theme, false for light theme
+     */
+    public void applyTheme(boolean darkMode) {
+        getStylesheets().clear();
+        String cardBg, cardBorder, windowBg, textColor;
+        if (darkMode) {
+            getStylesheets().add(getClass().getResource("styles-dark.css").toExternalForm());
+            cardBg = AppConstants.COLOR_CARD_BACKGROUND_DARK;
+            cardBorder = AppConstants.COLOR_CARD_BORDER_DARK;
+            windowBg = AppConstants.COLOR_WINDOW_BACKGROUND_DARK;
+            textColor = AppConstants.COLOR_TEXT_PRIMARY_DARK;
+        } else {
+            getStylesheets().add(getClass().getResource("styles.css").toExternalForm());
+            cardBg = AppConstants.COLOR_CARD_BACKGROUND;
+            cardBorder = AppConstants.COLOR_CARD_BORDER;
+            windowBg = AppConstants.COLOR_WINDOW_BACKGROUND;
+            textColor = AppConstants.COLOR_TEXT_PRIMARY;
+        }
+        setStyle(String.format("-fx-background-color: %s;", windowBg));
+
+        // Update card styles
+        String cardStyle = String.format(STYLE_CARD, cardBg, cardBorder);
+        if (focusCard != null) {
+            focusCard.setStyle(cardStyle);
+        }
+        if (progressCard != null) {
+            progressCard.setStyle(cardStyle);
+        }
+        if (focusHeaderLabel != null) {
+            focusHeaderLabel.setTextFill(javafx.scene.paint.Color.web(textColor));
+        }
+
+        // Update SettingsView cards
+        if (settingsView != null) {
+            settingsView.applyTheme(darkMode);
+        }
     }
 
     /**
@@ -241,9 +285,9 @@ public final class MainView extends BorderPane {
      */
     private VBox createFocusSessionCard() {
         // Header
-        Label headerLabel = new Label("Focus session");
-        headerLabel.setFont(Font.font(FONT_FAMILY, FontWeight.NORMAL, 14));
-        headerLabel.setTextFill(javafx.scene.paint.Color.web(AppConstants.COLOR_TEXT_PRIMARY));
+        focusHeaderLabel = new Label("Focus session");
+        focusHeaderLabel.setFont(Font.font(FONT_FAMILY, FontWeight.NORMAL, 14));
+        focusHeaderLabel.setTextFill(javafx.scene.paint.Color.web(AppConstants.COLOR_TEXT_PRIMARY));
 
         Button settingsButton = createSettingsButton();
 
@@ -253,7 +297,7 @@ public final class MainView extends BorderPane {
         HBox headerBar = new HBox();
         headerBar.setAlignment(Pos.CENTER_LEFT);
         headerBar.setPadding(new Insets(15, 15, 0, 15));
-        headerBar.getChildren().addAll(headerLabel, spacer, settingsButton);
+        headerBar.getChildren().addAll(focusHeaderLabel, spacer, settingsButton);
 
         // Timer content - includes timer display and controls within the card
         VBox timerContent = new VBox(0);
@@ -263,16 +307,16 @@ public final class MainView extends BorderPane {
         timerContent.getChildren().addAll(timerDisplay, controlPanel);
 
         // Card container
-        VBox card = new VBox();
-        card.setStyle(String.format(STYLE_CARD,
+        focusCard = new VBox();
+        focusCard.setStyle(String.format(STYLE_CARD,
                 AppConstants.COLOR_CARD_BACKGROUND,
                 AppConstants.COLOR_CARD_BORDER));
-        card.setMinWidth(380);
-        card.setMaxWidth(400);
-        card.setMinHeight(340);
-        card.getChildren().addAll(headerBar, timerContent);
+        focusCard.setMinWidth(380);
+        focusCard.setMaxWidth(400);
+        focusCard.setMinHeight(340);
+        focusCard.getChildren().addAll(headerBar, timerContent);
 
-        return card;
+        return focusCard;
     }
 
     /**
@@ -285,16 +329,16 @@ public final class MainView extends BorderPane {
         dailyProgressView.setSettingsButton(createSettingsButton());
 
         // Card container
-        VBox card = new VBox();
-        card.setStyle(String.format(STYLE_CARD,
+        progressCard = new VBox();
+        progressCard.setStyle(String.format(STYLE_CARD,
                 AppConstants.COLOR_CARD_BACKGROUND,
                 AppConstants.COLOR_CARD_BORDER));
-        card.setMinWidth(380);
-        card.setMaxWidth(400);
-        card.setMinHeight(340);
-        card.getChildren().add(dailyProgressView);
+        progressCard.setMinWidth(380);
+        progressCard.setMaxWidth(400);
+        progressCard.setMinHeight(340);
+        progressCard.getChildren().add(dailyProgressView);
 
-        return card;
+        return progressCard;
     }
 
     /**
@@ -441,6 +485,13 @@ public final class MainView extends BorderPane {
         controller.getSettings().setNotificationSound(settings.getNotificationSound());
         controller.getSettings().setCustomSoundPath(settings.getCustomSoundPath());
         controller.getSettings().setHistoryChartDays(settings.getHistoryChartDays());
+
+        // Update dark mode and apply theme
+        boolean darkModeChanged = controller.getSettings().isDarkModeEnabled() != settings.isDarkModeEnabled();
+        controller.getSettings().setDarkModeEnabled(settings.isDarkModeEnabled());
+        if (darkModeChanged) {
+            applyTheme(settings.isDarkModeEnabled());
+        }
 
         // Update display if idle - respect pending session type
         if (controller.getCurrentState() == TimerState.IDLE) {

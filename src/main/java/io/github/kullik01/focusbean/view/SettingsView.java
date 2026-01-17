@@ -97,6 +97,7 @@ public final class SettingsView extends VBox {
     private TextField chartDaysField;
     private final CheckBox soundNotificationCheckbox;
     private final CheckBox popupNotificationCheckbox;
+    private final CheckBox darkModeCheckbox;
     private final ComboBox<NotificationSound> soundComboBox;
     private final TextField customSoundPathField;
     private final Button browseButton;
@@ -108,6 +109,16 @@ public final class SettingsView extends VBox {
 
     private Runnable onSave;
     private UserSettings originalSettings;
+
+    // Card references for theme updates
+    private VBox timerSettingsCard;
+    private VBox historySettingsCard;
+    private VBox notificationsCard;
+    private VBox appearanceCard;
+    private Label timerHeaderLabel;
+    private Label historyHeaderLabel;
+    private Label notificationsHeaderLabel;
+    private Label appearanceHeaderLabel;
 
     /**
      * Creates a new SettingsView with the given settings and notification service.
@@ -137,6 +148,11 @@ public final class SettingsView extends VBox {
         popupNotificationCheckbox = new CheckBox("Show notification");
         popupNotificationCheckbox.setSelected(currentSettings.isPopupNotificationEnabled());
         popupNotificationCheckbox.setStyle(STYLE_LABEL);
+
+        // Dark mode checkbox
+        darkModeCheckbox = new CheckBox("Dark mode (Espresso theme)");
+        darkModeCheckbox.setSelected(currentSettings.isDarkModeEnabled());
+        darkModeCheckbox.setStyle(STYLE_LABEL);
 
         // Sound selection - only System Beep and Custom options work reliably
         soundComboBox = new ComboBox<>(FXCollections.observableArrayList(
@@ -284,21 +300,34 @@ public final class SettingsView extends VBox {
         });
 
         // Create Timer Settings card
-        VBox timerSettingsCard = createTimerSettingsCard();
+        timerSettingsCard = createTimerSettingsCard();
 
         // Create History Settings card
-        VBox historySettingsCard = createHistorySettingsCard();
+        historySettingsCard = createHistorySettingsCard();
 
         // Create Notifications card
-        VBox notificationsCard = createNotificationsCard(soundSelectionRow, customSoundRow);
+        notificationsCard = createNotificationsCard(soundSelectionRow, customSoundRow);
 
-        // Cards container
-        HBox cardsContainer = new HBox(15);
-        cardsContainer.setAlignment(Pos.TOP_CENTER);
+        // Create Appearance card
+        appearanceCard = createAppearanceCard();
+
+        // Cards container - first row
+        HBox cardsRow1 = new HBox(15);
+        cardsRow1.setAlignment(Pos.TOP_CENTER);
         HBox.setHgrow(timerSettingsCard, Priority.ALWAYS);
         HBox.setHgrow(historySettingsCard, Priority.ALWAYS);
         HBox.setHgrow(notificationsCard, Priority.ALWAYS);
-        cardsContainer.getChildren().addAll(timerSettingsCard, historySettingsCard, notificationsCard);
+        cardsRow1.getChildren().addAll(timerSettingsCard, historySettingsCard, notificationsCard);
+
+        // Second row for appearance
+        HBox cardsRow2 = new HBox(15);
+        cardsRow2.setAlignment(Pos.TOP_CENTER);
+        HBox.setHgrow(appearanceCard, Priority.ALWAYS);
+        cardsRow2.getChildren().add(appearanceCard);
+
+        // Container for all cards
+        VBox cardsContainer = new VBox(15, cardsRow1, cardsRow2);
+        cardsContainer.setAlignment(Pos.TOP_CENTER);
 
         // Save button container
         HBox saveButtonContainer = new HBox(saveButton);
@@ -306,6 +335,52 @@ public final class SettingsView extends VBox {
         saveButtonContainer.setPadding(new Insets(10, 0, 0, 0));
 
         getChildren().addAll(cardsContainer, saveButtonContainer);
+    }
+
+    /**
+     * Applies the specified theme to the settings view cards.
+     *
+     * @param darkMode true to apply dark theme, false for light theme
+     */
+    public void applyTheme(boolean darkMode) {
+        String cardBg, cardBorder, textColor;
+        if (darkMode) {
+            cardBg = AppConstants.COLOR_CARD_BACKGROUND_DARK;
+            cardBorder = AppConstants.COLOR_CARD_BORDER_DARK;
+            textColor = AppConstants.COLOR_TEXT_PRIMARY_DARK;
+        } else {
+            cardBg = AppConstants.COLOR_CARD_BACKGROUND;
+            cardBorder = AppConstants.COLOR_CARD_BORDER;
+            textColor = AppConstants.COLOR_TEXT_PRIMARY;
+        }
+
+        String cardStyle = String.format(STYLE_CARD, cardBg, cardBorder);
+        javafx.scene.paint.Color textColorPaint = javafx.scene.paint.Color.web(textColor);
+
+        if (timerSettingsCard != null) {
+            timerSettingsCard.setStyle(cardStyle);
+        }
+        if (historySettingsCard != null) {
+            historySettingsCard.setStyle(cardStyle);
+        }
+        if (notificationsCard != null) {
+            notificationsCard.setStyle(cardStyle);
+        }
+        if (appearanceCard != null) {
+            appearanceCard.setStyle(cardStyle);
+        }
+        if (timerHeaderLabel != null) {
+            timerHeaderLabel.setTextFill(textColorPaint);
+        }
+        if (historyHeaderLabel != null) {
+            historyHeaderLabel.setTextFill(textColorPaint);
+        }
+        if (notificationsHeaderLabel != null) {
+            notificationsHeaderLabel.setTextFill(textColorPaint);
+        }
+        if (appearanceHeaderLabel != null) {
+            appearanceHeaderLabel.setTextFill(textColorPaint);
+        }
     }
 
     /**
@@ -326,7 +401,8 @@ public final class SettingsView extends VBox {
         Label errorLabel = new Label("Value must be between " + min + " and " + logicalMax);
         errorLabel.setStyle("-fx-text-fill: red; -fx-font-size: 10px;");
         errorLabel.setWrapText(true);
-        errorLabel.setPrefWidth(150); // Give it enough width to wrap if needed
+        // Give it enough width to wrap if needed
+        errorLabel.setPrefWidth(150);
         errorLabel.setVisible(false);
         errorLabel.setManaged(false);
 
@@ -391,9 +467,9 @@ public final class SettingsView extends VBox {
      * @return the configured card VBox
      */
     private VBox createTimerSettingsCard() {
-        Label headerLabel = new Label("Timer");
-        headerLabel.setFont(Font.font(FONT_FAMILY, FontWeight.BOLD, 16));
-        headerLabel.setTextFill(javafx.scene.paint.Color.web(AppConstants.COLOR_TEXT_PRIMARY));
+        timerHeaderLabel = new Label("Timer");
+        timerHeaderLabel.setFont(Font.font(FONT_FAMILY, FontWeight.BOLD, 16));
+        timerHeaderLabel.setTextFill(javafx.scene.paint.Color.web(AppConstants.COLOR_TEXT_PRIMARY));
 
         VBox card = new VBox(15);
         card.setStyle(String.format(STYLE_CARD,
@@ -410,7 +486,7 @@ public final class SettingsView extends VBox {
         dailyGoalField = new TextField();
 
         card.getChildren().addAll(
-                headerLabel,
+                timerHeaderLabel,
                 createSettingRow("Work Duration (min):", createValidatedTextField(
                         UserSettings.MIN_DURATION_MINUTES,
                         UserSettings.MAX_WORK_DURATION_MINUTES,
@@ -433,9 +509,9 @@ public final class SettingsView extends VBox {
      * @return the configured card VBox
      */
     private VBox createHistorySettingsCard() {
-        Label headerLabel = new Label("History");
-        headerLabel.setFont(Font.font(FONT_FAMILY, FontWeight.BOLD, 16));
-        headerLabel.setTextFill(javafx.scene.paint.Color.web(AppConstants.COLOR_TEXT_PRIMARY));
+        historyHeaderLabel = new Label("History");
+        historyHeaderLabel.setFont(Font.font(FONT_FAMILY, FontWeight.BOLD, 16));
+        historyHeaderLabel.setTextFill(javafx.scene.paint.Color.web(AppConstants.COLOR_TEXT_PRIMARY));
 
         VBox card = new VBox(15);
         card.setStyle(String.format(STYLE_CARD,
@@ -448,7 +524,7 @@ public final class SettingsView extends VBox {
         chartDaysField = new TextField();
 
         card.getChildren().addAll(
-                headerLabel,
+                historyHeaderLabel,
                 createSettingRow("Chart Days:", createValidatedTextField(
                         UserSettings.MIN_CHART_DAYS,
                         UserSettings.MAX_CHART_DAYS,
@@ -465,9 +541,9 @@ public final class SettingsView extends VBox {
      * @return the configured card VBox
      */
     private VBox createNotificationsCard(HBox soundSelectionRow, HBox customSoundRow) {
-        Label headerLabel = new Label("Notification");
-        headerLabel.setFont(Font.font(FONT_FAMILY, FontWeight.BOLD, 16));
-        headerLabel.setTextFill(javafx.scene.paint.Color.web(AppConstants.COLOR_TEXT_PRIMARY));
+        notificationsHeaderLabel = new Label("Notification");
+        notificationsHeaderLabel.setFont(Font.font(FONT_FAMILY, FontWeight.BOLD, 16));
+        notificationsHeaderLabel.setTextFill(javafx.scene.paint.Color.web(AppConstants.COLOR_TEXT_PRIMARY));
 
         Label soundLabel = new Label("Notification Sound:");
         soundLabel.setStyle(STYLE_LABEL);
@@ -484,10 +560,35 @@ public final class SettingsView extends VBox {
         card.setMaxWidth(250);
 
         card.getChildren().addAll(
-                headerLabel,
+                notificationsHeaderLabel,
                 soundNotificationCheckbox,
                 soundSection,
                 popupNotificationCheckbox);
+
+        return card;
+    }
+
+    /**
+     * Creates the Appearance settings card.
+     *
+     * @return the configured card VBox
+     */
+    private VBox createAppearanceCard() {
+        appearanceHeaderLabel = new Label("Appearance");
+        appearanceHeaderLabel.setFont(Font.font(FONT_FAMILY, FontWeight.BOLD, 16));
+        appearanceHeaderLabel.setTextFill(javafx.scene.paint.Color.web(AppConstants.COLOR_TEXT_PRIMARY));
+
+        VBox card = new VBox(15);
+        card.setStyle(String.format(STYLE_CARD,
+                AppConstants.COLOR_CARD_BACKGROUND,
+                AppConstants.COLOR_CARD_BORDER));
+        card.setPadding(new Insets(20));
+        card.setMinWidth(220);
+        card.setMaxWidth(250);
+
+        card.getChildren().addAll(
+                appearanceHeaderLabel,
+                darkModeCheckbox);
 
         return card;
     }
@@ -588,6 +689,7 @@ public final class SettingsView extends VBox {
                 settings.getNotificationSound(),
                 settings.getCustomSoundPath(),
                 settings.getHistoryChartDays());
+        this.originalSettings.setDarkModeEnabled(settings.isDarkModeEnabled());
 
         workField.setText(String.valueOf(settings.getWorkDurationMinutes()));
         breakField.setText(String.valueOf(settings.getBreakDurationMinutes()));
@@ -595,6 +697,7 @@ public final class SettingsView extends VBox {
         chartDaysField.setText(String.valueOf(settings.getHistoryChartDays()));
         soundNotificationCheckbox.setSelected(settings.isSoundNotificationEnabled());
         popupNotificationCheckbox.setSelected(settings.isPopupNotificationEnabled());
+        darkModeCheckbox.setSelected(settings.isDarkModeEnabled());
         soundComboBox.setValue(settings.getNotificationSound());
         customSoundPath = settings.getCustomSoundPath();
         if (customSoundPath != null) {
@@ -610,7 +713,7 @@ public final class SettingsView extends VBox {
      * @return the current UserSettings based on control values
      */
     public UserSettings getCurrentSettings() {
-        return new UserSettings(
+        UserSettings settings = new UserSettings(
                 Integer.parseInt(workField.getText()),
                 Integer.parseInt(breakField.getText()),
                 Integer.parseInt(dailyGoalField.getText()),
@@ -619,6 +722,8 @@ public final class SettingsView extends VBox {
                 soundComboBox.getValue(),
                 soundComboBox.getValue() == NotificationSound.CUSTOM ? customSoundPath : null,
                 Integer.parseInt(chartDaysField.getText()));
+        settings.setDarkModeEnabled(darkModeCheckbox.isSelected());
+        return settings;
     }
 
     /**
@@ -742,7 +847,8 @@ public final class SettingsView extends VBox {
                     || soundNotificationCheckbox.isSelected() != originalSettings.isSoundNotificationEnabled()
                     || popupNotificationCheckbox.isSelected() != originalSettings.isPopupNotificationEnabled()
                     || soundComboBox.getValue() != originalSettings.getNotificationSound()
-                    || !Objects.equals(customSoundPath, originalSettings.getCustomSoundPath());
+                    || !Objects.equals(customSoundPath, originalSettings.getCustomSoundPath())
+                    || darkModeCheckbox.isSelected() != originalSettings.isDarkModeEnabled();
         } catch (NumberFormatException e) {
             // If parsing fails, consider it as a change (invalid input)
             return true;

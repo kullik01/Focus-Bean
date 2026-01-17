@@ -135,10 +135,13 @@ public final class FocusBeanApplication extends Application {
         javafx.scene.layout.VBox.setVgrow(mainView, javafx.scene.layout.Priority.ALWAYS);
 
         // Style contentBox with background ONLY (no border here, as it gets clipped)
+        // Apply theme-appropriate colors
+        String windowBgColor = settings.isDarkModeEnabled() ? "#1A1512" : AppConstants.COLOR_WINDOW_BACKGROUND;
+        String borderColor = settings.isDarkModeEnabled() ? "#3D332B" : AppConstants.COLOR_CARD_BORDER;
         contentBox.setStyle(String.format("""
                 -fx-background-color: %s;
                 -fx-background-radius: 16;
-                """, AppConstants.COLOR_WINDOW_BACKGROUND));
+                """, windowBgColor));
 
         // Clip content to rounded corners (bound to container size for precision)
         javafx.scene.shape.Rectangle clip = new javafx.scene.shape.Rectangle();
@@ -157,7 +160,7 @@ public final class FocusBeanApplication extends Application {
                 -fx-border-color: %s;
                 -fx-border-width: 1;
                 -fx-border-radius: 16;
-                """, AppConstants.COLOR_CARD_BORDER));
+                """, borderColor));
 
         // Create outer wrapper with content and border overlay, plus shadow
         javafx.scene.layout.StackPane root = new javafx.scene.layout.StackPane(contentBox, borderOverlay);
