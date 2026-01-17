@@ -24,8 +24,19 @@
 </p>
 
 ---
+## Table of Contents
+- [⬇️ Installation](#-installation)
+  - [Windows](#windows)
+  - [Linux](#linux)
+- [📦 Dependencies](#-dependencies)
+- [✨ Features](#-features)
+- [🏗️ Build from Source (Optional)](#-build-from-source-optional)
+- [🙏 Acknowledgements](#-acknowledgements)
+- [📝 License](#-license)
 
-## 💿 Installation
+---
+
+## ⬇️ Installation
 
 ### Windows
 1. **Download**: Get `FocusBean-{version}-Windows.zip` from the **[Releases](../../releases)** page.
@@ -82,18 +93,11 @@ Focus Bean is built with the following technologies:
 - **📊 Progress Tracking**: Daily goal tracking, streak monitor, and "yesterday vs. today" comparison.
 - **📜 Session History**: Detailed logs of all work sessions featuring both table and chart views.
 - **🔔 Notifications**: Custom sound support (MP3/WAV) and system tray alerts for session transitions.
-- **🖥️ Modern UI**: Clean, coffee-themed dark mode design with custom window controls.
-- **⌨️ Shortcuts**: Space (Start/Pause), R (Reset), S (Skip Session).
+- **🖥️ Modern UI**: Clean, coffee-themed design with custom window controls.
+- **⌨️ Shortcuts**: Space (Start/Pause), R (Reset), S (Settings).
 - **🗂️ Local Data**: All data is stored locally in your home directory:
   - Windows: `%APPDATA%/FocusBean/`
-  - Linux: `~/.focusbean/` or `~/.local/share/FocusBean/`
-
----
-
-## 🙏 Acknowledgements
-
-- Built with [JavaFX](https://openjfx.io/)
-- JSON serialization by [Gson](https://github.com/google/gson)
+  - Linux: `~/.local/share/FocusBean/`
 
 ---
 
@@ -108,6 +112,13 @@ git clone https://github.com/kullik01/Focus-Bean.git
 cd Focus-Bean
 ./gradlew run
 ```
+
+---
+
+## 🙏 Acknowledgements
+
+- Built with [JavaFX](https://openjfx.io/)
+- JSON serialization by [Gson](https://github.com/google/gson)
 
 ---
 
