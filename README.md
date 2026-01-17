@@ -28,9 +28,9 @@
 - [⬇️ Installation](#-installation)
   - [Windows](#windows)
   - [Linux](#linux)
-- [📦 Dependencies](#-dependencies)
 - [✨ Features](#-features)
 - [🏗️ Build from Source (Optional)](#-build-from-source-optional)
+- [📦 Dependencies](#-dependencies)
 - [🙏 Acknowledgements](#-acknowledgements)
 - [📝 License](#-license)
 
@@ -73,20 +73,6 @@ sudo zypper install -y libgtk-3-0 libasound2 gstreamer-plugins-base gstreamer-pl
 
 ---
 
-## 📦 Dependencies
-
-Focus Bean is built with the following technologies:
-
-| Dependency         | Version | Purpose                            |
-|--------------------|---------|----------------------------------- |
-| **JavaFX**         | 25      | UI components and core graphics    |
-| **Gson**           | 2.11.0  | JSON serialization for user data   |
-| **JUnit 5**        | 5.10.2  | Unit testing framework             |
-
-*Note: The application bundle includes the necessary Java runtime, so you do **not** need to install Java globally.*
-
----
-
 ## ✨ Features
 
 - **⏲️ Smart Timer**: Configurable work (1-900 min) and break sessions with visual circular countdown.
@@ -112,6 +98,20 @@ git clone https://github.com/kullik01/Focus-Bean.git
 cd Focus-Bean
 ./gradlew run
 ```
+
+---
+
+## 📦 Dependencies
+
+Focus Bean is built with the following technologies:
+
+| Dependency         | Version | Purpose                            |
+|--------------------|---------|----------------------------------- |
+| **JavaFX**         | 25      | UI components and core graphics    |
+| **Gson**           | 2.11.0  | JSON serialization for user data   |
+| **JUnit 5**        | 5.10.2  | Unit testing framework             |
+
+*Note: The application bundle includes the necessary Java runtime, so you do **not** need to install Java globally.*
 
 ---
 
