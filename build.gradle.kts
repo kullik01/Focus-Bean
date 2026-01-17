@@ -1,13 +1,11 @@
 plugins {
     java
     application
-    id("org.javamodularity.moduleplugin") version "1.8.15"
-    id("org.openjfx.javafxplugin") version "0.0.13"
     id("org.beryx.jlink") version "3.2.0"
 }
 
 group = "io.github.kullik01"
-version = "1.0.0"
+version = "1.2.0"
 
 repositories {
     mavenCentral()
@@ -15,11 +13,21 @@ repositories {
 
 val junitVersion = "5.10.2"
 val gsonVersion = "2.11.0"
+val javafxVersion = "25"
+
+// Detect current OS for platform-specific JavaFX dependencies
+val osName = System.getProperty("os.name").lowercase()
+val platform = when {
+    osName.contains("win") -> "win"
+    osName.contains("mac") -> "mac"
+    osName.contains("linux") -> "linux"
+    else -> "linux"
+}
 
 java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
-    }
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
+    modularity.inferModulePath.set(true)
 }
 
 tasks.withType<JavaCompile> {
@@ -34,12 +42,13 @@ application {
     )
 }
 
-javafx {
-    version = "21.0.6"
-    modules = listOf("javafx.controls", "javafx.graphics", "javafx.media")
-}
-
 dependencies {
+    // JavaFX dependencies (platform-specific)
+    implementation("org.openjfx:javafx-controls:${javafxVersion}:${platform}")
+    implementation("org.openjfx:javafx-graphics:${javafxVersion}:${platform}")
+    implementation("org.openjfx:javafx-media:${javafxVersion}:${platform}")
+    implementation("org.openjfx:javafx-base:${javafxVersion}:${platform}")
+    
     implementation("com.google.code.gson:gson:${gsonVersion}")
     implementation("net.java.dev.jna:jna:5.14.0")
     implementation("net.java.dev.jna:jna-platform:5.14.0")
@@ -62,7 +71,9 @@ tasks.withType<Test> {
 }
 
 jlink {
-    imageZip.set(layout.buildDirectory.file("distributions/FocusBean-${version}.zip"))
+    imageDir.set(layout.buildDirectory.dir("FocusBean-${version}"))
+    val zipOsSuffix = if (osName.contains("win")) "Windows" else "Linux"
+    imageZip.set(layout.buildDirectory.file("distributions/FocusBean-${version}-${zipOsSuffix}.zip"))
     options.set(listOf(
         "--strip-debug",
         "--compress", "zip-6",
@@ -74,25 +85,50 @@ jlink {
         noConsole = true
     }
     
-    // Add jpackage configuration for native Windows installer
+    // Add jpackage configuration for native installers (Windows and Linux)
     jpackage {
         // Use JAVA_HOME for jpackage tool location
         jpackageHome = System.getenv("JAVA_HOME") ?: ""
         
-        installerType = "exe"
-        installerName = "FocusBean-Setup"
-        appVersion = "1.0.0"
-        // Application metadata for the exe
+        // Detect OS and set installer type accordingly
+        val isWindows = osName.contains("win")
+        
+        // Allow overriding installer type via property (e.g. -PinstallerType=app-image)
+        val typeProp = project.findProperty("installerType") as? String
+        installerType = typeProp ?: if (isWindows) "exe" else "rpm"
+        
+        installerName = "FocusBean"
+        appVersion = "1.2.0"
+        
+        // Application metadata with platform-appropriate icon
         imageOptions = listOf(
-            "--icon", "src/main/resources/io/github/kullik01/focusbean/view/logo.ico",
-            "--description", "Focus Bean application",
+            "--icon", if (isWindows) 
+                "src/main/resources/io/github/kullik01/focusbean/view/logo.ico"
+            else 
+                "src/main/resources/io/github/kullik01/focusbean/view/logo_linux.png",
+            "--description", "Focus Bean - A modern timer application for deep work and productivity",
             "--vendor", "Hannah Kullik",
         )
         
-        installerOptions = listOf(
-            "--win-dir-chooser",
-            "--win-menu",
-            "--win-shortcut"
-        )
+        // Platform-specific installer options
+        installerOptions = if (isWindows) {
+            listOf(
+                "--win-dir-chooser",
+                "--win-menu",
+                "--win-shortcut"
+            )
+        } else {
+            val baseOptions = mutableListOf(
+                "--linux-menu-group", "Utility",
+                "--linux-shortcut"
+            )
+            // Allow overriding install dir via property (e.g. -PinstallDir=/home/user/.focusbean)
+            val installDir = project.findProperty("installDir") as? String
+            if (installDir != null) {
+                baseOptions.add("--install-dir")
+                baseOptions.add(installDir)
+            }
+            baseOptions
+        }
     }
 }
