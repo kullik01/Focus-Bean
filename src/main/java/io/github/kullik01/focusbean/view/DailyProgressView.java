@@ -88,6 +88,7 @@ public final class DailyProgressView extends StackPane {
     
     // State tracking for trigger
     private int previousCompletedMinutes = -1; // -1 indicates not initialized
+    private boolean isInitialized = false; // Prevents celebration during startup
     private Runnable onDailyGoalReached;
 
     /**
@@ -201,10 +202,9 @@ public final class DailyProgressView extends StackPane {
         int oldGoal = this.dailyGoalMinutes;
         this.dailyGoalMinutes = dailyGoalMinutes;
         
-        // Trigger celebration if we satisfy the new goal by lowering it
-        // Ensure we don't re-trigger if we were already above the old goal (though re-triggering might be acceptable if user explicitly wants it)
-        // Logic: If we are NOW crossing the line (current >= new) and we weren't "obviously" finished before (current < old).
-        if (completedTodayMinutes >= dailyGoalMinutes && completedTodayMinutes < oldGoal) {
+        // Only trigger celebration if already initialized (not during startup)
+        // and if we satisfy the new goal by lowering it
+        if (isInitialized && completedTodayMinutes >= dailyGoalMinutes && completedTodayMinutes < oldGoal) {
              if (onDailyGoalReached != null) {
                  onDailyGoalReached.run();
              }
@@ -223,6 +223,7 @@ public final class DailyProgressView extends StackPane {
         if (previousCompletedMinutes == -1) {
             previousCompletedMinutes = minutes;
             this.completedTodayMinutes = minutes;
+            isInitialized = true; // Mark as initialized after first call
             refresh();
             return; // Don't trigger celebration on app startup
         }
