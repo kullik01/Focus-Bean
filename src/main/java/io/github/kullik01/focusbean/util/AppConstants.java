@@ -150,7 +150,7 @@ public final class AppConstants {
     public static final String LOGGER_PREFIX = "io.github.kullik01.focusbean";
 
     // =========================================================================
-    // Card UI Colors (Modern Design)
+    // Card UI Colors (Modern Design) - Light Theme
     // =========================================================================
 
     /** Background color for cards (white). */
@@ -170,4 +170,29 @@ public final class AppConstants {
 
     /** Tick mark color for timer display. */
     public static final String COLOR_TICK_MARK = "#C0C0C0";
+
+    // =========================================================================
+    // Card UI Colors - Dark Theme (Espresso)
+    // =========================================================================
+
+    /** Background color for cards in dark mode. */
+    public static final String COLOR_CARD_BACKGROUND_DARK = "#2C2420";
+
+    /** Border color for cards in dark mode. */
+    public static final String COLOR_CARD_BORDER_DARK = "#5D4037";
+
+    /** Window background color in dark mode. */
+    public static final String COLOR_WINDOW_BACKGROUND_DARK = "#1A1512";
+
+    /** Progress ring inactive color in dark mode. */
+    public static final String COLOR_PROGRESS_RING_DARK = "#3D332B";
+
+    /** Tick mark color in dark mode. */
+    public static final String COLOR_TICK_MARK_DARK = "#5D4037";
+
+    /** Primary text color in dark mode. */
+    public static final String COLOR_TEXT_PRIMARY_DARK = "#E8E0D8";
+
+    /** Secondary text color in dark mode. */
+    public static final String COLOR_TEXT_SECONDARY_DARK = "#A89888";
 }

@@ -29,18 +29,26 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/* =========================================================================
+   Dark Theme - Espresso Mode
+   Color Palette:
+   - Window Background: #1A1512 (Dark Espresso)
+   - Card/Content Background: #2C2420 (Dark Brown)
+   - Border: #5D4037 (Medium Brown)
+   - Header: #3D332B (Darker Header)
+   - Text Primary: #E8E0D8 (Warm Off-White)
+   - Text Secondary: #A89888 (Muted Tan)
+   - Accent: #A0522D (Coffee Brown - same as light)
+   ========================================================================= */
+
 /* Global Overrides */
 .root {
-    /* Define the main accent color (Coffee Brown) */
     -fx-accent: #A0522D;
-    /* Remove default blue focus rings */
     -fx-focus-color: transparent;
     -fx-faint-focus-color: transparent;
-    /* Match window background base */
-    -fx-base: #F5F2EF;
-    /* Ensure selection color matches accent */
+    -fx-base: #1A1512;
     -fx-selection-bar: #A0522D;
-    -fx-selection-bar-non-focused: #D7B49E;
+    -fx-selection-bar-non-focused: #5D4037;
 }
 
 /* =========================================================================
@@ -66,7 +74,7 @@
 }
 
 .tab:hover {
-    -fx-background-color: rgba(160, 82, 45, 0.1);
+    -fx-background-color: rgba(160, 82, 45, 0.15);
     -fx-cursor: hand;
 }
 
@@ -83,7 +91,6 @@
     -fx-background-insets: 0;
 }
 
-/* Specific override for the internal focus indicator which causes the blue ring */
 .tab-pane:focused>.tab-header-area>.headers-region>.tab:selected .focus-indicator {
     -fx-border-style: none;
     -fx-border-width: 0;
@@ -95,7 +102,7 @@
 }
 
 .tab .tab-label {
-    -fx-text-fill: #636e72;
+    -fx-text-fill: #A89888;
     -fx-font-family: 'Segoe UI', 'Helvetica Neue', sans-serif;
     -fx-font-size: 14px;
     -fx-alignment: CENTER;
@@ -107,7 +114,7 @@
 }
 
 .tab:hover .tab-label {
-    -fx-text-fill: #5D4037;
+    -fx-text-fill: #D7B49E;
 }
 
 /* =========================================================================
@@ -116,11 +123,13 @@
 .text-input {
     -fx-highlight-fill: #A0522D;
     -fx-highlight-text-fill: white;
-    -fx-border-color: #C19A6B;
-    /* Warm Camel Brown */
+    -fx-border-color: #5D4037;
     -fx-border-radius: 8;
     -fx-background-radius: 8;
     -fx-background-insets: 0;
+    -fx-background-color: #2C2420;
+    -fx-text-fill: #E8E0D8;
+    -fx-prompt-text-fill: #8B7355;
 }
 
 .text-input:focused {
@@ -135,16 +144,16 @@
    Spinner
    ========================================================================= */
 .spinner {
-    -fx-border-color: #C19A6B;
-    /* Warm Camel Brown */
+    -fx-border-color: #5D4037;
     -fx-border-radius: 3;
     -fx-background-insets: 0;
+    -fx-background-color: #2C2420;
 }
 
 .spinner:focused,
 .spinner:contains-focus {
     -fx-border-color: #A0522D;
-    -fx-effect: dropshadow(gaussian, rgba(160, 82, 45, 0.2), 4, 0, 0, 1);
+    -fx-effect: dropshadow(gaussian, rgba(160, 82, 45, 0.3), 4, 0, 0, 1);
 }
 
 .spinner .increment-arrow-button,
@@ -154,25 +163,25 @@
 
 .spinner .increment-arrow-button:hover,
 .spinner .decrement-arrow-button:hover {
-    -fx-background-color: rgba(160, 82, 45, 0.1);
+    -fx-background-color: rgba(160, 82, 45, 0.15);
 }
 
 .spinner .increment-arrow,
 .spinner .decrement-arrow {
-    -fx-background-color: #8B5A2B;
+    -fx-background-color: #A0522D;
 }
 
 .spinner .increment-arrow-button:hover .increment-arrow,
 .spinner .decrement-arrow-button:hover .decrement-arrow {
-    -fx-background-color: #A0522D;
+    -fx-background-color: #D7B49E;
 }
 
 /* =========================================================================
    CheckBox
    ========================================================================= */
 .check-box .box {
-    -fx-background-color: white;
-    -fx-border-color: #C19A6B;
+    -fx-background-color: #2C2420;
+    -fx-border-color: #5D4037;
     -fx-border-radius: 5;
     -fx-background-radius: 5;
     -fx-padding: 2;
@@ -184,7 +193,7 @@
 }
 
 .check-box:focused .box {
-    -fx-effect: dropshadow(gaussian, rgba(160, 82, 45, 0.3), 4, 0, 0, 1);
+    -fx-effect: dropshadow(gaussian, rgba(160, 82, 45, 0.4), 4, 0, 0, 1);
 }
 
 .check-box .mark {
@@ -198,38 +207,45 @@
     -fx-background-color: white;
 }
 
+.check-box {
+    -fx-text-fill: #E8E0D8;
+}
+
 /* =========================================================================
    ComboBox
    ========================================================================= */
 .combo-box-base {
-    -fx-background-color: white;
-    -fx-border-color: #C19A6B;
+    -fx-background-color: #2C2420;
+    -fx-border-color: #5D4037;
     -fx-border-radius: 8;
     -fx-background-radius: 8;
 }
 
 .combo-box-base:focused {
     -fx-border-color: #A0522D;
-    -fx-effect: dropshadow(gaussian, rgba(160, 82, 45, 0.2), 4, 0, 0, 1);
+    -fx-effect: dropshadow(gaussian, rgba(160, 82, 45, 0.3), 4, 0, 0, 1);
 }
 
-/* Dropdown popup container */
+.combo-box .list-cell {
+    -fx-text-fill: #E8E0D8;
+    -fx-background-color: transparent;
+}
+
 .combo-box-popup {
     -fx-background-color: transparent;
 }
 
 .combo-box-popup>.list-view {
-    -fx-background-color: #F5F2EF;
+    -fx-background-color: #2C2420;
     -fx-background-radius: 8;
     -fx-background-insets: 0;
-    -fx-border-color: #C19A6B;
+    -fx-border-color: #5D4037;
     -fx-border-radius: 8;
     -fx-border-insets: 0;
     -fx-padding: 6 0;
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.15), 8, 0, 0, 2);
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 8, 0, 0, 2);
 }
 
-/* Virtual flow needs transparent background for rounded corners */
 .combo-box-popup>.list-view>.virtual-flow {
     -fx-background-color: transparent;
 }
@@ -242,42 +258,37 @@
     -fx-background-color: transparent;
 }
 
-/* Corner region (scrollbar corner) */
 .combo-box-popup>.list-view>.corner {
     -fx-background-color: transparent;
 }
 
-/* All list cells - base styling */
 .combo-box-popup .list-cell {
-    -fx-background-color: #F5F2EF;
+    -fx-background-color: #2C2420;
     -fx-padding: 4 10;
-    -fx-text-fill: #5D4037;
+    -fx-text-fill: #E8E0D8;
 }
 
-/* Empty cells also need proper background */
 .combo-box-popup .list-cell:empty {
-    -fx-background-color: #F5F2EF;
+    -fx-background-color: #2C2420;
 }
 
-/* Dropdown list items - selected state */
 .combo-box-popup .list-cell:filled:selected {
     -fx-background-color: #A0522D;
     -fx-background-radius: 6;
     -fx-text-fill: white;
 }
 
-/* Dropdown list items - hover state (subtle brown tint) */
 .combo-box-popup .list-cell:filled:hover {
-    -fx-background-color: rgba(160, 82, 45, 0.15);
+    -fx-background-color: rgba(160, 82, 45, 0.2);
     -fx-background-radius: 6;
-    -fx-text-fill: #5D4037;
+    -fx-text-fill: #E8E0D8;
 }
 
 /* =========================================================================
    TableView
    ========================================================================= */
 .table-view {
-    -fx-background-color: #ffffff;
+    -fx-background-color: #2C2420;
     -fx-background-radius: 20;
     -fx-background-insets: 0;
     -fx-border-width: 0;
@@ -285,13 +296,12 @@
 }
 
 .table-view:focused {
-    -fx-background-color: #ffffff;
+    -fx-background-color: #2C2420;
     -fx-background-radius: 20;
     -fx-border-width: 0;
     -fx-background-insets: 0;
 }
 
-/* Internal virtual flow needs transparent background */
 .table-view>.virtual-flow {
     -fx-background-color: transparent;
 }
@@ -304,23 +314,21 @@
     -fx-background-color: transparent;
 }
 
-/* Corner region (scrollbar corner) */
 .table-view>.virtual-flow>.corner {
-    -fx-background-color: #EAE0D5;
+    -fx-background-color: #3D332B;
     -fx-background-radius: 0 19 0 0;
     -fx-background-insets: 1 1 0 1;
 }
 
-/* Header Background - Lighter as requested (#EAE0D5 - Almond/Bone/Light Coffee) */
+/* Header Background - Dark Brown */
 .table-view .column-header-background {
-    -fx-background-color: #EAE0D5;
+    -fx-background-color: #3D332B;
     -fx-background-radius: 19 19 0 0;
     -fx-background-insets: 1 1 0 1;
 }
 
-/* Ensure filler matches the lighter header background */
 .table-view .column-header-background .filler {
-    -fx-background-color: #EAE0D5;
+    -fx-background-color: #3D332B;
     -fx-background-radius: 0 19 0 0;
     -fx-background-insets: 1 1 0 1;
     -fx-border-color: transparent;
@@ -332,35 +340,40 @@
 }
 
 .table-view .column-header .label {
-    -fx-text-fill: #5D4037;
-    /* Dark Brown for readability */
+    -fx-text-fill: #D7B49E;
     -fx-font-weight: bold;
 }
 
 .table-view .table-cell {
     -fx-border-color: transparent;
+    -fx-text-fill: #E8E0D8;
 }
 
-/* Selected row styling */
+.table-row-cell {
+    -fx-background-color: #2C2420;
+}
+
+.table-row-cell:odd {
+    -fx-background-color: #322A24;
+}
+
 .table-row-cell:filled:selected {
-    -fx-background-color: rgba(160, 82, 45, 0.15);
+    -fx-background-color: rgba(160, 82, 45, 0.25);
     -fx-background-radius: 6;
     -fx-background-insets: 0;
 }
 
 .table-row-cell:filled:selected .table-cell {
-    -fx-text-fill: #2d3436;
-    /* Keep text dark for readability */
+    -fx-text-fill: #E8E0D8;
 }
 
 .table-row-cell:filled:hover {
-    -fx-background-color: rgba(160, 82, 45, 0.05);
+    -fx-background-color: rgba(160, 82, 45, 0.1);
     -fx-background-radius: 6;
 }
 
-/* Empty table placeholder */
 .table-view .placeholder .label {
-    -fx-text-fill: #636e72;
+    -fx-text-fill: #A89888;
 }
 
 /* =========================================================================
@@ -374,38 +387,29 @@
 .button:focused {
     -fx-background-radius: 8;
     -fx-border-radius: 8;
-    -fx-effect: dropshadow(gaussian, rgba(160, 82, 45, 0.4), 5, 0, 0, 1);
+    -fx-effect: dropshadow(gaussian, rgba(160, 82, 45, 0.5), 5, 0, 0, 1);
 }
 
 /* =========================================================================
    Dialog/Alert Styling
    ========================================================================= */
 .dialog-pane {
-    -fx-background-color: #F5F2EF;
+    -fx-background-color: #1A1512;
 }
 
 .dialog-pane>.header-panel {
-    -fx-background-color: #F5F2EF;
-}
-
-.dialog-pane>.content {
-    -fx-background-color: #F5F2EF;
-}
-
-/* Button styling removed to respect manual overrides in specific dialogs */
-
-/* Specific styling for the header separator line */
-.dialog-pane>.header-panel {
-    -fx-background-color: #F5F2EF;
-    /* Remove default background insets that create the gray line */
+    -fx-background-color: #1A1512;
     -fx-background-insets: 0;
-    /* Add explicit bottom border matching the theme */
-    -fx-border-color: #D7B49E;
+    -fx-border-color: #5D4037;
     -fx-border-width: 0 0 1 0;
 }
 
+.dialog-pane>.content {
+    -fx-background-color: #1A1512;
+}
+
 .dialog-pane>.button-bar {
-    -fx-background-color: #F5F2EF;
+    -fx-background-color: #1A1512;
     -fx-border-color: transparent;
 }
 
@@ -414,13 +418,11 @@
    ========================================================================= */
 .chart-bar {
     -fx-bar-fill: #A0522D;
-    /* Coffee Brown */
     -fx-background-radius: 4 4 0 0;
 }
 
 .chart-bar:hover {
     -fx-bar-fill: #8B4513;
-    /* Darker on hover */
 }
 
 .chart-legend {
@@ -433,11 +435,11 @@
 }
 
 .chart-legend-item {
-    -fx-text-fill: #5D4037;
+    -fx-text-fill: #E8E0D8;
 }
 
 .axis {
-    -fx-tick-label-fill: #5D4037;
+    -fx-tick-label-fill: #E8E0D8;
 }
 
 .axis:left {
@@ -449,9 +451,54 @@
 }
 
 .axis-label {
-    -fx-text-fill: #5D4037;
+    -fx-text-fill: #E8E0D8;
 }
 
 .chart-content {
     -fx-padding: 10px;
+}
+
+.chart-plot-background {
+    -fx-background-color: #2C2420;
+}
+
+.chart-vertical-grid-lines {
+    -fx-stroke: #3D332B;
+}
+
+.chart-horizontal-grid-lines {
+    -fx-stroke: #3D332B;
+}
+
+/* =========================================================================
+   ScrollBar
+   ========================================================================= */
+.scroll-bar {
+    -fx-background-color: #2C2420;
+}
+
+.scroll-bar .thumb {
+    -fx-background-color: #5D4037;
+    -fx-background-radius: 4;
+}
+
+.scroll-bar .thumb:hover {
+    -fx-background-color: #6D5047;
+}
+
+.scroll-bar .increment-button,
+.scroll-bar .decrement-button {
+    -fx-background-color: transparent;
+}
+
+.scroll-bar .increment-arrow,
+.scroll-bar .decrement-arrow {
+    -fx-background-color: #5D4037;
+}
+
+/* =========================================================================
+   Label
+   ========================================================================= */
+.label {
+    -fx-text-fill: #E8E0D8;
 }

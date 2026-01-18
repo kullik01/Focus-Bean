@@ -42,13 +42,12 @@ import javafx.scene.control.TabPane;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.control.Button;
-import javafx.scene.Node;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
-import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
@@ -71,9 +70,9 @@ public final class MainView extends BorderPane {
 
     private static final String STYLE_CARD = """
             -fx-background-color: %s;
-            -fx-background-radius: 8;
+            -fx-background-radius: 20;
             -fx-border-color: %s;
-            -fx-border-radius: 8;
+            -fx-border-radius: 20;
             -fx-border-width: 1;
             -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 4, 0, 0, 1);
             """;
@@ -85,10 +84,24 @@ public final class MainView extends BorderPane {
     private final HistoryView historyView;
     private final SettingsView settingsView;
     private final TabPane tabPane;
+    private VBox focusCard;
+    private VBox progressCard;
+    private Label focusHeaderLabel;
 
-    private final StackPane contentRoot;
-    private int lastCelebratedGoalMinutes = -1;
-    private int completedTodayMinutesBeforeWork = 0;
+    private Region windowBorderOverlay;
+    
+    // Celebration components
+    private javafx.scene.canvas.Canvas celebrationCanvas;
+    private javafx.animation.AnimationTimer celebrationTimer;
+    private java.util.List<ConfettiParticle> particles;
+    private Label congratsLabel;
+    private double celebrationElapsedSeconds = 0; // Track elapsed time for fade effects
+    private static final int PARTICLE_COUNT = 1500; // Heavy confetti coverage
+    private static final double CELEBRATION_DURATION_SECONDS = 15.0;
+    private static final double FADE_DURATION_SECONDS = 2.0; // Fade in/out duration
+    private static final double FRAMES_PER_SECOND = 60.0;
+
+    private boolean isSwitchingAfterSave = false;
 
     /**
      * Creates the main view wired to the given controller.
@@ -135,9 +148,6 @@ public final class MainView extends BorderPane {
         tabPane.setTabMinWidth(80);
         tabPane.getSelectionModel().select(timerTab);
 
-        contentRoot = new StackPane(tabPane);
-        contentRoot.setStyle("-fx-background-color: transparent;");
-
         // Flag to prevent recursive listener calls when programmatically reverting
         // selection
         final boolean[] handlingTabChange = { false };
@@ -149,7 +159,8 @@ public final class MainView extends BorderPane {
             }
 
             // Check for unsaved settings when leaving the Settings tab
-            if (oldTab == settingsTab && newTab != settingsTab && settingsView.hasUnsavedChanges()) {
+            // Skip check if we are explicitly switching after a save
+            if (!isSwitchingAfterSave && oldTab == settingsTab && newTab != settingsTab && settingsView.hasUnsavedChanges()) {
                 handlingTabChange[0] = true;
                 // Revert selection temporarily while dialog is shown
                 tabPane.getSelectionModel().select(settingsTab);
@@ -167,8 +178,16 @@ public final class MainView extends BorderPane {
                         // Save settings and switch to target tab
                         applySettings();
                         settingsView.markSettingsSaved();
+                        
+                        // Set flag to bypass the unsaved check on the re-triggered listener
+                        isSwitchingAfterSave = true;
                         // Allows recursive listener to fire and update pages
-                        tabPane.getSelectionModel().select(targetTab);
+                        // specific fix: Run later to let dialog close fully
+                        javafx.application.Platform.runLater(() -> {
+                            tabPane.getSelectionModel().select(targetTab);
+                            // Reset flag in another runLater to ensure tab change listener has fully processed
+                            javafx.application.Platform.runLater(() -> isSwitchingAfterSave = false);
+                        });
                     }
                     // If Cancel, we already reverted to settingsTab, so do nothing
                 });
@@ -190,16 +209,9 @@ public final class MainView extends BorderPane {
         // Wire clear history callback
         historyView.setOnClearHistory(() -> {
             controller.clearHistory();
+            controller.resetToFocus(); // Reset timer to Focus (Work) state
             historyView.update(controller.getHistory());
             updateDailyProgress();
-
-            lastCelebratedGoalMinutes = -1;
-            completedTodayMinutesBeforeWork = controller.getHistory().getTodaysTotalWorkMinutes();
-
-            controller.setPendingSessionType(TimerState.WORK);
-            if (controller.getCurrentState() == TimerState.IDLE) {
-                timerDisplay.showDuration(controller.getSettings().getWorkDurationMinutes());
-            }
         });
 
         // Wire history view mode change handling
@@ -222,7 +234,39 @@ public final class MainView extends BorderPane {
             settingsView.markSettingsSaved();
         });
 
-        setCenter(contentRoot);
+        // Initialize celebration components
+        celebrationCanvas = new javafx.scene.canvas.Canvas();
+        celebrationCanvas.setMouseTransparent(true);
+        // Bind canvas size to parent stack pane (which will fill the BorderPane center)
+        celebrationCanvas.managedProperty().bind(celebrationCanvas.visibleProperty());
+
+        // Initialize congratulations message (simple text, no icons)
+        congratsLabel = new Label("Great job! You've reached your daily goal, keep it up!");
+        congratsLabel.setFont(Font.font(FONT_FAMILY, FontWeight.BOLD, 18));
+        congratsLabel.setTextFill(Color.web(AppConstants.COLOR_ACCENT));
+        congratsLabel.setStyle("""
+                -fx-background-color: rgba(255, 255, 255, 0.95);
+                -fx-background-radius: 12;
+                -fx-padding: 12 20 12 20;
+                -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 8, 0, 0, 2);
+                """);
+        congratsLabel.setVisible(false);
+        congratsLabel.setMouseTransparent(true);
+
+        // Wire daily goal reached callback from DailyProgressView
+        dailyProgressView.setOnDailyGoalReached(this::startCelebration);
+
+        // Create a StackPane to hold the TabPane and the celebration overlay
+        // Order: confetti canvas first, then congratsLabel on top (in front)
+        javafx.scene.layout.StackPane mainStack = new javafx.scene.layout.StackPane();
+        mainStack.getChildren().addAll(tabPane, celebrationCanvas, congratsLabel);
+        javafx.scene.layout.StackPane.setAlignment(congratsLabel, Pos.CENTER);
+        
+        // Bind canvas dimensions to stack pane
+        celebrationCanvas.widthProperty().bind(mainStack.widthProperty());
+        celebrationCanvas.heightProperty().bind(mainStack.heightProperty());
+
+        setCenter(mainStack);
 
         // Style TabPane for transparent background (corners handled by clip)
         tabPane.setStyle("""
@@ -247,13 +291,97 @@ public final class MainView extends BorderPane {
         // Initialize daily progress
         updateDailyProgress();
 
-        int completedNow = controller.getHistory().getTodaysTotalWorkMinutes();
-        int goalNow = controller.getSettings().getDailyGoalMinutes();
-        lastCelebratedGoalMinutes = goalNow > 0 && completedNow >= goalNow ? goalNow : -1;
-        completedTodayMinutesBeforeWork = completedNow;
+        // Load CSS styles based on current dark mode setting
+        applyTheme(controller.getSettings().isDarkModeEnabled());
+    }
 
-        // Load CSS styles
-        getStylesheets().add(getClass().getResource("styles.css").toExternalForm());
+    /**
+     * Applies the specified theme.
+     *
+     * @param darkMode true to apply dark theme, false for light theme
+     */
+    public void applyTheme(boolean darkMode) {
+        getStylesheets().clear();
+        String cardBg, cardBorder, windowBg, textColor;
+        if (darkMode) {
+            java.net.URL darkCss = getClass().getResource("styles-dark.css");
+            if (darkCss != null) {
+                getStylesheets().add(darkCss.toExternalForm());
+            } else {
+                LOGGER.warning("Could not find styles-dark.css");
+            }
+            cardBg = AppConstants.COLOR_CARD_BACKGROUND_DARK;
+            cardBorder = AppConstants.COLOR_CARD_BORDER_DARK;
+            windowBg = AppConstants.COLOR_WINDOW_BACKGROUND_DARK;
+            textColor = AppConstants.COLOR_TEXT_PRIMARY_DARK;
+        } else {
+            java.net.URL lightCss = getClass().getResource("styles.css");
+            if (lightCss != null) {
+                getStylesheets().add(lightCss.toExternalForm());
+            } else {
+                 LOGGER.warning("Could not find styles.css");
+            }
+            cardBg = AppConstants.COLOR_CARD_BACKGROUND;
+            cardBorder = AppConstants.COLOR_CARD_BORDER;
+            windowBg = AppConstants.COLOR_WINDOW_BACKGROUND;
+            textColor = AppConstants.COLOR_TEXT_PRIMARY;
+        }
+        setStyle(String.format("-fx-background-color: %s;", windowBg));
+
+        // Update card styles
+        String cardStyle = String.format(STYLE_CARD, cardBg, cardBorder);
+        if (focusCard != null) {
+            focusCard.setStyle(cardStyle);
+        }
+        if (progressCard != null) {
+            progressCard.setStyle(cardStyle);
+        }
+        if (focusHeaderLabel != null) {
+            focusHeaderLabel.setTextFill(javafx.scene.paint.Color.web(textColor));
+        }
+
+        // Update window border overlay if present
+        if (windowBorderOverlay != null) {
+            // Use specific dark border color (#3D332B) to match FocusBeanApplication init logic
+            String windowBorderColor = darkMode ? "#3D332B" : AppConstants.COLOR_CARD_BORDER;
+            windowBorderOverlay.setStyle(String.format("""
+                    -fx-background-color: transparent;
+                    -fx-border-color: %s;
+                    -fx-border-width: 1;
+                    -fx-border-radius: 16;
+                    """, windowBorderColor));
+        }
+
+        // Update SettingsView cards
+        if (settingsView != null) {
+            settingsView.applyTheme(darkMode);
+        }
+
+        // Update HistoryView
+        if (historyView != null) {
+            historyView.applyTheme(darkMode);
+        }
+    }
+
+    /**
+     * Sets the region used for the window border overlay.
+     * This allows the view to update the border color when the theme changes.
+     *
+     * @param windowBorderOverlay the border overlay region
+     */
+    public void setWindowBorderOverlay(Region windowBorderOverlay) {
+        this.windowBorderOverlay = windowBorderOverlay;
+        // Apply current theme to the new overlay immediately
+        if (windowBorderOverlay != null) {
+            boolean darkMode = controller.getSettings().isDarkModeEnabled();
+            String windowBorderColor = darkMode ? "#3D332B" : AppConstants.COLOR_CARD_BORDER;
+            windowBorderOverlay.setStyle(String.format("""
+                    -fx-background-color: transparent;
+                    -fx-border-color: %s;
+                    -fx-border-width: 1;
+                    -fx-border-radius: 16;
+                    """, windowBorderColor));
+        }
     }
 
     /**
@@ -263,9 +391,9 @@ public final class MainView extends BorderPane {
      */
     private VBox createFocusSessionCard() {
         // Header
-        Label headerLabel = new Label("Focus session");
-        headerLabel.setFont(Font.font(FONT_FAMILY, FontWeight.NORMAL, 14));
-        headerLabel.setTextFill(javafx.scene.paint.Color.web(AppConstants.COLOR_TEXT_PRIMARY));
+        focusHeaderLabel = new Label("Focus session");
+        focusHeaderLabel.setFont(Font.font(FONT_FAMILY, FontWeight.NORMAL, 14));
+        focusHeaderLabel.setTextFill(javafx.scene.paint.Color.web(AppConstants.COLOR_TEXT_PRIMARY));
 
         Button settingsButton = createSettingsButton();
 
@@ -275,7 +403,7 @@ public final class MainView extends BorderPane {
         HBox headerBar = new HBox();
         headerBar.setAlignment(Pos.CENTER_LEFT);
         headerBar.setPadding(new Insets(15, 15, 0, 15));
-        headerBar.getChildren().addAll(headerLabel, spacer, settingsButton);
+        headerBar.getChildren().addAll(focusHeaderLabel, spacer, settingsButton);
 
         // Timer content - includes timer display and controls within the card
         VBox timerContent = new VBox(0);
@@ -285,16 +413,16 @@ public final class MainView extends BorderPane {
         timerContent.getChildren().addAll(timerDisplay, controlPanel);
 
         // Card container
-        VBox card = new VBox();
-        card.setStyle(String.format(STYLE_CARD,
+        focusCard = new VBox();
+        focusCard.setStyle(String.format(STYLE_CARD,
                 AppConstants.COLOR_CARD_BACKGROUND,
                 AppConstants.COLOR_CARD_BORDER));
-        card.setMinWidth(380);
-        card.setMaxWidth(400);
-        card.setMinHeight(340);
-        card.getChildren().addAll(headerBar, timerContent);
+        focusCard.setMinWidth(380);
+        focusCard.setMaxWidth(400);
+        focusCard.setMinHeight(340);
+        focusCard.getChildren().addAll(headerBar, timerContent);
 
-        return card;
+        return focusCard;
     }
 
     /**
@@ -307,16 +435,16 @@ public final class MainView extends BorderPane {
         dailyProgressView.setSettingsButton(createSettingsButton());
 
         // Card container
-        VBox card = new VBox();
-        card.setStyle(String.format(STYLE_CARD,
+        progressCard = new VBox();
+        progressCard.setStyle(String.format(STYLE_CARD,
                 AppConstants.COLOR_CARD_BACKGROUND,
                 AppConstants.COLOR_CARD_BORDER));
-        card.setMinWidth(380);
-        card.setMaxWidth(400);
-        card.setMinHeight(340);
-        card.getChildren().add(dailyProgressView);
+        progressCard.setMinWidth(380);
+        progressCard.setMaxWidth(400);
+        progressCard.setMinHeight(340);
+        progressCard.getChildren().add(dailyProgressView);
 
-        return card;
+        return progressCard;
     }
 
     /**
@@ -326,14 +454,21 @@ public final class MainView extends BorderPane {
      * @return the configured settings button
      */
     private Button createSettingsButton() {
-        // Create gear icon using SVG (same style as HistoryView)
+        // Create a clean outline-style gear icon using SVG
         javafx.scene.shape.SVGPath icon = new javafx.scene.shape.SVGPath();
-        // Gear icon
-        icon.setContent(
-                "M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z");
-        icon.setFill(javafx.scene.paint.Color.web(AppConstants.COLOR_PROGRESS_ACTIVE));
-        icon.setScaleX(0.85);
-        icon.setScaleY(0.85);
+        // Clean gear/cog icon path (outline style matching the reference)
+        icon.setContent("M12 15.5A3.5 3.5 0 0 1 8.5 12 3.5 3.5 0 0 1 12 8.5a3.5 3.5 0 0 1 3.5 3.5 "
+                + "3.5 3.5 0 0 1-3.5 3.5m7.43-2.53c.04-.32.07-.64.07-.97 0-.33-.03-.66-.07-1l2.11-1.63"
+                + "c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.31-.61-.22l-2.49 1c-.52-.39-1.06-.73"
+                + "-1.69-.98l-.37-2.65A.506.506 0 0 0 14 2h-4c-.25 0-.46.18-.5.42l-.37 2.65c-.63.25"
+                + "-1.17.59-1.69.98l-2.49-1c-.22-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64L4.57 11"
+                + "c-.04.34-.07.67-.07 1 0 .33.03.65.07.97l-2.11 1.66c-.19.15-.25.42-.12.64l2 3.46c.12"
+                + ".22.39.3.61.22l2.49-1.01c.52.4 1.06.74 1.69.99l.37 2.65c.04.24.25.42.5.42h4c.25 0 "
+                + ".46-.18.5-.42l.37-2.65c.63-.26 1.17-.59 1.69-.99l2.49 1.01c.22.08.49 0 .61-.22l2-3.46"
+                + "c.12-.22.07-.49-.12-.64l-2.11-1.66Z");
+        icon.setFill(javafx.scene.paint.Color.web(AppConstants.COLOR_ACCENT));
+        icon.setScaleX(0.7);
+        icon.setScaleY(0.7);
 
         Button settingsButton = new Button();
         settingsButton.setGraphic(icon);
@@ -383,7 +518,19 @@ public final class MainView extends BorderPane {
      * Updates the daily progress view with current data.
      */
     private void updateDailyProgress() {
+        // Calculate base history total
+        int totalMinutes = controller.getHistory().getTodaysTotalWorkMinutes();
+
+        // Add currently running session progress if applicable
+        if (controller.getCurrentState() == TimerState.WORK) {
+            int totalSeconds = controller.getSettings().getWorkDurationSeconds();
+            int elapsedSeconds = Math.max(0, totalSeconds - controller.getRemainingSeconds());
+            totalMinutes += elapsedSeconds / 60;
+        }
+
         dailyProgressView.update(controller.getHistory(), controller.getSettings());
+        // Force update with the live total to ensure visual continuity
+        dailyProgressView.setCompletedTodayMinutes(totalMinutes);
     }
 
     /**
@@ -405,9 +552,18 @@ public final class MainView extends BorderPane {
         controller.remainingSecondsProperty()
                 .addListener((obs, oldVal, newVal) -> {
                     timerDisplay.updateTime(newVal.intValue());
-                    // Update completed minutes in daily progress
+                    
+                    // Calculate (current accumulated history) + (current running session elapsed)
+                    int currentSessionMinutes = 0;
+                    if (controller.getCurrentState() == TimerState.WORK) {
+                         // Add elapsed time from current session to the progress
+                         int totalSeconds = controller.getSettings().getWorkDurationSeconds();
+                         int elapsedSeconds = Math.max(0, totalSeconds - newVal.intValue());
+                         currentSessionMinutes = elapsedSeconds / 60;
+                    }
+
                     dailyProgressView.setCompletedTodayMinutes(
-                            controller.getHistory().getTodaysTotalWorkMinutes());
+                            controller.getHistory().getTodaysTotalWorkMinutes() + currentSessionMinutes);
                 });
 
         // Update state display and button states when state changes
@@ -429,39 +585,12 @@ public final class MainView extends BorderPane {
             // (from IDLE), not when resuming from PAUSED
             if (oldState == TimerState.IDLE) {
                 if (newState == TimerState.WORK) {
-                    completedTodayMinutesBeforeWork = controller.getHistory().getTodaysTotalWorkMinutes();
                     timerDisplay.setTotalSeconds(controller.getSettings().getWorkDurationSeconds());
                 } else if (newState == TimerState.BREAK) {
                     timerDisplay.setTotalSeconds(controller.getSettings().getBreakDurationSeconds());
                 }
             }
-
-            if (newState == TimerState.IDLE && oldState == TimerState.WORK) {
-                int completed = controller.getHistory().getTodaysTotalWorkMinutes();
-                int goal = controller.getSettings().getDailyGoalMinutes();
-                if (goal > 0
-                        && goal != lastCelebratedGoalMinutes
-                        && completedTodayMinutesBeforeWork < goal
-                        && completed >= goal) {
-                    showCongratsOverlay();
-                    lastCelebratedGoalMinutes = goal;
-                }
-            }
         });
-    }
-
-    private void showCongratsOverlay() {
-        for (Node child : contentRoot.getChildren()) {
-            if (child instanceof CongratsOverlay) {
-                return;
-            }
-        }
-
-        CongratsOverlay overlay = new CongratsOverlay();
-        overlay.prefWidthProperty().bind(contentRoot.widthProperty());
-        overlay.prefHeightProperty().bind(contentRoot.heightProperty());
-        contentRoot.getChildren().add(overlay);
-        overlay.play();
     }
 
     /**
@@ -484,6 +613,13 @@ public final class MainView extends BorderPane {
         controller.getSettings().setCustomSoundPath(settings.getCustomSoundPath());
         controller.getSettings().setHistoryChartDays(settings.getHistoryChartDays());
 
+        // Update dark mode and apply theme
+        boolean darkModeChanged = controller.getSettings().isDarkModeEnabled() != settings.isDarkModeEnabled();
+        controller.getSettings().setDarkModeEnabled(settings.isDarkModeEnabled());
+        if (darkModeChanged) {
+            applyTheme(settings.isDarkModeEnabled());
+        }
+
         // Update display if idle - respect pending session type
         if (controller.getCurrentState() == TimerState.IDLE) {
             if (controller.getPendingSessionType() == TimerState.BREAK) {
@@ -495,14 +631,6 @@ public final class MainView extends BorderPane {
 
         // Update daily progress
         updateDailyProgress();
-
-        int completedNow = controller.getHistory().getTodaysTotalWorkMinutes();
-        int goalNow = controller.getSettings().getDailyGoalMinutes();
-        if (goalNow <= 0) {
-            lastCelebratedGoalMinutes = -1;
-        } else if (completedNow >= goalNow) {
-            lastCelebratedGoalMinutes = goalNow;
-        }
 
         // Save updated settings
         controller.saveData();
@@ -568,6 +696,137 @@ public final class MainView extends BorderPane {
             case IDLE -> controller.startOrResume();
             case WORK, BREAK -> controller.pause();
             case PAUSED -> controller.resume();
+        }
+    }
+
+    /**
+     * Starts the confetti celebration animation.
+     */
+    private void startCelebration() {
+        if (celebrationTimer != null) {
+            celebrationTimer.stop();
+        }
+
+        // Show congratulations message with theme-aware styling
+        boolean isDarkMode = controller.getSettings().isDarkModeEnabled();
+        congratsLabel.setStyle(String.format("""
+                -fx-background-color: %s;
+                -fx-background-radius: 12;
+                -fx-padding: 12 20 12 20;
+                -fx-effect: dropshadow(gaussian, rgba(0,0,0,%s), 8, 0, 0, 2);
+                """, 
+                isDarkMode ? "rgba(50, 40, 35, 0.95)" : "rgba(255, 255, 255, 0.95)",
+                isDarkMode ? "0.3" : "0.15"));
+        congratsLabel.setVisible(true);
+
+        // Initialize particles
+        particles = new java.util.ArrayList<>(PARTICLE_COUNT);
+        Color[] colors = {
+            javafx.scene.paint.Color.web("#E6A779"), // Work bg
+            javafx.scene.paint.Color.web("#55efc4"), // Break bg
+            javafx.scene.paint.Color.web("#A0522D"), // Accent
+            javafx.scene.paint.Color.web("#fdcb6e"), // Bright yellow/gold
+            javafx.scene.paint.Color.web("#74b9ff")  // Soft blue
+        };
+
+        // Use MainView dimensions for particle positioning (more reliable than canvas)
+        double width = getWidth() > 0 ? getWidth() : 850;
+        double height = getHeight() > 0 ? getHeight() : 450;
+
+        java.util.Random rand = new java.util.Random();
+
+        // Calculate velocity so particles take 15 seconds to travel from top to bottom
+        // At 60fps, 15 seconds = 900 frames. velocity = height / 900 frames
+        double totalFrames = CELEBRATION_DURATION_SECONDS * FRAMES_PER_SECOND;
+        double baseVelocity = height / totalFrames;
+        
+        // Distribute particles uniformly from above screen to bottom of screen
+        // So at any point during 15 seconds, there are particles visible
+        double totalJourneyHeight = height * 2; // Particles travel from -height to +height
+        
+        for (int i = 0; i < PARTICLE_COUNT; i++) {
+            // Stagger particles uniformly across the journey
+            double startY = -height + (rand.nextDouble() * totalJourneyHeight);
+            particles.add(new ConfettiParticle(
+                rand.nextDouble() * width, // Spawn across full width
+                startY, // Distributed across full journey
+                colors[rand.nextInt(colors.length)],
+                (rand.nextDouble() - 0.5) * 0.3, // Very subtle horizontal drift
+                baseVelocity + rand.nextDouble() * 0.2 // Tiny velocity variation
+            ));
+        }
+
+        celebrationTimer = new javafx.animation.AnimationTimer() {
+            private long startTime = -1;
+            
+            @Override
+            public void handle(long now) {
+                if (startTime == -1) startTime = now;
+                celebrationElapsedSeconds = (now - startTime) / 1_000_000_000.0;
+
+                if (celebrationElapsedSeconds > CELEBRATION_DURATION_SECONDS) { // Run for 15 seconds
+                    stop();
+                    celebrationCanvas.getGraphicsContext2D().clearRect(0, 0, celebrationCanvas.getWidth(), celebrationCanvas.getHeight());
+                    congratsLabel.setVisible(false);
+                    congratsLabel.setOpacity(1.0); // Reset opacity for next time
+                    celebrationElapsedSeconds = 0;
+                    return;
+                }
+
+                // Fade out congrats label during last 2 seconds
+                if (celebrationElapsedSeconds > CELEBRATION_DURATION_SECONDS - FADE_DURATION_SECONDS) {
+                    double fadeProgress = (CELEBRATION_DURATION_SECONDS - celebrationElapsedSeconds) / FADE_DURATION_SECONDS;
+                    congratsLabel.setOpacity(Math.max(0, fadeProgress));
+                }
+
+                updateParticles();
+                drawParticles();
+            }
+        };
+        celebrationTimer.start();
+    }
+
+    private void updateParticles() {
+        for (ConfettiParticle p : particles) {
+            // Simple straight falling - no wiggle or drift
+            p.y += p.vy;
+        }
+    }
+
+    private void drawParticles() {
+        javafx.scene.canvas.GraphicsContext gc = celebrationCanvas.getGraphicsContext2D();
+        gc.clearRect(0, 0, celebrationCanvas.getWidth(), celebrationCanvas.getHeight());
+
+        // Calculate opacity for fade in/out effect
+        double opacity = 1.0;
+        if (celebrationElapsedSeconds < FADE_DURATION_SECONDS) {
+            // Fade in during first 2 seconds
+            opacity = celebrationElapsedSeconds / FADE_DURATION_SECONDS;
+        } else if (celebrationElapsedSeconds > CELEBRATION_DURATION_SECONDS - FADE_DURATION_SECONDS) {
+            // Fade out during last 2 seconds
+            opacity = (CELEBRATION_DURATION_SECONDS - celebrationElapsedSeconds) / FADE_DURATION_SECONDS;
+        }
+        opacity = Math.max(0, Math.min(1, opacity)); // Clamp to [0, 1]
+
+        gc.setGlobalAlpha(opacity);
+        for (ConfettiParticle p : particles) {
+            gc.setFill(p.color);
+            gc.fillOval(p.x, p.y, 6, 6);
+        }
+        gc.setGlobalAlpha(1.0); // Reset global alpha
+    }
+
+    private static class ConfettiParticle {
+        double x, y;
+        Color color;
+        double vx, vy;
+
+        ConfettiParticle(double x, double y, Color color, double vx, double vy) {
+            this.x = x;
+            this.y = y;
+            this.color = color;
+            this.vx = vx;
+            this.vy = vy;
         }
     }
 

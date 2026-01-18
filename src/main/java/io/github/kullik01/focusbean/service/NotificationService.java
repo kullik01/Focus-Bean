@@ -112,7 +112,7 @@ public final class NotificationService {
         }
 
         if (settings.isPopupNotificationEnabled()) {
-            showSystemTrayNotification(completedSessionType);
+            showSystemTrayNotification(completedSessionType, settings);
         }
     }
 
@@ -214,7 +214,7 @@ public final class NotificationService {
      *
      * @param completedSessionType the type of session that completed
      */
-    public void showSystemTrayNotification(TimerState completedSessionType) {
+    public void showSystemTrayNotification(TimerState completedSessionType, UserSettings settings) {
         if (!SystemTray.isSupported()) {
             LOGGER.warning("System tray not supported, cannot show notification");
             return;
@@ -241,7 +241,7 @@ public final class NotificationService {
 
         try {
             // Use custom toast notification instead of system tray
-            io.github.kullik01.focusbean.view.ToastNotification.show(title, message, this::stopSound);
+            io.github.kullik01.focusbean.view.ToastNotification.show(title, message, settings.isDarkModeEnabled(), this::stopSound);
             LOGGER.log(Level.FINE, "Displayed toast notification: {0}", title);
         } catch (Exception e) {
             LOGGER.log(Level.WARNING, "Failed to show toast notification", e);

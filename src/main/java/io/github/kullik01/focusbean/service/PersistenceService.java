@@ -60,8 +60,12 @@ import java.util.logging.Logger;
  *
  * <p>
  * This service manages reading and writing of session history and user settings
- * to the application data directory ({@code %APPDATA%/FocusBean/}).
+ * to the appropriate application data directory based on the operating system:
  * </p>
+ * <ul>
+ *   <li><b>Windows:</b> {@code %APPDATA%/FocusBean/}</li>
+ *   <li><b>Linux:</b> {@code $XDG_DATA_HOME/FocusBean/} or {@code ~/.local/share/FocusBean/}</li>
+ * </ul>
  *
  * <p>
  * The service uses Gson for JSON serialization with custom adapters for
@@ -85,7 +89,9 @@ public final class PersistenceService {
      * Creates a new PersistenceService using the default data directory.
      *
      * <p>
-     * The default directory is {@code %APPDATA%/FocusBean/} on Windows.
+     * The default directory is determined by the operating system:
+     * {@code %APPDATA%/FocusBean/} on Windows, or
+     * {@code ~/.local/share/FocusBean/} on Linux.
      * </p>
      */
     public PersistenceService() {
@@ -218,18 +224,35 @@ public final class PersistenceService {
     }
 
     /**
-     * Resolves the default data directory using the APPDATA environment variable.
+     * Resolves the default data directory based on the operating system.
+     *
+     * <p>
+     * On Windows, uses {@code %APPDATA%/FocusBean/}.
+     * On Linux, follows the XDG Base Directory specification using
+     * {@code $XDG_DATA_HOME/FocusBean/} or {@code ~/.local/share/FocusBean/}.
+     * </p>
      *
      * @return the resolved data directory path
      */
     private static Path resolveDefaultDataDirectory() {
-        String appData = System.getenv("APPDATA");
-        if (appData == null || appData.isBlank()) {
-            // Fallback to user home if APPDATA is not set
-            appData = System.getProperty("user.home");
-            LOGGER.warning("APPDATA not set, falling back to user.home: " + appData);
+        String osName = System.getProperty("os.name").toLowerCase();
+
+        if (osName.contains("win")) {
+            // Windows: use %APPDATA%
+            String appData = System.getenv("APPDATA");
+            if (appData == null || appData.isBlank()) {
+                appData = System.getProperty("user.home");
+                LOGGER.warning("APPDATA not set, falling back to user.home: " + appData);
+            }
+            return Paths.get(appData, AppConstants.APP_DATA_DIR_NAME);
+        } else {
+            // Linux/Unix: follow XDG Base Directory specification
+            String xdgDataHome = System.getenv("XDG_DATA_HOME");
+            if (xdgDataHome == null || xdgDataHome.isBlank()) {
+                xdgDataHome = System.getProperty("user.home") + "/.local/share";
+            }
+            return Paths.get(xdgDataHome, AppConstants.APP_DATA_DIR_NAME);
         }
-        return Paths.get(appData, AppConstants.APP_DATA_DIR_NAME);
     }
 
     /**

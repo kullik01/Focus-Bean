@@ -65,6 +65,8 @@ public final class ControlPanelView extends HBox {
             -fx-cursor: hand;
             -fx-background-color: %s;
             -fx-text-fill: white;
+            -fx-alignment: center;
+            -fx-content-display: center;
             """;
 
     private static final String STYLE_SECONDARY_BUTTON = """
@@ -144,18 +146,21 @@ public final class ControlPanelView extends HBox {
         switch (state) {
             case IDLE -> {
                 startPauseButton.setText(ICON_PLAY);
+                startPauseButton.setPadding(new Insets(0, 0, 0, 2)); // Left padding for play icon
                 startPauseButton.setDisable(false);
                 resetButton.setDisable(true);
                 resetButton.setOpacity(0.4);
             }
             case WORK, BREAK -> {
                 startPauseButton.setText(ICON_PAUSE);
+                startPauseButton.setPadding(new Insets(0, 0, 0, 0)); // No padding for pause icon
                 startPauseButton.setDisable(false);
                 resetButton.setDisable(false);
                 resetButton.setOpacity(1.0);
             }
             case PAUSED -> {
                 startPauseButton.setText(ICON_PLAY);
+                startPauseButton.setPadding(new Insets(0, 0, 0, 2)); // Left padding for play icon
                 startPauseButton.setDisable(false);
                 resetButton.setDisable(false);
                 resetButton.setOpacity(1.0);
@@ -276,6 +281,8 @@ public final class ControlPanelView extends HBox {
                 ICON_BUTTON_SIZE, ICON_BUTTON_SIZE,
                 ICON_BUTTON_SIZE, ICON_BUTTON_SIZE,
                 AppConstants.COLOR_PROGRESS_ACTIVE));
+        button.setAlignment(Pos.CENTER);
+        button.setContentDisplay(javafx.scene.control.ContentDisplay.CENTER);
         return button;
     }
 

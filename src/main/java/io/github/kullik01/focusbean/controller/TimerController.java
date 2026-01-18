@@ -205,6 +205,19 @@ public final class TimerController {
     }
 
     /**
+     * Resets the timer to IDLE state and forces the pending session type to WORK.
+     * Use this when you want to reset to a "fresh start" state, e.g., after clearing history.
+     */
+    public void resetToFocus() {
+        currentSessionStartTime = null;
+        currentSessionDuration = 0;
+        currentSessionType = null;
+        pendingSessionType = TimerState.WORK;
+        timerService.reset();
+        LOGGER.info("Timer reset to initial Focus state");
+    }
+
+    /**
      * Skips the current session and transitions to the next.
      *
      * <p>
@@ -233,6 +246,12 @@ public final class TimerController {
         settings.setWorkDurationMinutes(workMinutes);
         settings.setBreakDurationMinutes(breakMinutes);
         saveData();
+
+        // If changes are made while IDLE, reset pending session to ensure
+        // the timer reflects the (likely) updated Work duration logic
+        if (getCurrentState() == TimerState.IDLE) {
+            pendingSessionType = null;
+        }
 
         LOGGER.log(Level.INFO, "Settings updated: work={0}min, break={1}min",
                 new Object[] { workMinutes, breakMinutes });

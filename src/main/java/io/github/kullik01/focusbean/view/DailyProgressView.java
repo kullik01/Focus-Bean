@@ -57,12 +57,17 @@ import javafx.scene.text.FontWeight;
  * Focus Sessions daily progress design.
  * </p>
  */
-public final class DailyProgressView extends VBox {
+public final class DailyProgressView extends StackPane {
 
     private static final double RING_SIZE = 140;
     private static final double RING_STROKE_WIDTH = 5;
     private static final String FONT_FAMILY = "'Segoe UI', 'Helvetica Neue', sans-serif";
+    // Celebration constants
+    private static final int PARTICLE_COUNT = 100;
+    private static final double GRAVITY = 0.5;
+    private static final double TERMINAL_VELOCITY = 10;
 
+    private final VBox contentBox; // Container for the main UI
     private final Label headerLabel;
     private final HBox headerBar;
     private Button settingsButton;
@@ -80,6 +85,11 @@ public final class DailyProgressView extends VBox {
     private int completedTodayMinutes;
     private int yesterdayMinutes;
     private int streakDays;
+    
+    // State tracking for trigger
+    private int previousCompletedMinutes = -1; // -1 indicates not initialized
+    private boolean isInitialized = false; // Prevents celebration during startup
+    private Runnable onDailyGoalReached;
 
     /**
      * Creates a new DailyProgressView with default values.
@@ -90,6 +100,8 @@ public final class DailyProgressView extends VBox {
         this.yesterdayMinutes = 0;
         this.streakDays = 0;
 
+        // --- UI Construction ---
+        
         // Header
         headerLabel = new Label("Daily progress");
         headerLabel.setFont(Font.font(FONT_FAMILY, FontWeight.NORMAL, 14));
@@ -146,11 +158,15 @@ public final class DailyProgressView extends VBox {
         completedLabel.setFont(Font.font(FONT_FAMILY, FontWeight.NORMAL, 13));
         completedLabel.setTextFill(Color.web(AppConstants.COLOR_TEXT_SECONDARY));
 
-        // Layout
-        setSpacing(12);
-        setPadding(new Insets(15, 20, 15, 20));
+        // Content Layout (VBox)
+        contentBox = new VBox(12);
+        contentBox.setPadding(new Insets(15, 20, 15, 20));
+        contentBox.setAlignment(Pos.TOP_CENTER);
+        contentBox.getChildren().addAll(headerBar, statsRow, completedLabel);
+        
+        // Root Layout (StackPane)
         setAlignment(Pos.TOP_CENTER);
-        getChildren().addAll(headerBar, statsRow, completedLabel);
+        getChildren().addAll(contentBox);
 
         // Initial render
         drawGoalProgress();
@@ -163,13 +179,16 @@ public final class DailyProgressView extends VBox {
      * @param settings the user settings containing the daily goal
      */
     public void update(SessionHistory history, UserSettings settings) {
+        // Update completed minutes FIRST so goal checks have correct values
         if (history != null) {
-            this.completedTodayMinutes = history.getTodaysTotalWorkMinutes();
             this.yesterdayMinutes = history.getYesterdaysTotalWorkMinutes();
             this.streakDays = history.getCurrentStreak();
+            // Update completed without triggering celebration (that's handled by setDailyGoalMinutes or explicit calls)
+            this.completedTodayMinutes = history.getTodaysTotalWorkMinutes();
         }
+        // Now update goal - this will correctly compare against updated completedTodayMinutes
         if (settings != null) {
-            this.dailyGoalMinutes = settings.getDailyGoalMinutes();
+            setDailyGoalMinutes(settings.getDailyGoalMinutes());
         }
         refresh();
     }
@@ -180,7 +199,17 @@ public final class DailyProgressView extends VBox {
      * @param dailyGoalMinutes the daily goal value
      */
     public void setDailyGoalMinutes(int dailyGoalMinutes) {
+        int oldGoal = this.dailyGoalMinutes;
         this.dailyGoalMinutes = dailyGoalMinutes;
+        
+        // Only trigger celebration if already initialized (not during startup)
+        // and if we satisfy the new goal by lowering it
+        if (isInitialized && completedTodayMinutes >= dailyGoalMinutes && completedTodayMinutes < oldGoal) {
+             if (onDailyGoalReached != null) {
+                 onDailyGoalReached.run();
+             }
+        }
+        
         refresh();
     }
 
@@ -190,6 +219,23 @@ public final class DailyProgressView extends VBox {
      * @param minutes the completed minutes
      */
     public void setCompletedTodayMinutes(int minutes) {
+        // Initialize previous state on first run - skip celebration check on startup
+        if (previousCompletedMinutes == -1) {
+            previousCompletedMinutes = minutes;
+            this.completedTodayMinutes = minutes;
+            isInitialized = true; // Mark as initialized after first call
+            refresh();
+            return; // Don't trigger celebration on app startup
+        }
+
+        // Trigger celebration if crossing the threshold
+        if (previousCompletedMinutes < dailyGoalMinutes && minutes >= dailyGoalMinutes) {
+            if (onDailyGoalReached != null) {
+                onDailyGoalReached.run();
+            }
+        }
+
+        this.previousCompletedMinutes = minutes;
         this.completedTodayMinutes = minutes;
         refresh();
     }
@@ -208,6 +254,15 @@ public final class DailyProgressView extends VBox {
         if (button != null) {
             headerBar.getChildren().add(button);
         }
+    }
+
+    /**
+     * Sets the callback to be invoked when the daily goal is reached.
+     *
+     * @param onDailyGoalReached the callback to run
+     */
+    public void setOnDailyGoalReached(Runnable onDailyGoalReached) {
+        this.onDailyGoalReached = onDailyGoalReached;
     }
 
     /**
@@ -259,18 +314,28 @@ public final class DailyProgressView extends VBox {
         // Draw progress arc
         if (dailyGoalMinutes > 0) {
             double progress = Math.min(1.0, (double) completedTodayMinutes / dailyGoalMinutes);
-            double sweepAngle = progress * 360;
 
             gc.setStroke(Color.web(AppConstants.COLOR_PROGRESS_ACTIVE));
             gc.setLineWidth(RING_STROKE_WIDTH);
-            gc.strokeArc(
-                    centerX - radius,
-                    centerY - radius,
-                    radius * 2,
-                    radius * 2,
-                    90,
-                    -sweepAngle,
-                    javafx.scene.shape.ArcType.OPEN);
+
+            if (progress >= 1.0) {
+                // Draw full circle for completion to avoid rendering gaps with strokeArc on some platforms
+                gc.strokeOval(
+                        centerX - radius,
+                        centerY - radius,
+                        radius * 2,
+                        radius * 2);
+            } else {
+                double sweepAngle = progress * 360;
+                gc.strokeArc(
+                        centerX - radius,
+                        centerY - radius,
+                        radius * 2,
+                        radius * 2,
+                        90,
+                        -sweepAngle,
+                        javafx.scene.shape.ArcType.OPEN);
+            }
         }
     }
 

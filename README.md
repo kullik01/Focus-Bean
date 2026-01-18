@@ -1,11 +1,12 @@
 <p align="center">
 
-![Windows](https://img.shields.io/badge/Windows-0881d9?style=for-the-badge&logo=windows&logoColor=white)
-[![Java 21](https://img.shields.io/badge/Java-21-f29111?style=for-the-badge&logo=openjdk&logoColor=white)](https://www.oracle.com/de/java/)
-[![JavaFX 21](https://img.shields.io/badge/JavaFX-21.0.6-4aa2c9?style=for-the-badge&logo=java&logoColor=white)](https://openjfx.io/)
+[![Windows](https://img.shields.io/badge/Windows-0881d9?style=for-the-badge&logo=windows&logoColor=white)](https://www.microsoft.com/en-us/windows)
+[![Linux](https://img.shields.io/badge/Linux-0f5689?style=for-the-badge&logo=linux&logoColor=white)](https://www.linux.org/pages/download/)
+[![Java 25](https://img.shields.io/badge/Java-25-f29111?style=for-the-badge&logo=openjdk&logoColor=white)](https://www.oracle.com/java/)
+[![JavaFX 25](https://img.shields.io/badge/JavaFX-25-4aa2c9?style=for-the-badge&logo=java&logoColor=white)](https://openjfx.io/)
 [![Gradle](https://img.shields.io/badge/Gradle-Kotlin_DSL-3f297f?style=for-the-badge&logo=gradle&logoColor=white)](https://docs.gradle.org/current/kotlin-dsl/)
 [![License](https://img.shields.io/badge/License-BSD_3--Clause-green?style=for-the-badge)](https://opensource.org/license/bsd-3-clause)
-[![Release](https://img.shields.io/badge/Release-v1.0.0-602718?style=for-the-badge&color=602718&logo=github)](https://github.com/kullik01/Focus-Bean/releases)
+[![Release](https://img.shields.io/badge/Release-v1.2.0-602718?style=for-the-badge&color=602718&logo=github)](https://github.com/kullik01/Focus-Bean/releases)
 
 </p>
 
@@ -23,199 +24,114 @@
 </p>
 
 ---
+## Table of Contents
+- [⬇️ Installation](#-installation)
+  - [Windows](#windows)
+  - [Linux](#linux)
+- [✨ Features](#-features)
+- [🏗️ Build from Source (Optional)](#-build-from-source-optional)
+- [📦 Dependencies](#-dependencies)
+- [🙏 Acknowledgements](#-acknowledgements)
+- [📝 License](#-license)
+
+---
+
+## ⬇️ Installation
+
+### Windows
+1. **Download**: Get `FocusBean-{version}-Windows.zip` from the **[Releases](../../releases)** page.
+2. **Setup**: Extract the file to your desired location.
+3. **Run**: Double-click `FocusBean.exe`.
+
+### Linux
+*Focus Bean allows for a clean, user-local installation in your home directory.*
+
+#### Runtime Requirements
+Before running the application, ensure you have the standard JavaFX dependencies installed (GTK3, ALSA, GStreamer). Most desktop systems have these, but you can verify:
+
+**AlmaLinux / RHEL:**
+```bash
+sudo dnf install -y gtk3 alsa-lib gstreamer1-plugins-base gstreamer1
+```
+
+**openSUSE:**
+```bash
+sudo zypper install -y libgtk-3-0 libasound2 gstreamer-plugins-base gstreamer-plugins-good
+```
+
+#### Install & Run
+1. **Download**: Get `FocusBean-{version}-Linux.zip` from the **[Releases](../../releases)** page.
+2. **Install**: Open a terminal and run the following to install to `~/.focusbean`:
+   ```bash
+   mkdir -p ~/.focusbean
+   unzip FocusBean-{version}-Linux.zip -d ~/.focusbean
+   ```
+3. **Run**:
+   ```bash
+   sh ~/.focusbean/FocusBean-{version}/bin/FocusBean
+   ```
+
+4. **Add to Desktop (Optional)**:
+   To add Focus Bean to your system menu and launcher, run:
+   ```bash
+   sh ~/.focusbean/FocusBean-{version}/install_shortcut.sh
+   ```
+
+---
 
 ## ✨ Features
-### ⏲️ **Timer**
-- Configurable work and break session durations (1–900 minutes)
-- Visual countdown timer with modern circular display
-- Pause, resume, skip, and reset functionality
-- Automatic session transitions with notifications
-- Keyboard shortcuts for quick control
 
-### 📊 **Daily Progress Tracking**
-- Circular progress indicator showing daily goal completion
-- Yesterday's performance comparison
-- Current streak tracking
-- Real-time progress updates
+- **⏲️ Smart Timer**: Configurable work (1-900 min) and break sessions with visual circular countdown.
+- **📊 Progress Tracking**: Daily goal tracking, streak monitor, and "yesterday vs. today" comparison.
+- **🎉 Goal Celebration**: Confetti animation with congratulations message when you reach your daily goal.
+- **📜 Session History**: Detailed logs of all work sessions featuring both table and chart views.
+- **🔔 Notifications**: Custom sound support (MP3/WAV) and system tray alerts for session transitions.
+- **🌙 Dark Mode**: Checkbox that allows to choose between a light or dark theme for more comfortable viewing.
+- **🖥️ Modern UI**: Clean, coffee-themed design with custom window controls.
+- **⌨️ Shortcuts**: Space (Start/Pause), R (Reset), S (Settings).
+- **🗂️ Local Data**: All data is stored locally:
+  - Windows: `%APPDATA%/FocusBean/`
+  - Linux: `~/.local/share/FocusBean/`
 
-### 📜 **Session History**
-- Complete log of work and break sessions
-- Toggle between **table view** and **bar chart view**
-- Configurable chart display period (1–30 days)
-- Daily and weekly statistics summary
-- Clear history functionality with confirmation dialog
-- Persistent data storage across application restarts
+---
 
-### 🔔 **Notifications**
-- **Sound notifications** with multiple built-in sounds
-- **Custom sound support** – use your own audio files (WAV, MP3)
-- Sound preview directly in settings
-- **System tray popup notifications** for session completion
-- Independently configurable sound and popup settings
+### 🏗️ Build from Source (Optional)
 
-### 🖥️ **Modern UI Design**
-- Custom title bar with minimize/close controls
-- Clean, card-based layout with rounded corners
-- Warm, coffee-themed color palette
-- Custom application icon support
-- Consistent styling throughout the application
+If you prefer to build the application yourself:
 
-## 🚀 Getting Started
-
-### 📥 Download & Run (No Installation Required)
-
-The easiest way to run Focus Bean is using the portable release:
-
-1. **Download**: Go to the **[Releases](../../releases)** page and download the latest `FocusBean-{version}.zip`.
-2. **Extract**: Unzip the downloaded file to a location of your choice.
-3. **Run**: Open the extracted folder and double-click `FocusBean.exe` (inside the `FocusBean-{version}` folder).
-
-Or, if you prefer to build from source:
-### Prerequisites
-
-- **Java 21** or later (JDK)
-- **Gradle 8.x** (wrapper included)
-
-### Installation
-
-1. **Clone the repository:**
-
-   ```bash
-   git clone https://github.com/kullik01/Focus-Bean.git
-   cd Focus-Bean
-   ```
-
-2. **Build the project:**
-
-   ```bash
-   ./gradlew build
-   ```
-
-3. **Run the application:**
-
-   ```bash
-   ./gradlew run
-   ```
-
-### Building a Distributable Package
-
-To create a standalone distribution with a native launcher:
+**Prerequisites**: Java 25 JDK, Gradle 9.1.
 
 ```bash
-./gradlew jlink
+git clone https://github.com/kullik01/Focus-Bean.git
+cd Focus-Bean
+./gradlew run
 ```
-
-The output will be located in `build/distributions/FocusBean-{version}.zip`.
-
----
-
-## ⌨️ Keyboard Shortcuts
-
-| Shortcut       | Action                                |
-|----------------|---------------------------------------|
-| `Space`        | Start / Pause / Resume timer          |
-| `R`            | Reset timer                           |
-| `S`            | Skip current session                  |
-
----
-
-## 🏗️ Architecture
-
-Focus Bean follows a clean **MVC (Model-View-Controller)** architecture:
-
-```
-src/main/java/io/github/kullik01/focusbean/
-├── controller/     # Application logic and event handling
-├── model/          # Data models (UserSettings, TimerSession, SessionHistory)
-├── service/        # Core services (TimerService, PersistenceService, NotificationService)
-├── util/           # Utilities and constants
-└── view/           # JavaFX UI components
-```
-
-### Key Components
-
-| Component             | Responsibility                                            |
-|-----------------------|-----------------------------------------------------------|
-| `TimerController`     | Coordinates timer logic, state transitions, and data flow |
-| `TimerService`        | Manages the countdown using JavaFX Timeline               |
-| `PersistenceService`  | Handles JSON-based data storage to local filesystem       |
-| `NotificationService` | Manages sound and system tray notifications               |
-| `MainView`            | Assembles UI components into the main window              |
-| `CustomTitleBar`      | Provides custom window chrome with minimize/close buttons |
-| `DailyProgressView`   | Displays circular progress and daily stats                |
-| `HistoryView`         | Shows session history table/chart with statistics         |
-| `SettingsView`        | Provides embedded settings panel                          |
-
----
-
-## 🧪 Testing
-
-Run the test suite with:
-
-```bash
-./gradlew test
-```
-
-The project uses **JUnit 5** for unit testing.
 
 ---
 
 ## 📦 Dependencies
 
+Focus Bean is built with the following technologies:
+
 | Dependency         | Version | Purpose                            |
 |--------------------|---------|----------------------------------- |
-| JavaFX Controls    | 21.0.6  | UI components                      |
-| JavaFX Graphics    | 21.0.6  | Rendering and animation            |
-| JavaFX Media       | 21.0.6  | Audio playback for notifications   |
-| Gson               | 2.11.0  | JSON serialization/deserialization |
-| JUnit Jupiter      | 5.10.2  | Unit testing framework             |
+| **JavaFX**         | 25      | UI components and core graphics    |
+| **Gson**           | 2.11.0  | JSON serialization for user data   |
+| **JUnit 5**        | 5.10.2  | Unit testing framework             |
 
----
-
-## 🗂️ Data Storage
-
-Focus Bean stores user data in the system's application data directory:
-
-- **Windows:** `%APPDATA%/FocusBean/`
-
-Files stored:
-- `session_history.json` – Session logs and user settings
-
----
-
-## 🎨 Custom Logo
-
-You can use your own application logo by placing a `logo.png` file in:
-- `src/main/resources/io/github/kullik01/focusbean/view/`
-
-The logo will be used for both the taskbar icon and the custom title bar. If no custom logo is found, the application uses a default coffee bean icon.
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Please follow these steps:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
----
-
-## 📝 License
-
-This project is licensed under the **BSD 3-Clause License** – see the [LICENSE](LICENSE) file for details.
+*Note: The application bundle includes the necessary Java runtime, so you do **not** need to install Java globally.*
 
 ---
 
 ## 🙏 Acknowledgements
+
 - Built with [JavaFX](https://openjfx.io/)
 - JSON serialization by [Gson](https://github.com/google/gson)
 
 ---
 
-<p align="center">
-  Made with ❤️ and ☕ for productivity enthusiasts.
-</p>
+## 📝 License
+**BSD 3-Clause License** – see [LICENSE](LICENSE).
+
+---
+<p align="center">Made with ❤️ and ☕ for productivity.</p>
