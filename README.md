@@ -25,14 +25,31 @@
 
 ---
 ## Table of Contents
+- [✨ Features](#-features)
 - [⬇️ Installation](#-installation)
   - [Windows](#windows)
   - [Linux](#linux)
-- [✨ Features](#-features)
 - [🏗️ Build from Source (Optional)](#-build-from-source-optional)
 - [📦 Dependencies](#-dependencies)
+- [🤝 Contributing](#-contributing)
 - [🙏 Acknowledgements](#-acknowledgements)
 - [📝 License](#-license)
+
+---
+
+## ✨ Features
+
+- **⏲️ Smart Timer**: Configurable work (1-900 min) and break sessions with visual circular countdown.
+- **📊 Progress Tracking**: Daily goal tracking, streak monitor, and "yesterday vs. today" comparison.
+- **🎉 Goal Celebration**: Confetti animation with congratulations message when you reach your daily goal.
+- **📜 Session History**: Detailed logs of all work sessions featuring both table and chart views.
+- **🔔 Notifications**: Custom sound support (MP3/WAV) and system tray alerts for session transitions.
+- **🌙 Dark Mode**: Checkbox that allows to choose between a light or dark theme for more comfortable viewing.
+- **🖥️ Modern UI**: Clean, coffee-themed design with custom window controls.
+- **⌨️ Shortcuts**: Space (Start/Pause), R (Reset), S (Settings).
+- **🗂️ Local Data**: All data is stored locally:
+  - Windows: `%APPDATA%/FocusBean/`
+  - Linux: `~/.local/share/FocusBean/`
 
 ---
 
@@ -79,23 +96,7 @@ sudo zypper install -y libgtk-3-0 libasound2 gstreamer-plugins-base gstreamer-pl
 
 ---
 
-## ✨ Features
-
-- **⏲️ Smart Timer**: Configurable work (1-900 min) and break sessions with visual circular countdown.
-- **📊 Progress Tracking**: Daily goal tracking, streak monitor, and "yesterday vs. today" comparison.
-- **🎉 Goal Celebration**: Confetti animation with congratulations message when you reach your daily goal.
-- **📜 Session History**: Detailed logs of all work sessions featuring both table and chart views.
-- **🔔 Notifications**: Custom sound support (MP3/WAV) and system tray alerts for session transitions.
-- **🌙 Dark Mode**: Checkbox that allows to choose between a light or dark theme for more comfortable viewing.
-- **🖥️ Modern UI**: Clean, coffee-themed design with custom window controls.
-- **⌨️ Shortcuts**: Space (Start/Pause), R (Reset), S (Settings).
-- **🗂️ Local Data**: All data is stored locally:
-  - Windows: `%APPDATA%/FocusBean/`
-  - Linux: `~/.local/share/FocusBean/`
-
----
-
-### 🏗️ Build from Source (Optional)
+## 🏗️ Build from Source (Optional)
 
 If you prefer to build the application yourself:
 
@@ -123,12 +124,13 @@ Focus Bean is built with the following technologies:
 
 ---
 
+## 🤝 Contributing
+Contributions are welcome! Please feel free to submit a Pull Request or open an issue for bugs and feature requests.
+
 ## 🙏 Acknowledgements
 
 - Built with [JavaFX](https://openjfx.io/)
 - JSON serialization by [Gson](https://github.com/google/gson)
-
----
 
 ## 📝 License
 **BSD 3-Clause License** – see [LICENSE](LICENSE).
