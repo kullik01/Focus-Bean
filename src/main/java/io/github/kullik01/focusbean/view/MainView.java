@@ -94,9 +94,12 @@ public final class MainView extends BorderPane {
     private javafx.scene.canvas.Canvas celebrationCanvas;
     private javafx.animation.AnimationTimer celebrationTimer;
     private java.util.List<ConfettiParticle> particles;
-    private static final int PARTICLE_COUNT = 150; // Increased for larger screen
-    private static final double GRAVITY = 0.5;
-    private static final double TERMINAL_VELOCITY = 10;
+    private Label congratsLabel;
+    private double celebrationElapsedSeconds = 0; // Track elapsed time for fade effects
+    private static final int PARTICLE_COUNT = 1500; // Heavy confetti coverage
+    private static final double CELEBRATION_DURATION_SECONDS = 15.0;
+    private static final double FADE_DURATION_SECONDS = 2.0; // Fade in/out duration
+    private static final double FRAMES_PER_SECOND = 60.0;
 
     private boolean isSwitchingAfterSave = false;
 
@@ -237,12 +240,27 @@ public final class MainView extends BorderPane {
         // Bind canvas size to parent stack pane (which will fill the BorderPane center)
         celebrationCanvas.managedProperty().bind(celebrationCanvas.visibleProperty());
 
+        // Initialize congratulations message (simple text, no icons)
+        congratsLabel = new Label("Great job! You've reached your daily goal, keep it up!");
+        congratsLabel.setFont(Font.font(FONT_FAMILY, FontWeight.BOLD, 18));
+        congratsLabel.setTextFill(Color.web(AppConstants.COLOR_ACCENT));
+        congratsLabel.setStyle("""
+                -fx-background-color: rgba(255, 255, 255, 0.95);
+                -fx-background-radius: 12;
+                -fx-padding: 12 20 12 20;
+                -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 8, 0, 0, 2);
+                """);
+        congratsLabel.setVisible(false);
+        congratsLabel.setMouseTransparent(true);
+
         // Wire daily goal reached callback from DailyProgressView
         dailyProgressView.setOnDailyGoalReached(this::startCelebration);
 
         // Create a StackPane to hold the TabPane and the celebration overlay
+        // Order: confetti canvas first, then congratsLabel on top (in front)
         javafx.scene.layout.StackPane mainStack = new javafx.scene.layout.StackPane();
-        mainStack.getChildren().addAll(tabPane, celebrationCanvas);
+        mainStack.getChildren().addAll(tabPane, celebrationCanvas, congratsLabel);
+        javafx.scene.layout.StackPane.setAlignment(congratsLabel, Pos.CENTER);
         
         // Bind canvas dimensions to stack pane
         celebrationCanvas.widthProperty().bind(mainStack.widthProperty());
@@ -689,6 +707,18 @@ public final class MainView extends BorderPane {
             celebrationTimer.stop();
         }
 
+        // Show congratulations message with theme-aware styling
+        boolean isDarkMode = controller.getSettings().isDarkModeEnabled();
+        congratsLabel.setStyle(String.format("""
+                -fx-background-color: %s;
+                -fx-background-radius: 12;
+                -fx-padding: 12 20 12 20;
+                -fx-effect: dropshadow(gaussian, rgba(0,0,0,%s), 8, 0, 0, 2);
+                """, 
+                isDarkMode ? "rgba(50, 40, 35, 0.95)" : "rgba(255, 255, 255, 0.95)",
+                isDarkMode ? "0.3" : "0.15"));
+        congratsLabel.setVisible(true);
+
         // Initialize particles
         particles = new java.util.ArrayList<>(PARTICLE_COUNT);
         Color[] colors = {
@@ -699,19 +729,30 @@ public final class MainView extends BorderPane {
             javafx.scene.paint.Color.web("#74b9ff")  // Soft blue
         };
 
-        // Canvas dimensions are already bound to parent - just read them for particle positioning
-        double width = celebrationCanvas.getWidth();
-        double height = celebrationCanvas.getHeight();
+        // Use MainView dimensions for particle positioning (more reliable than canvas)
+        double width = getWidth() > 0 ? getWidth() : 850;
+        double height = getHeight() > 0 ? getHeight() : 450;
 
         java.util.Random rand = new java.util.Random();
 
+        // Calculate velocity so particles take 15 seconds to travel from top to bottom
+        // At 60fps, 15 seconds = 900 frames. velocity = height / 900 frames
+        double totalFrames = CELEBRATION_DURATION_SECONDS * FRAMES_PER_SECOND;
+        double baseVelocity = height / totalFrames;
+        
+        // Distribute particles uniformly from above screen to bottom of screen
+        // So at any point during 15 seconds, there are particles visible
+        double totalJourneyHeight = height * 2; // Particles travel from -height to +height
+        
         for (int i = 0; i < PARTICLE_COUNT; i++) {
+            // Stagger particles uniformly across the journey
+            double startY = -height + (rand.nextDouble() * totalJourneyHeight);
             particles.add(new ConfettiParticle(
-                width / 2, // Start from center top
-                rand.nextDouble() * height * -1, // Start above view
+                rand.nextDouble() * width, // Spawn across full width
+                startY, // Distributed across full journey
                 colors[rand.nextInt(colors.length)],
-                (rand.nextDouble() - 0.5) * 6, // Random X velocity
-                rand.nextDouble() * 5 + 2 // Initial Y velocity
+                (rand.nextDouble() - 0.5) * 0.3, // Very subtle horizontal drift
+                baseVelocity + rand.nextDouble() * 0.2 // Tiny velocity variation
             ));
         }
 
@@ -721,11 +762,13 @@ public final class MainView extends BorderPane {
             @Override
             public void handle(long now) {
                 if (startTime == -1) startTime = now;
-                double elapsedSeconds = (now - startTime) / 1_000_000_000.0;
+                celebrationElapsedSeconds = (now - startTime) / 1_000_000_000.0;
 
-                if (elapsedSeconds > 5.0) { // Run for 5 seconds
+                if (celebrationElapsedSeconds > CELEBRATION_DURATION_SECONDS) { // Run for 15 seconds
                     stop();
                     celebrationCanvas.getGraphicsContext2D().clearRect(0, 0, celebrationCanvas.getWidth(), celebrationCanvas.getHeight());
+                    congratsLabel.setVisible(false);
+                    celebrationElapsedSeconds = 0;
                     return;
                 }
 
@@ -737,19 +780,9 @@ public final class MainView extends BorderPane {
     }
 
     private void updateParticles() {
-        double width = getWidth();
-        double height = getHeight();
-        
         for (ConfettiParticle p : particles) {
-            p.x += p.vx;
+            // Simple straight falling - no wiggle or drift
             p.y += p.vy;
-            p.vy += GRAVITY; // Gravity
-            
-            // Simple drag/terminal velocity
-            if (p.vy > TERMINAL_VELOCITY) p.vy = TERMINAL_VELOCITY;
-            
-            // Wiggle
-            p.x += Math.sin(p.y * 0.1) * 2;
         }
     }
 
@@ -757,10 +790,23 @@ public final class MainView extends BorderPane {
         javafx.scene.canvas.GraphicsContext gc = celebrationCanvas.getGraphicsContext2D();
         gc.clearRect(0, 0, celebrationCanvas.getWidth(), celebrationCanvas.getHeight());
 
+        // Calculate opacity for fade in/out effect
+        double opacity = 1.0;
+        if (celebrationElapsedSeconds < FADE_DURATION_SECONDS) {
+            // Fade in during first 2 seconds
+            opacity = celebrationElapsedSeconds / FADE_DURATION_SECONDS;
+        } else if (celebrationElapsedSeconds > CELEBRATION_DURATION_SECONDS - FADE_DURATION_SECONDS) {
+            // Fade out during last 2 seconds
+            opacity = (CELEBRATION_DURATION_SECONDS - celebrationElapsedSeconds) / FADE_DURATION_SECONDS;
+        }
+        opacity = Math.max(0, Math.min(1, opacity)); // Clamp to [0, 1]
+
+        gc.setGlobalAlpha(opacity);
         for (ConfettiParticle p : particles) {
             gc.setFill(p.color);
             gc.fillOval(p.x, p.y, 6, 6);
         }
+        gc.setGlobalAlpha(1.0); // Reset global alpha
     }
 
     private static class ConfettiParticle {

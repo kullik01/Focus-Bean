@@ -219,9 +219,12 @@ public final class DailyProgressView extends StackPane {
      * @param minutes the completed minutes
      */
     public void setCompletedTodayMinutes(int minutes) {
-        // Initialize previous state on first run
+        // Initialize previous state on first run - skip celebration check on startup
         if (previousCompletedMinutes == -1) {
             previousCompletedMinutes = minutes;
+            this.completedTodayMinutes = minutes;
+            refresh();
+            return; // Don't trigger celebration on app startup
         }
 
         // Trigger celebration if crossing the threshold
