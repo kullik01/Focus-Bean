@@ -768,8 +768,15 @@ public final class MainView extends BorderPane {
                     stop();
                     celebrationCanvas.getGraphicsContext2D().clearRect(0, 0, celebrationCanvas.getWidth(), celebrationCanvas.getHeight());
                     congratsLabel.setVisible(false);
+                    congratsLabel.setOpacity(1.0); // Reset opacity for next time
                     celebrationElapsedSeconds = 0;
                     return;
+                }
+
+                // Fade out congrats label during last 2 seconds
+                if (celebrationElapsedSeconds > CELEBRATION_DURATION_SECONDS - FADE_DURATION_SECONDS) {
+                    double fadeProgress = (CELEBRATION_DURATION_SECONDS - celebrationElapsedSeconds) / FADE_DURATION_SECONDS;
+                    congratsLabel.setOpacity(Math.max(0, fadeProgress));
                 }
 
                 updateParticles();
