@@ -133,3 +133,27 @@ jlink {
         }
     }
 }
+
+// Copy the install script and icon to the image directory after jlink task
+tasks.named("jlink") {
+    doLast {
+        val imageDirPath = layout.buildDirectory.dir("FocusBean-${version}").get().asFile
+        if (!osName.contains("win")) {
+            copy {
+                from("src/main/scripts/linux/install_shortcut.sh")
+                into(imageDirPath)
+            }
+            // Set permissions using Ant since fileMode in copy spec can be finicky in this context
+            ant.withGroovyBuilder {
+                "chmod"("file" to File(imageDirPath, "install_shortcut.sh"), "perm" to "755")
+            }
+            
+            copy {
+                from("src/main/resources/io/github/kullik01/focusbean/view/logo_linux.png")
+                into(imageDirPath)
+                rename { "icon.png" }
+            }
+        }
+    }
+}
+

@@ -68,7 +68,13 @@ sudo zypper install -y libgtk-3-0 libasound2 gstreamer-plugins-base gstreamer-pl
    ```
 3. **Run**:
    ```bash
-   ~/.focusbean/focusbean-{version}/bin/FocusBean
+   sh ~/.focusbean/FocusBean-{version}/bin/FocusBean
+   ```
+
+4. **Add to Desktop (Optional)**:
+   To add Focus Bean to your system menu and launcher, run:
+   ```bash
+   sh ~/.focusbean/FocusBean-{version}/install_shortcut.sh
    ```
 
 ---
