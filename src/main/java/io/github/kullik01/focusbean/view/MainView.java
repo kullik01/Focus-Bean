@@ -86,6 +86,7 @@ public final class MainView extends BorderPane {
     private VBox focusCard;
     private VBox progressCard;
     private Label focusHeaderLabel;
+    private Region windowBorderOverlay;
 
     /**
      * Creates the main view wired to the given controller.
@@ -272,6 +273,18 @@ public final class MainView extends BorderPane {
             focusHeaderLabel.setTextFill(javafx.scene.paint.Color.web(textColor));
         }
 
+        // Update window border overlay if present
+        if (windowBorderOverlay != null) {
+            // Use specific dark border color (#3D332B) to match FocusBeanApplication init logic
+            String windowBorderColor = darkMode ? "#3D332B" : AppConstants.COLOR_CARD_BORDER;
+            windowBorderOverlay.setStyle(String.format("""
+                    -fx-background-color: transparent;
+                    -fx-border-color: %s;
+                    -fx-border-width: 1;
+                    -fx-border-radius: 16;
+                    """, windowBorderColor));
+        }
+
         // Update SettingsView cards
         if (settingsView != null) {
             settingsView.applyTheme(darkMode);
@@ -280,6 +293,27 @@ public final class MainView extends BorderPane {
         // Update HistoryView
         if (historyView != null) {
             historyView.applyTheme(darkMode);
+        }
+    }
+
+    /**
+     * Sets the region used for the window border overlay.
+     * This allows the view to update the border color when the theme changes.
+     *
+     * @param windowBorderOverlay the border overlay region
+     */
+    public void setWindowBorderOverlay(Region windowBorderOverlay) {
+        this.windowBorderOverlay = windowBorderOverlay;
+        // Apply current theme to the new overlay immediately
+        if (windowBorderOverlay != null) {
+            boolean darkMode = controller.getSettings().isDarkModeEnabled();
+            String windowBorderColor = darkMode ? "#3D332B" : AppConstants.COLOR_CARD_BORDER;
+            windowBorderOverlay.setStyle(String.format("""
+                    -fx-background-color: transparent;
+                    -fx-border-color: %s;
+                    -fx-border-width: 1;
+                    -fx-border-radius: 16;
+                    """, windowBorderColor));
         }
     }
 

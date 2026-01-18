@@ -162,6 +162,9 @@ public final class FocusBeanApplication extends Application {
                 -fx-border-radius: 16;
                 """, borderColor));
 
+        // Pass the border overlay to MainView so it can update the color on theme changes
+        mainView.setWindowBorderOverlay(borderOverlay);
+
         // Create outer wrapper with content and border overlay, plus shadow
         javafx.scene.layout.StackPane root = new javafx.scene.layout.StackPane(contentBox, borderOverlay);
         root.setStyle("-fx-background-color: transparent;");
