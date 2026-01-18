@@ -182,7 +182,8 @@ public final class MainView extends BorderPane {
                         // specific fix: Run later to let dialog close fully
                         javafx.application.Platform.runLater(() -> {
                             tabPane.getSelectionModel().select(targetTab);
-                            isSwitchingAfterSave = false;
+                            // Reset flag in another runLater to ensure tab change listener has fully processed
+                            javafx.application.Platform.runLater(() -> isSwitchingAfterSave = false);
                         });
                     }
                     // If Cancel, we already reverted to settingsTab, so do nothing
@@ -205,6 +206,7 @@ public final class MainView extends BorderPane {
         // Wire clear history callback
         historyView.setOnClearHistory(() -> {
             controller.clearHistory();
+            controller.resetToFocus(); // Reset timer to Focus (Work) state
             historyView.update(controller.getHistory());
             updateDailyProgress();
         });
@@ -284,13 +286,23 @@ public final class MainView extends BorderPane {
         getStylesheets().clear();
         String cardBg, cardBorder, windowBg, textColor;
         if (darkMode) {
-            getStylesheets().add(getClass().getResource("styles-dark.css").toExternalForm());
+            java.net.URL darkCss = getClass().getResource("styles-dark.css");
+            if (darkCss != null) {
+                getStylesheets().add(darkCss.toExternalForm());
+            } else {
+                LOGGER.warning("Could not find styles-dark.css");
+            }
             cardBg = AppConstants.COLOR_CARD_BACKGROUND_DARK;
             cardBorder = AppConstants.COLOR_CARD_BORDER_DARK;
             windowBg = AppConstants.COLOR_WINDOW_BACKGROUND_DARK;
             textColor = AppConstants.COLOR_TEXT_PRIMARY_DARK;
         } else {
-            getStylesheets().add(getClass().getResource("styles.css").toExternalForm());
+            java.net.URL lightCss = getClass().getResource("styles.css");
+            if (lightCss != null) {
+                getStylesheets().add(lightCss.toExternalForm());
+            } else {
+                 LOGGER.warning("Could not find styles.css");
+            }
             cardBg = AppConstants.COLOR_CARD_BACKGROUND;
             cardBorder = AppConstants.COLOR_CARD_BORDER;
             windowBg = AppConstants.COLOR_WINDOW_BACKGROUND;
@@ -488,7 +500,19 @@ public final class MainView extends BorderPane {
      * Updates the daily progress view with current data.
      */
     private void updateDailyProgress() {
+        // Calculate base history total
+        int totalMinutes = controller.getHistory().getTodaysTotalWorkMinutes();
+
+        // Add currently running session progress if applicable
+        if (controller.getCurrentState() == TimerState.WORK) {
+            int totalSeconds = controller.getSettings().getWorkDurationSeconds();
+            int elapsedSeconds = Math.max(0, totalSeconds - controller.getRemainingSeconds());
+            totalMinutes += elapsedSeconds / 60;
+        }
+
         dailyProgressView.update(controller.getHistory(), controller.getSettings());
+        // Force update with the live total to ensure visual continuity
+        dailyProgressView.setCompletedTodayMinutes(totalMinutes);
     }
 
     /**
@@ -675,13 +699,11 @@ public final class MainView extends BorderPane {
             javafx.scene.paint.Color.web("#74b9ff")  // Soft blue
         };
 
-        java.util.Random rand = new java.util.Random();
-        double width = getWidth();
-        double height = getHeight();
+        // Canvas dimensions are already bound to parent - just read them for particle positioning
+        double width = celebrationCanvas.getWidth();
+        double height = celebrationCanvas.getHeight();
 
-        // Ensure canvas is resized to match view
-        celebrationCanvas.setWidth(width);
-        celebrationCanvas.setHeight(height);
+        java.util.Random rand = new java.util.Random();
 
         for (int i = 0; i < PARTICLE_COUNT; i++) {
             particles.add(new ConfettiParticle(

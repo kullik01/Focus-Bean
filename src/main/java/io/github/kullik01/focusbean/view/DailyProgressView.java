@@ -178,15 +178,16 @@ public final class DailyProgressView extends StackPane {
      * @param settings the user settings containing the daily goal
      */
     public void update(SessionHistory history, UserSettings settings) {
-        if (settings != null) {
-            setDailyGoalMinutes(settings.getDailyGoalMinutes());
-        }
+        // Update completed minutes FIRST so goal checks have correct values
         if (history != null) {
-            if (this.completedTodayMinutes != history.getTodaysTotalWorkMinutes()) {
-                 setCompletedTodayMinutes(history.getTodaysTotalWorkMinutes());
-            }
             this.yesterdayMinutes = history.getYesterdaysTotalWorkMinutes();
             this.streakDays = history.getCurrentStreak();
+            // Update completed without triggering celebration (that's handled by setDailyGoalMinutes or explicit calls)
+            this.completedTodayMinutes = history.getTodaysTotalWorkMinutes();
+        }
+        // Now update goal - this will correctly compare against updated completedTodayMinutes
+        if (settings != null) {
+            setDailyGoalMinutes(settings.getDailyGoalMinutes());
         }
         refresh();
     }
@@ -197,7 +198,18 @@ public final class DailyProgressView extends StackPane {
      * @param dailyGoalMinutes the daily goal value
      */
     public void setDailyGoalMinutes(int dailyGoalMinutes) {
+        int oldGoal = this.dailyGoalMinutes;
         this.dailyGoalMinutes = dailyGoalMinutes;
+        
+        // Trigger celebration if we satisfy the new goal by lowering it
+        // Ensure we don't re-trigger if we were already above the old goal (though re-triggering might be acceptable if user explicitly wants it)
+        // Logic: If we are NOW crossing the line (current >= new) and we weren't "obviously" finished before (current < old).
+        if (completedTodayMinutes >= dailyGoalMinutes && completedTodayMinutes < oldGoal) {
+             if (onDailyGoalReached != null) {
+                 onDailyGoalReached.run();
+             }
+        }
+        
         refresh();
     }
 
@@ -298,18 +310,28 @@ public final class DailyProgressView extends StackPane {
         // Draw progress arc
         if (dailyGoalMinutes > 0) {
             double progress = Math.min(1.0, (double) completedTodayMinutes / dailyGoalMinutes);
-            double sweepAngle = progress * 360;
 
             gc.setStroke(Color.web(AppConstants.COLOR_PROGRESS_ACTIVE));
             gc.setLineWidth(RING_STROKE_WIDTH);
-            gc.strokeArc(
-                    centerX - radius,
-                    centerY - radius,
-                    radius * 2,
-                    radius * 2,
-                    90,
-                    -sweepAngle,
-                    javafx.scene.shape.ArcType.OPEN);
+
+            if (progress >= 1.0) {
+                // Draw full circle for completion to avoid rendering gaps with strokeArc on some platforms
+                gc.strokeOval(
+                        centerX - radius,
+                        centerY - radius,
+                        radius * 2,
+                        radius * 2);
+            } else {
+                double sweepAngle = progress * 360;
+                gc.strokeArc(
+                        centerX - radius,
+                        centerY - radius,
+                        radius * 2,
+                        radius * 2,
+                        90,
+                        -sweepAngle,
+                        javafx.scene.shape.ArcType.OPEN);
+            }
         }
     }
 
