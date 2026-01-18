@@ -25,8 +25,9 @@ val platform = when {
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_25
-    targetCompatibility = JavaVersion.VERSION_25
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(25))
+    }
     modularity.inferModulePath.set(true)
 }
 
@@ -155,5 +156,16 @@ tasks.named("jlink") {
             }
         }
     }
+}
+
+// Custom task to create Windows zip with FocusBean.exe (using jpackage app-image)
+tasks.register<Zip>("windowsAppImageZip") {
+    dependsOn("jpackageImage")
+    onlyIf { osName.contains("win") }
+    
+    from(layout.buildDirectory.dir("jpackage/FocusBean"))
+    into("FocusBean-${version}")
+    archiveFileName.set("FocusBean-${version}-Windows.zip")
+    destinationDirectory.set(layout.buildDirectory.dir("distributions"))
 }
 
