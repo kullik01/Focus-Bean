@@ -26,10 +26,10 @@
 ---
 ## Table of Contents
 - [✨ Features](#-features)
-- [⬇️ Installation](#-installation)
+- [⬇️ Installation](#install)
   - [Windows](#windows)
   - [Linux](#linux)
-- [🏗️ Build from Source (Optional)](#-build-from-source-optional)
+- [🏗️ Build from Source (Optional)](#build)
 - [📦 Dependencies](#-dependencies)
 - [🤝 Contributing](#-contributing)
 - [🙏 Acknowledgements](#-acknowledgements)
@@ -53,12 +53,12 @@
 
 ---
 
-## ⬇️ Installation
+## <a id="install"></a> ⬇️ Installation
 
 ### Windows
 1. **Download**: Get `FocusBean-{version}-Windows.zip` from the **[Releases](../../releases)** page.
 2. **Setup**: Extract the file to your desired location.
-3. **Run**: Double-click `FocusBean.exe`.
+3. **Run**: Double-click `FocusBean.exe` inside the `FocusBean-{version}` directory.
 
 ### Linux
 *Focus Bean allows for a clean, user-local installation in your home directory.*
@@ -96,7 +96,7 @@ sudo zypper install -y libgtk-3-0 libasound2 gstreamer-plugins-base gstreamer-pl
 
 ---
 
-## 🏗️ Build from Source (Optional)
+## <a id="build"></a> 🏗️ Build from Source (Optional)
 
 If you prefer to build the application yourself:
 
