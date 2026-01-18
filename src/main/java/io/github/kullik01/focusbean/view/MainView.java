@@ -47,6 +47,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
@@ -86,7 +87,18 @@ public final class MainView extends BorderPane {
     private VBox focusCard;
     private VBox progressCard;
     private Label focusHeaderLabel;
+
     private Region windowBorderOverlay;
+    
+    // Celebration components
+    private javafx.scene.canvas.Canvas celebrationCanvas;
+    private javafx.animation.AnimationTimer celebrationTimer;
+    private java.util.List<ConfettiParticle> particles;
+    private static final int PARTICLE_COUNT = 150; // Increased for larger screen
+    private static final double GRAVITY = 0.5;
+    private static final double TERMINAL_VELOCITY = 10;
+
+    private boolean isSwitchingAfterSave = false;
 
     /**
      * Creates the main view wired to the given controller.
@@ -144,7 +156,8 @@ public final class MainView extends BorderPane {
             }
 
             // Check for unsaved settings when leaving the Settings tab
-            if (oldTab == settingsTab && newTab != settingsTab && settingsView.hasUnsavedChanges()) {
+            // Skip check if we are explicitly switching after a save
+            if (!isSwitchingAfterSave && oldTab == settingsTab && newTab != settingsTab && settingsView.hasUnsavedChanges()) {
                 handlingTabChange[0] = true;
                 // Revert selection temporarily while dialog is shown
                 tabPane.getSelectionModel().select(settingsTab);
@@ -162,8 +175,15 @@ public final class MainView extends BorderPane {
                         // Save settings and switch to target tab
                         applySettings();
                         settingsView.markSettingsSaved();
+                        
+                        // Set flag to bypass the unsaved check on the re-triggered listener
+                        isSwitchingAfterSave = true;
                         // Allows recursive listener to fire and update pages
-                        tabPane.getSelectionModel().select(targetTab);
+                        // specific fix: Run later to let dialog close fully
+                        javafx.application.Platform.runLater(() -> {
+                            tabPane.getSelectionModel().select(targetTab);
+                            isSwitchingAfterSave = false;
+                        });
                     }
                     // If Cancel, we already reverted to settingsTab, so do nothing
                 });
@@ -209,7 +229,24 @@ public final class MainView extends BorderPane {
             settingsView.markSettingsSaved();
         });
 
-        setCenter(tabPane);
+        // Initialize celebration components
+        celebrationCanvas = new javafx.scene.canvas.Canvas();
+        celebrationCanvas.setMouseTransparent(true);
+        // Bind canvas size to parent stack pane (which will fill the BorderPane center)
+        celebrationCanvas.managedProperty().bind(celebrationCanvas.visibleProperty());
+
+        // Wire daily goal reached callback from DailyProgressView
+        dailyProgressView.setOnDailyGoalReached(this::startCelebration);
+
+        // Create a StackPane to hold the TabPane and the celebration overlay
+        javafx.scene.layout.StackPane mainStack = new javafx.scene.layout.StackPane();
+        mainStack.getChildren().addAll(tabPane, celebrationCanvas);
+        
+        // Bind canvas dimensions to stack pane
+        celebrationCanvas.widthProperty().bind(mainStack.widthProperty());
+        celebrationCanvas.heightProperty().bind(mainStack.heightProperty());
+
+        setCenter(mainStack);
 
         // Style TabPane for transparent background (corners handled by clip)
         tabPane.setStyle("""
@@ -473,9 +510,18 @@ public final class MainView extends BorderPane {
         controller.remainingSecondsProperty()
                 .addListener((obs, oldVal, newVal) -> {
                     timerDisplay.updateTime(newVal.intValue());
-                    // Update completed minutes in daily progress
+                    
+                    // Calculate (current accumulated history) + (current running session elapsed)
+                    int currentSessionMinutes = 0;
+                    if (controller.getCurrentState() == TimerState.WORK) {
+                         // Add elapsed time from current session to the progress
+                         int totalSeconds = controller.getSettings().getWorkDurationSeconds();
+                         int elapsedSeconds = Math.max(0, totalSeconds - newVal.intValue());
+                         currentSessionMinutes = elapsedSeconds / 60;
+                    }
+
                     dailyProgressView.setCompletedTodayMinutes(
-                            controller.getHistory().getTodaysTotalWorkMinutes());
+                            controller.getHistory().getTodaysTotalWorkMinutes() + currentSessionMinutes);
                 });
 
         // Update state display and button states when state changes
@@ -608,6 +654,104 @@ public final class MainView extends BorderPane {
             case IDLE -> controller.startOrResume();
             case WORK, BREAK -> controller.pause();
             case PAUSED -> controller.resume();
+        }
+    }
+
+    /**
+     * Starts the confetti celebration animation.
+     */
+    private void startCelebration() {
+        if (celebrationTimer != null) {
+            celebrationTimer.stop();
+        }
+
+        // Initialize particles
+        particles = new java.util.ArrayList<>(PARTICLE_COUNT);
+        Color[] colors = {
+            javafx.scene.paint.Color.web("#E6A779"), // Work bg
+            javafx.scene.paint.Color.web("#55efc4"), // Break bg
+            javafx.scene.paint.Color.web("#A0522D"), // Accent
+            javafx.scene.paint.Color.web("#fdcb6e"), // Bright yellow/gold
+            javafx.scene.paint.Color.web("#74b9ff")  // Soft blue
+        };
+
+        java.util.Random rand = new java.util.Random();
+        double width = getWidth();
+        double height = getHeight();
+
+        // Ensure canvas is resized to match view
+        celebrationCanvas.setWidth(width);
+        celebrationCanvas.setHeight(height);
+
+        for (int i = 0; i < PARTICLE_COUNT; i++) {
+            particles.add(new ConfettiParticle(
+                width / 2, // Start from center top
+                rand.nextDouble() * height * -1, // Start above view
+                colors[rand.nextInt(colors.length)],
+                (rand.nextDouble() - 0.5) * 6, // Random X velocity
+                rand.nextDouble() * 5 + 2 // Initial Y velocity
+            ));
+        }
+
+        celebrationTimer = new javafx.animation.AnimationTimer() {
+            private long startTime = -1;
+            
+            @Override
+            public void handle(long now) {
+                if (startTime == -1) startTime = now;
+                double elapsedSeconds = (now - startTime) / 1_000_000_000.0;
+
+                if (elapsedSeconds > 5.0) { // Run for 5 seconds
+                    stop();
+                    celebrationCanvas.getGraphicsContext2D().clearRect(0, 0, celebrationCanvas.getWidth(), celebrationCanvas.getHeight());
+                    return;
+                }
+
+                updateParticles();
+                drawParticles();
+            }
+        };
+        celebrationTimer.start();
+    }
+
+    private void updateParticles() {
+        double width = getWidth();
+        double height = getHeight();
+        
+        for (ConfettiParticle p : particles) {
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vy += GRAVITY; // Gravity
+            
+            // Simple drag/terminal velocity
+            if (p.vy > TERMINAL_VELOCITY) p.vy = TERMINAL_VELOCITY;
+            
+            // Wiggle
+            p.x += Math.sin(p.y * 0.1) * 2;
+        }
+    }
+
+    private void drawParticles() {
+        javafx.scene.canvas.GraphicsContext gc = celebrationCanvas.getGraphicsContext2D();
+        gc.clearRect(0, 0, celebrationCanvas.getWidth(), celebrationCanvas.getHeight());
+
+        for (ConfettiParticle p : particles) {
+            gc.setFill(p.color);
+            gc.fillOval(p.x, p.y, 6, 6);
+        }
+    }
+
+    private static class ConfettiParticle {
+        double x, y;
+        Color color;
+        double vx, vy;
+
+        ConfettiParticle(double x, double y, Color color, double vx, double vy) {
+            this.x = x;
+            this.y = y;
+            this.color = color;
+            this.vx = vx;
+            this.vy = vy;
         }
     }
 

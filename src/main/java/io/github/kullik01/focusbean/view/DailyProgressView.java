@@ -57,12 +57,17 @@ import javafx.scene.text.FontWeight;
  * Focus Sessions daily progress design.
  * </p>
  */
-public final class DailyProgressView extends VBox {
+public final class DailyProgressView extends StackPane {
 
     private static final double RING_SIZE = 140;
     private static final double RING_STROKE_WIDTH = 5;
     private static final String FONT_FAMILY = "'Segoe UI', 'Helvetica Neue', sans-serif";
+    // Celebration constants
+    private static final int PARTICLE_COUNT = 100;
+    private static final double GRAVITY = 0.5;
+    private static final double TERMINAL_VELOCITY = 10;
 
+    private final VBox contentBox; // Container for the main UI
     private final Label headerLabel;
     private final HBox headerBar;
     private Button settingsButton;
@@ -80,6 +85,10 @@ public final class DailyProgressView extends VBox {
     private int completedTodayMinutes;
     private int yesterdayMinutes;
     private int streakDays;
+    
+    // State tracking for trigger
+    private int previousCompletedMinutes = -1; // -1 indicates not initialized
+    private Runnable onDailyGoalReached;
 
     /**
      * Creates a new DailyProgressView with default values.
@@ -90,6 +99,8 @@ public final class DailyProgressView extends VBox {
         this.yesterdayMinutes = 0;
         this.streakDays = 0;
 
+        // --- UI Construction ---
+        
         // Header
         headerLabel = new Label("Daily progress");
         headerLabel.setFont(Font.font(FONT_FAMILY, FontWeight.NORMAL, 14));
@@ -146,11 +157,15 @@ public final class DailyProgressView extends VBox {
         completedLabel.setFont(Font.font(FONT_FAMILY, FontWeight.NORMAL, 13));
         completedLabel.setTextFill(Color.web(AppConstants.COLOR_TEXT_SECONDARY));
 
-        // Layout
-        setSpacing(12);
-        setPadding(new Insets(15, 20, 15, 20));
+        // Content Layout (VBox)
+        contentBox = new VBox(12);
+        contentBox.setPadding(new Insets(15, 20, 15, 20));
+        contentBox.setAlignment(Pos.TOP_CENTER);
+        contentBox.getChildren().addAll(headerBar, statsRow, completedLabel);
+        
+        // Root Layout (StackPane)
         setAlignment(Pos.TOP_CENTER);
-        getChildren().addAll(headerBar, statsRow, completedLabel);
+        getChildren().addAll(contentBox);
 
         // Initial render
         drawGoalProgress();
@@ -163,13 +178,15 @@ public final class DailyProgressView extends VBox {
      * @param settings the user settings containing the daily goal
      */
     public void update(SessionHistory history, UserSettings settings) {
+        if (settings != null) {
+            setDailyGoalMinutes(settings.getDailyGoalMinutes());
+        }
         if (history != null) {
-            this.completedTodayMinutes = history.getTodaysTotalWorkMinutes();
+            if (this.completedTodayMinutes != history.getTodaysTotalWorkMinutes()) {
+                 setCompletedTodayMinutes(history.getTodaysTotalWorkMinutes());
+            }
             this.yesterdayMinutes = history.getYesterdaysTotalWorkMinutes();
             this.streakDays = history.getCurrentStreak();
-        }
-        if (settings != null) {
-            this.dailyGoalMinutes = settings.getDailyGoalMinutes();
         }
         refresh();
     }
@@ -190,6 +207,19 @@ public final class DailyProgressView extends VBox {
      * @param minutes the completed minutes
      */
     public void setCompletedTodayMinutes(int minutes) {
+        // Initialize previous state on first run
+        if (previousCompletedMinutes == -1) {
+            previousCompletedMinutes = minutes;
+        }
+
+        // Trigger celebration if crossing the threshold
+        if (previousCompletedMinutes < dailyGoalMinutes && minutes >= dailyGoalMinutes) {
+            if (onDailyGoalReached != null) {
+                onDailyGoalReached.run();
+            }
+        }
+
+        this.previousCompletedMinutes = minutes;
         this.completedTodayMinutes = minutes;
         refresh();
     }
@@ -208,6 +238,15 @@ public final class DailyProgressView extends VBox {
         if (button != null) {
             headerBar.getChildren().add(button);
         }
+    }
+
+    /**
+     * Sets the callback to be invoked when the daily goal is reached.
+     *
+     * @param onDailyGoalReached the callback to run
+     */
+    public void setOnDailyGoalReached(Runnable onDailyGoalReached) {
+        this.onDailyGoalReached = onDailyGoalReached;
     }
 
     /**

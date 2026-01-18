@@ -828,7 +828,7 @@ public final class SettingsView extends VBox {
                     || soundNotificationCheckbox.isSelected() != originalSettings.isSoundNotificationEnabled()
                     || popupNotificationCheckbox.isSelected() != originalSettings.isPopupNotificationEnabled()
                     || soundComboBox.getValue() != originalSettings.getNotificationSound()
-                    || !Objects.equals(customSoundPath, originalSettings.getCustomSoundPath())
+                    || !Objects.equals(soundComboBox.getValue() == NotificationSound.CUSTOM ? customSoundPath : null, originalSettings.getCustomSoundPath())
                     || darkModeCheckbox.isSelected() != originalSettings.isDarkModeEnabled();
         } catch (NumberFormatException e) {
             // If parsing fails, consider it as a change (invalid input)
