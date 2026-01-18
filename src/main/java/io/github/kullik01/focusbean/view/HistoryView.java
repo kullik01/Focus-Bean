@@ -54,6 +54,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.SVGPath;
 
 import java.time.LocalDate;
@@ -106,6 +107,7 @@ public final class HistoryView extends VBox {
         private HistoryViewMode currentMode = HistoryViewMode.TABLE;
         private int historyChartDays = 7; // Default value
         private boolean darkModeEnabled = false;
+        private Region tableBorderOverlay;
 
         /**
          * Creates a new HistoryView with empty data.
@@ -126,8 +128,24 @@ public final class HistoryView extends VBox {
                 double totalColumnWidth = TABLE_COLUMN_DATE_WIDTH + TABLE_COLUMN_TIME_WIDTH
                                 + TABLE_COLUMN_TYPE_WIDTH + TABLE_COLUMN_DURATION_WIDTH
                                 + TABLE_COLUMN_STATUS_WIDTH + 2; // +2 for border
-                sessionTable.setMaxWidth(totalColumnWidth);
-                sessionTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+                // Apply rounded clip to table to prevent square content from overflowing corners
+                sessionTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY); // Restored
+                Rectangle clip = new Rectangle();
+                clip.widthProperty().bind(sessionTable.widthProperty());
+                clip.heightProperty().bind(sessionTable.heightProperty());
+                clip.setArcWidth(40);
+                clip.setArcHeight(40);
+                sessionTable.setClip(clip);
+
+                // Create border overlay for smooth edges
+                tableBorderOverlay = new Region();
+                tableBorderOverlay.setMouseTransparent(true);
+                tableBorderOverlay.setPickOnBounds(false);
+                updateTableBorderColor(); // Set initial color
+
+                StackPane tableContainer = new StackPane(sessionTable, tableBorderOverlay);
+                tableContainer.setMaxWidth(totalColumnWidth);
+
 
                 // 2. Setup Bar Chart
                 CategoryAxis xAxis = new CategoryAxis();
@@ -149,7 +167,7 @@ public final class HistoryView extends VBox {
                 barChart.setMaxWidth(totalColumnWidth);
 
                 // 3. Setup Container
-                viewContainer = new StackPane(sessionTable, barChart);
+                viewContainer = new StackPane(tableContainer, barChart);
                 viewContainer.setAlignment(Pos.TOP_CENTER);
 
                 // Initial visibility
@@ -658,13 +676,21 @@ public final class HistoryView extends VBox {
 
         private void updateViewVisibility() {
                 if (currentMode == HistoryViewMode.TABLE) {
-                        sessionTable.setVisible(true);
+                        if (viewContainer.getChildren().get(0) instanceof StackPane) {
+                                viewContainer.getChildren().get(0).setVisible(true);
+                        } else {
+                                sessionTable.setVisible(true);
+                        }
                         barChart.setVisible(false);
                         // Update icon to show "Chart" potential? No, usually button shows current view
                         // or switch action.
                         // Let's keep the generic switch icon.
                 } else {
-                        sessionTable.setVisible(false);
+                        if (viewContainer.getChildren().get(0) instanceof StackPane) {
+                                viewContainer.getChildren().get(0).setVisible(false);
+                        } else {
+                                sessionTable.setVisible(false);
+                        }
                         barChart.setVisible(true);
                 }
         }
@@ -729,6 +755,19 @@ public final class HistoryView extends VBox {
                 String textColor = darkMode ? AppConstants.COLOR_TEXT_SECONDARY_DARK : AppConstants.COLOR_TEXT_SECONDARY;
                 todayStatsLabel.setStyle(String.format(STYLE_STATS_LABEL, textColor));
                 weekStatsLabel.setStyle(String.format(STYLE_STATS_LABEL, textColor));
+
+                updateTableBorderColor();
+        }
+
+        private void updateTableBorderColor() {
+                if (tableBorderOverlay != null) {
+                        String borderColor = darkModeEnabled ? "#5D4037" : "#C19A6B";
+                        tableBorderOverlay.setStyle(String.format("""
+                                -fx-border-color: %s;
+                                -fx-border-radius: 20;
+                                -fx-border-width: 1;
+                                """, borderColor));
+                }
         }
 
         /**

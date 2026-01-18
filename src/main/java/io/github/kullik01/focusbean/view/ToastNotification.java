@@ -58,20 +58,29 @@ public class ToastNotification extends Stage {
 
     private final Runnable onCloseAction;
 
-    public ToastNotification(String title, String message, Runnable onCloseAction) {
+    public ToastNotification(String title, String message, boolean isDarkMode, Runnable onCloseAction) {
         this.onCloseAction = onCloseAction;
         initStyle(StageStyle.TRANSPARENT);
         setAlwaysOnTop(true);
 
+        // Theme colors
+        String bgColor = isDarkMode ? "#2C2420" : "#F5F2EF";
+        String borderColor = isDarkMode ? "#5D4037" : "#D7B49E";
+        String titleColor = isDarkMode ? "#E8E0D8" : "#2d3436";
+        String msgColor = isDarkMode ? "#A89888" : "#636e72";
+        String iconColor = isDarkMode ? "#A0522D" : "#5D4037"; // Lighter brown for icon in dark mode
+
         // Main container with styling
         VBox root = new VBox(8); // Start with some spacing
         root.setAlignment(Pos.CENTER_LEFT);
-        root.setStyle("-fx-background-color: #F5F2EF;" +
-                "-fx-background-radius: 12;" +
-                "-fx-border-color: #D7B49E;" +
-                "-fx-border-width: 1;" +
-                "-fx-border-radius: 12;" +
-                "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 5);");
+        root.setStyle(String.format("""
+                -fx-background-color: %s;
+                -fx-background-radius: 12;
+                -fx-border-color: %s;
+                -fx-border-width: 1;
+                -fx-border-radius: 12;
+                -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 5);
+                """, bgColor, borderColor));
         root.setPadding(new javafx.geometry.Insets(15));
         root.setPrefWidth(TOAST_WIDTH);
         root.setMinHeight(TOAST_HEIGHT); // Allow growth, but set min height
@@ -82,22 +91,22 @@ public class ToastNotification extends Stage {
 
         // Brown point icon
         Circle icon = new Circle(4);
-        icon.setFill(Color.web("#5D4037")); // Dark Coffee Brown
+        icon.setFill(Color.web(iconColor));
 
         Label appTitle = new Label("Focus Bean");
-        appTitle.setTextFill(Color.web("#5D4037"));
+        appTitle.setTextFill(Color.web(iconColor));
         appTitle.setFont(Font.font("Segoe UI", FontWeight.BOLD, 12));
 
         header.getChildren().addAll(icon, appTitle);
 
         // Content
         Label titleLabel = new Label(title);
-        titleLabel.setTextFill(Color.web("#2d3436"));
+        titleLabel.setTextFill(Color.web(titleColor));
         titleLabel.setFont(Font.font("Segoe UI", FontWeight.BOLD, 14));
         titleLabel.setWrapText(true);
 
         Label messageLabel = new Label(message);
-        messageLabel.setTextFill(Color.web("#636e72"));
+        messageLabel.setTextFill(Color.web(msgColor));
         messageLabel.setFont(Font.font("Segoe UI", 13));
         messageLabel.setWrapText(true);
 
@@ -105,16 +114,13 @@ public class ToastNotification extends Stage {
 
         // Close button (Top Right overlay)
         Label closeBtn = new Label("✕");
-        closeBtn.setTextFill(Color.web("#a4a4a4"));
+        closeBtn.setTextFill(Color.web(isDarkMode ? "#E8E0D8" : "#a4a4a4"));
         closeBtn.setCursor(javafx.scene.Cursor.HAND);
         closeBtn.setOnMouseClicked(e -> closeToast());
         StackPane.setAlignment(closeBtn, Pos.TOP_RIGHT);
-        StackPane.setMargin(closeBtn, new javafx.geometry.Insets(15)); // Adjust for wrapper padding if needed, relative
-                                                                       // to StackPane edge
+        StackPane.setMargin(closeBtn, new javafx.geometry.Insets(15));
 
         // Wrapper to overlay close button AND provide padding for shadow
-        // JavaFX effects draw outside layout bounds, so we need padding in the Scene's
-        // root to avoid clipping
         StackPane contentWrapper = new StackPane(root, closeBtn);
         contentWrapper.setStyle("-fx-background-color: transparent;");
         contentWrapper.setPadding(new javafx.geometry.Insets(20)); // Margin for shadow
@@ -124,28 +130,9 @@ public class ToastNotification extends Stage {
         setScene(scene);
 
         // Position on screen (Bottom Right)
-        // Window has 20px transparent padding on all sides.
-        // We want the *visual* box to be close to the edge.
-        // Screen Max X - Visual Margin - (Visual Width + Left Padding)
-        // Visual Width = TOAST_WIDTH (350). Left Padding = 20.
-        // So X = MaxX - 10 - 370.
         double visualMargin = 10;
-        double totalWidth = TOAST_WIDTH + 40;
-
         Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
-
-        // Align visual right edge to screen right edge - margin
         setX(bounds.getMaxX() - visualMargin - (TOAST_WIDTH + 20));
-
-        // Align visual bottom edge to screen bottom edge - margin
-        // Estimating height since it's dynamic, but removing the large buffer to move
-        // it down
-        // 130 is approx visual height (100 content + 30 padding/text) -> Window Height
-        // ~ 170
-        // Window Y = MaxY - Margin - (Visual Height + Top Padding)
-        // We'll trust the visual bounds max Y to be the top of taskbar
-        // Removed extra 5px cushion to let shadow overlap margin slightly (tighter
-        // look)
         double estimatedVisualHeight = 100;
         setY(bounds.getMaxY() - visualMargin - (estimatedVisualHeight + 20));
 
@@ -157,11 +144,6 @@ public class ToastNotification extends Stage {
                 new KeyFrame(Duration.ZERO, new KeyValue(root.opacityProperty(), 0)),
                 new KeyFrame(Duration.millis(300), new KeyValue(root.opacityProperty(), 1)));
         fadeIn.play();
-
-        // Auto close removed per user request - user must manually close
-        // Timeline autoClose = new Timeline(new KeyFrame(Duration.seconds(5), e ->
-        // closeToast()));
-        // autoClose.play();
     }
 
     private void closeToast() {
@@ -177,11 +159,11 @@ public class ToastNotification extends Stage {
         fadeOut.play();
     }
 
-    public static void show(String title, String message) {
-        show(title, message, null);
+    public static void show(String title, String message, boolean isDarkMode) {
+        show(title, message, isDarkMode, null);
     }
 
-    public static void show(String title, String message, Runnable onCloseAction) {
-        Platform.runLater(() -> new ToastNotification(title, message, onCloseAction));
+    public static void show(String title, String message, boolean isDarkMode, Runnable onCloseAction) {
+        Platform.runLater(() -> new ToastNotification(title, message, isDarkMode, onCloseAction));
     }
 }

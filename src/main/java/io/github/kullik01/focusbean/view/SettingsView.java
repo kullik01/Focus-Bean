@@ -74,9 +74,9 @@ public final class SettingsView extends VBox {
 
     private static final String STYLE_CARD = """
             -fx-background-color: %s;
-            -fx-background-radius: 8;
+            -fx-background-radius: 20;
             -fx-border-color: %s;
-            -fx-border-radius: 8;
+            -fx-border-radius: 20;
             -fx-border-width: 1;
             -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 4, 0, 0, 1);
             """;
@@ -86,8 +86,8 @@ public final class SettingsView extends VBox {
             -fx-text-fill: white;
             -fx-font-size: 14px;
             -fx-font-weight: bold;
-            -fx-padding: 10 30;
-            -fx-background-radius: 12;
+            -fx-padding: 8 20;
+            -fx-background-radius: 25;
             -fx-cursor: hand;
             """;
 
@@ -291,7 +291,7 @@ public final class SettingsView extends VBox {
         browseButton.disableProperty().bind(soundNotificationCheckbox.selectedProperty().not());
 
         // Save button
-        saveButton = new Button("Save Settings");
+        saveButton = new Button("Save");
         saveButton.setStyle(String.format(STYLE_SAVE_BUTTON, AppConstants.COLOR_PROGRESS_ACTIVE));
         saveButton.setOnAction(e -> {
             if (onSave != null) {
@@ -974,24 +974,24 @@ public final class SettingsView extends VBox {
 
         Button okButton = new Button("OK");
         okButton.setDefaultButton(true);
-        String okButtonStyle = String.format("""
-                -fx-background-color: %s;
-                -fx-text-fill: %s;
+        String okButtonStyle = """
+                -fx-background-color: #A0522D;
+                -fx-text-fill: white;
                 -fx-background-radius: 20;
                 -fx-cursor: hand;
                 -fx-padding: 6 16 6 16;
                 -fx-font-size: 13px;
                 -fx-min-width: 70;
-                """, okBtnBg, okBtnText);
-        String okButtonHoverStyle = String.format("""
-                -fx-background-color: %s;
-                -fx-text-fill: %s;
+                """;
+        String okButtonHoverStyle = """
+                -fx-background-color: #8B4513;
+                -fx-text-fill: white;
                 -fx-background-radius: 20;
                 -fx-cursor: hand;
                 -fx-padding: 6 16 6 16;
                 -fx-font-size: 13px;
                 -fx-min-width: 70;
-                """, okBtnBgHover, okBtnText);
+                """;
         okButton.setStyle(okButtonStyle);
         okButton.setOnMouseEntered(e -> okButton.setStyle(okButtonHoverStyle));
         okButton.setOnMouseExited(e -> okButton.setStyle(okButtonStyle));
@@ -1002,22 +1002,22 @@ public final class SettingsView extends VBox {
 
         Button cancelButton = new Button("Cancel");
         cancelButton.setCancelButton(true);
-        String cancelButtonStyle = """
-                -fx-background-color: #A0522D;
-                -fx-text-fill: white;
+        String cancelButtonStyle = String.format("""
+                -fx-background-color: %s;
+                -fx-text-fill: %s;
                 -fx-background-radius: 20;
                 -fx-cursor: hand;
                 -fx-padding: 6 16 6 16;
                 -fx-font-size: 13px;
-                """;
-        String cancelButtonHoverStyle = """
-                -fx-background-color: #8B4513;
-                -fx-text-fill: white;
+                """, okBtnBg, okBtnText);
+        String cancelButtonHoverStyle = String.format("""
+                -fx-background-color: %s;
+                -fx-text-fill: %s;
                 -fx-background-radius: 20;
                 -fx-cursor: hand;
                 -fx-padding: 6 16 6 16;
                 -fx-font-size: 13px;
-                """;
+                """, okBtnBgHover, okBtnText);
         cancelButton.setStyle(cancelButtonStyle);
         cancelButton.setOnMouseEntered(e -> cancelButton.setStyle(cancelButtonHoverStyle));
         cancelButton.setOnMouseExited(e -> cancelButton.setStyle(cancelButtonStyle));

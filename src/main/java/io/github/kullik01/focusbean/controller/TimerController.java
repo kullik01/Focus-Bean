@@ -234,6 +234,12 @@ public final class TimerController {
         settings.setBreakDurationMinutes(breakMinutes);
         saveData();
 
+        // If changes are made while IDLE, reset pending session to ensure
+        // the timer reflects the (likely) updated Work duration logic
+        if (getCurrentState() == TimerState.IDLE) {
+            pendingSessionType = null;
+        }
+
         LOGGER.log(Level.INFO, "Settings updated: work={0}min, break={1}min",
                 new Object[] { workMinutes, breakMinutes });
     }

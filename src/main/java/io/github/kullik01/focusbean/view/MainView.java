@@ -69,9 +69,9 @@ public final class MainView extends BorderPane {
 
     private static final String STYLE_CARD = """
             -fx-background-color: %s;
-            -fx-background-radius: 8;
+            -fx-background-radius: 20;
             -fx-border-color: %s;
-            -fx-border-radius: 8;
+            -fx-border-radius: 20;
             -fx-border-width: 1;
             -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 4, 0, 0, 1);
             """;

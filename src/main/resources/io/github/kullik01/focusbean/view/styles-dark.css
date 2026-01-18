@@ -289,18 +289,16 @@
    ========================================================================= */
 .table-view {
     -fx-background-color: #2C2420;
-    -fx-background-radius: 8;
+    -fx-background-radius: 20;
     -fx-background-insets: 0;
-    -fx-border-color: #5D4037;
-    -fx-border-radius: 8;
+    -fx-border-width: 0;
     -fx-padding: 0 0 6 0;
 }
 
 .table-view:focused {
     -fx-background-color: #2C2420;
-    -fx-background-radius: 8;
-    -fx-border-color: #A0522D;
-    -fx-border-radius: 8;
+    -fx-background-radius: 20;
+    -fx-border-width: 0;
     -fx-background-insets: 0;
 }
 
@@ -317,18 +315,22 @@
 }
 
 .table-view>.virtual-flow>.corner {
-    -fx-background-color: #2C2420;
+    -fx-background-color: #3D332B;
+    -fx-background-radius: 0 19 0 0;
+    -fx-background-insets: 1 1 0 1;
 }
 
 /* Header Background - Dark Brown */
 .table-view .column-header-background {
     -fx-background-color: #3D332B;
-    -fx-background-radius: 8 8 0 0;
+    -fx-background-radius: 19 19 0 0;
+    -fx-background-insets: 1 1 0 1;
 }
 
 .table-view .column-header-background .filler {
     -fx-background-color: #3D332B;
-    -fx-background-radius: 0 8 0 0;
+    -fx-background-radius: 0 19 0 0;
+    -fx-background-insets: 1 1 0 1;
     -fx-border-color: transparent;
 }
 
