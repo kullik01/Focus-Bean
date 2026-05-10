@@ -227,31 +227,29 @@ public final class FocusBeanApplication extends Application {
     /**
      * Shows the mini floating timer and hides the main window.
      *
-     * <p>
-     * The mini stage is a compact always-on-top window showing only the
+     * <p>The mini stage is a compact always-on-top window showing only the
      * circular timer, time display, and a start/pause button. It shares
-     * the same {@link TimerController} as the main window.
-     * </p>
+     * the same {@link TimerController} as the main window.</p>
      */
     private void showMiniMode() {
-        if (miniStage != null && miniStage.isShowing()) {
+        if (this.miniStage != null && this.miniStage.isShowing()) {
             LOGGER.fine("Mini mode already showing");
             return;
         }
 
-        double tmpMainX = primaryStage.getX();
-        double tmpMainY = primaryStage.getY();
+        double tmpMainX = this.primaryStage.getX();
+        double tmpMainY = this.primaryStage.getY();
 
-        primaryStage.hide();
+        this.primaryStage.hide();
 
-        boolean tmpIsDark = controller.getSettings().isDarkModeEnabled();
-        miniTimerView = new MiniTimerView(controller, tmpIsDark);
+        boolean tmpIsDark = this.controller.getSettings().isDarkModeEnabled();
+        this.miniTimerView = new MiniTimerView(this.controller, tmpIsDark);
 
-        miniTimerView.setOnShowFullWindow(this::hideMiniMode);
-        miniTimerView.setOnCloseMiniMode(this::hideMiniMode);
-        miniTimerView.setOnMinimize(() -> {
-            if (miniStage != null) {
-                miniStage.setIconified(true);
+        this.miniTimerView.setOnShowFullWindow(this::hideMiniMode);
+        this.miniTimerView.setOnCloseMiniMode(this::hideMiniMode);
+        this.miniTimerView.setOnMinimize(() -> {
+            if (this.miniStage != null) {
+                this.miniStage.setIconified(true);
             }
         });
 
@@ -259,9 +257,9 @@ public final class FocusBeanApplication extends Application {
                 new javafx.scene.shape.Rectangle();
         tmpClip.setArcWidth(40);
         tmpClip.setArcHeight(40);
-        tmpClip.widthProperty().bind(miniTimerView.widthProperty());
-        tmpClip.heightProperty().bind(miniTimerView.heightProperty());
-        miniTimerView.setClip(tmpClip);
+        tmpClip.widthProperty().bind(this.miniTimerView.widthProperty());
+        tmpClip.heightProperty().bind(this.miniTimerView.heightProperty());
+        this.miniTimerView.setClip(tmpClip);
 
         String tmpBorderColor = tmpIsDark
                 ? AppConstants.COLOR_CARD_BORDER_DARK
@@ -276,33 +274,33 @@ public final class FocusBeanApplication extends Application {
                 """, tmpBorderColor));
 
         StackPane tmpMiniRoot =
-                new StackPane(miniTimerView, tmpMiniBorderOverlay);
+                new StackPane(this.miniTimerView, tmpMiniBorderOverlay);
         tmpMiniRoot.setStyle("-fx-background-color: transparent;");
 
         Scene tmpMiniScene = new Scene(tmpMiniRoot);
         tmpMiniScene.setFill(javafx.scene.paint.Color.TRANSPARENT);
 
-        tmpMiniScene.setOnKeyPressed(miniTimerView::handleKeyPress);
+        tmpMiniScene.setOnKeyPressed(this.miniTimerView::handleKeyPress);
 
-        miniStage = new Stage();
-        miniStage.initStyle(StageStyle.TRANSPARENT);
-        miniStage.setTitle(AppConstants.APP_NAME + " - Mini");
-        miniStage.setScene(tmpMiniScene);
-        miniStage.setResizable(false);
-        miniStage.setAlwaysOnTop(true);
+        this.miniStage = new Stage();
+        this.miniStage.initStyle(StageStyle.TRANSPARENT);
+        this.miniStage.setTitle(AppConstants.APP_NAME + " - Mini");
+        this.miniStage.setScene(tmpMiniScene);
+        this.miniStage.setResizable(false);
+        this.miniStage.setAlwaysOnTop(true);
 
-        miniStage.setX(tmpMainX + 50);
-        miniStage.setY(tmpMainY + 50);
+        this.miniStage.setX(tmpMainX + 50);
+        this.miniStage.setY(tmpMainY + 50);
 
         try {
             String tmpLogoPath =
                     "/io/github/kullik01/focusbean/view/logo.png";
-            if (getClass().getResource(tmpLogoPath) != null) {
-                miniStage.getIcons().add(new Image(
-                        getClass().getResourceAsStream(tmpLogoPath)));
-            } else if (getClass().getResource("/logo.png") != null) {
-                miniStage.getIcons().add(new Image(
-                        getClass().getResourceAsStream("/logo.png")));
+            if (this.getClass().getResource(tmpLogoPath) != null) {
+                this.miniStage.getIcons().add(new Image(
+                        this.getClass().getResourceAsStream(tmpLogoPath)));
+            } else if (this.getClass().getResource("/logo.png") != null) {
+                this.miniStage.getIcons().add(new Image(
+                        this.getClass().getResourceAsStream("/logo.png")));
             }
         } catch (Exception exception) {
             LOGGER.log(Level.WARNING,
@@ -320,19 +318,19 @@ public final class FocusBeanApplication extends Application {
         tmpMiniRoot.setOnMouseDragged(event -> {
             if (event.getButton()
                     == javafx.scene.input.MouseButton.PRIMARY) {
-                miniStage.setX(
+                this.miniStage.setX(
                         event.getScreenX() - tmpDragOffset[0]);
-                miniStage.setY(
+                this.miniStage.setY(
                         event.getScreenY() - tmpDragOffset[1]);
             }
         });
 
-        miniStage.setOnCloseRequest(event -> {
+        this.miniStage.setOnCloseRequest(event -> {
             event.consume();
-            hideMiniMode();
+            this.hideMiniMode();
         });
 
-        miniStage.show();
+        this.miniStage.show();
         LOGGER.info("Mini mode activated");
     }
 
@@ -340,13 +338,13 @@ public final class FocusBeanApplication extends Application {
      * Hides the mini timer and restores the main application window.
      */
     private void hideMiniMode() {
-        if (miniStage != null) {
-            miniStage.close();
-            miniStage = null;
-            miniTimerView = null;
+        if (this.miniStage != null) {
+            this.miniStage.close();
+            this.miniStage = null;
+            this.miniTimerView = null;
         }
 
-        primaryStage.show();
+        this.primaryStage.show();
         LOGGER.info("Full window restored from mini mode");
     }
 

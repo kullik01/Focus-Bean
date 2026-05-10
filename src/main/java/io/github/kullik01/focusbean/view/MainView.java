@@ -518,9 +518,10 @@ public final class MainView extends BorderPane {
 
     /**
      * Creates a styled mini mode button that shrinks the app into a compact floating widget.
-     * The button uses a "picture-in-picture" / collapse icon.
      *
-     * @return the configured mini mode button
+     * <p>The button uses a picture-in-picture collapse icon.</p>
+     *
+     * @return The configured mini mode button
      */
     private Button createMiniModeButton() {
         javafx.scene.shape.SVGPath tmpIcon = new javafx.scene.shape.SVGPath();
@@ -565,8 +566,8 @@ public final class MainView extends BorderPane {
                 """));
 
         tmpMiniButton.setOnAction(event -> {
-            if (onMiniModeRequested != null) {
-                onMiniModeRequested.run();
+            if (this.onMiniModeRequested != null) {
+                this.onMiniModeRequested.run();
             }
         });
 

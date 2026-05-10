@@ -64,25 +64,12 @@ import java.util.logging.Logger;
 /**
  * A compact, always-on-top floating timer widget.
  *
- * <p>
- * This view provides a minimal circular timer display with a play/pause button,
+ * <p>This view provides a minimal circular timer display with a play/pause button,
  * designed to float above other windows for constant visibility without taking
  * up significant screen space. It shares the same {@link TimerController} as the
- * main window so both views stay in sync.
- * </p>
+ * main window so both views stay in sync.</p>
  *
- * <p>
- * Features:
- * </p>
- * <ul>
- * <li>Circular progress ring with time display</li>
- * <li>Play/pause button</li>
- * <li>State-aware color coding (work/break/paused)</li>
- * <li>Draggable window</li>
- * <li>Right-click context menu (Show Full Window, Reset, Close)</li>
- * <li>Keyboard shortcuts: Space (start/pause), R (reset)</li>
- * <li>Dark mode support</li>
- * </ul>
+ * @author Hannah Kullik
  */
 public final class MiniTimerView extends StackPane {
 
@@ -118,51 +105,43 @@ public final class MiniTimerView extends StackPane {
     /**
      * Creates a new MiniTimerView wired to the given controller.
      *
-     * @param controller the timer controller to bind to
-     * @param darkMode   whether dark mode is enabled
-     * @throws NullPointerException if controller is null
+     * @param controller The timer controller to bind to
+     * @param darkMode Whether dark mode is enabled
+     * @throws NullPointerException If controller is null
      */
     public MiniTimerView(TimerController controller, boolean darkMode) {
         this.controller = Objects.requireNonNull(controller, "controller must not be null");
         this.darkMode = darkMode;
-        this.totalSeconds = controller.getSettings().getWorkDurationSeconds();
-        this.remainingSeconds = controller.getRemainingSeconds();
-        this.currentState = controller.getCurrentState();
+        this.totalSeconds = this.controller.getSettings().getWorkDurationSeconds();
+        this.remainingSeconds = this.controller.getRemainingSeconds();
+        this.currentState = this.controller.getCurrentState();
 
-        // --- Build UI ---
+        this.progressCanvas = new Canvas(RING_SIZE, RING_SIZE);
 
-        // Progress canvas
-        progressCanvas = new Canvas(RING_SIZE, RING_SIZE);
+        this.timeLabel = new Label();
+        this.timeLabel.setFont(Font.font(FONT_FAMILY, FontWeight.LIGHT, 32));
 
-        // Time label
-        timeLabel = new Label();
-        timeLabel.setFont(Font.font(FONT_FAMILY, FontWeight.LIGHT, 32));
+        this.unitLabel = new Label("min");
+        this.unitLabel.setFont(Font.font(FONT_FAMILY, FontWeight.NORMAL, 12));
 
-        // Unit label (min / sec)
-        unitLabel = new Label("min");
-        unitLabel.setFont(Font.font(FONT_FAMILY, FontWeight.NORMAL, 12));
+        this.stateLabel = new Label();
+        this.stateLabel.setFont(Font.font(FONT_FAMILY, FontWeight.NORMAL, 10));
 
-        // State label (Working / Break / Paused)
-        stateLabel = new Label();
-        stateLabel.setFont(Font.font(FONT_FAMILY, FontWeight.NORMAL, 10));
-
-        // Center content over the ring
         VBox tmpCenterContent = new VBox(0);
         tmpCenterContent.setAlignment(Pos.CENTER);
         tmpCenterContent.setMouseTransparent(true);
-        tmpCenterContent.getChildren().addAll(stateLabel, timeLabel, unitLabel);
+        tmpCenterContent.getChildren().addAll(this.stateLabel, this.timeLabel, this.unitLabel);
 
-        startPauseButton = new Button(ICON_PLAY);
-        startPauseButton.setFont(Font.font(12));
-        startPauseButton.setAlignment(Pos.CENTER);
-        startPauseButton.setContentDisplay(ContentDisplay.CENTER);
-        startPauseButton.setOnAction(event -> handleStartPauseClick());
+        this.startPauseButton = new Button(ICON_PLAY);
+        this.startPauseButton.setFont(Font.font(12));
+        this.startPauseButton.setAlignment(Pos.CENTER);
+        this.startPauseButton.setContentDisplay(ContentDisplay.CENTER);
+        this.startPauseButton.setOnAction(event -> this.handleStartPauseClick());
 
-        // Stack the ring, center text, and position button at bottom
-        StackPane tmpRingStack = new StackPane(progressCanvas, tmpCenterContent);
+        StackPane tmpRingStack = new StackPane(this.progressCanvas, tmpCenterContent);
         tmpRingStack.setAlignment(Pos.CENTER);
 
-        Button tmpExpandButton = createExpandButton();
+        Button tmpExpandButton = this.createExpandButton();
 
         HBox tmpTopBar = new HBox(2);
         tmpTopBar.setAlignment(Pos.CENTER_RIGHT);
@@ -170,38 +149,35 @@ public final class MiniTimerView extends StackPane {
         Region tmpTopSpacer = new Region();
         HBox.setHgrow(tmpTopSpacer, Priority.ALWAYS);
         tmpTopBar.getChildren().addAll(
-                tmpTopSpacer, createMinimizeButton(), tmpExpandButton);
+                tmpTopSpacer, this.createMinimizeButton(), tmpExpandButton);
 
         VBox tmpLayout = new VBox(2);
         tmpLayout.setAlignment(Pos.CENTER);
         tmpLayout.setPadding(new Insets(0, 10, 10, 10));
         tmpLayout.getChildren().addAll(
-                tmpTopBar, tmpRingStack, startPauseButton);
+                tmpTopBar, tmpRingStack, this.startPauseButton);
 
-        setAlignment(Pos.CENTER);
-        setPrefSize(VIEW_SIZE, VIEW_SIZE + 30);
-        getChildren().add(tmpLayout);
+        this.setAlignment(Pos.CENTER);
+        this.setPrefSize(VIEW_SIZE, VIEW_SIZE + 30);
+        this.getChildren().add(tmpLayout);
 
-        // Context menu
-        contextMenu = createContextMenu();
-        setOnMouseClicked(event -> {
+        this.contextMenu = this.createContextMenu();
+        this.setOnMouseClicked(event -> {
             if (event.getButton() == MouseButton.SECONDARY) {
-                contextMenu.show(this, event.getScreenX(), event.getScreenY());
+                this.contextMenu.show(this, event.getScreenX(), event.getScreenY());
             } else if (event.getButton() == MouseButton.PRIMARY
                     && event.getClickCount() == 2) {
-                // Double-click to restore full window
-                if (onShowFullWindow != null) {
-                    onShowFullWindow.run();
+                if (this.onShowFullWindow != null) {
+                    this.onShowFullWindow.run();
                 }
             } else {
-                contextMenu.hide();
+                this.contextMenu.hide();
             }
         });
 
-        // Apply theme & initial display
-        applyTheme(darkMode);
-        bindToController();
-        refreshDisplay();
+        this.applyTheme(darkMode);
+        this.bindToController();
+        this.refreshDisplay();
 
         LOGGER.fine("MiniTimerView initialized");
     }
@@ -209,7 +185,7 @@ public final class MiniTimerView extends StackPane {
     /**
      * Sets the callback for showing the full application window.
      *
-     * @param handler the callback to invoke
+     * @param handler The callback to invoke
      */
     public void setOnShowFullWindow(Runnable handler) {
         this.onShowFullWindow = handler;
@@ -218,7 +194,7 @@ public final class MiniTimerView extends StackPane {
     /**
      * Sets the callback for closing mini mode.
      *
-     * @param handler the callback to invoke
+     * @param handler The callback to invoke
      */
     public void setOnCloseMiniMode(Runnable handler) {
         this.onCloseMiniMode = handler;
@@ -227,7 +203,7 @@ public final class MiniTimerView extends StackPane {
     /**
      * Sets the callback for minimizing the mini window.
      *
-     * @param handler the callback to invoke
+     * @param handler The callback to invoke
      */
     public void setOnMinimize(Runnable handler) {
         this.onMinimize = handler;
@@ -236,7 +212,7 @@ public final class MiniTimerView extends StackPane {
     /**
      * Applies the given theme to all visual elements.
      *
-     * @param darkMode true for dark theme, false for light theme
+     * @param darkMode True for dark theme, false for light theme
      */
     public void applyTheme(boolean darkMode) {
         this.darkMode = darkMode;
@@ -245,7 +221,7 @@ public final class MiniTimerView extends StackPane {
                 ? AppConstants.COLOR_WINDOW_BACKGROUND_DARK
                 : AppConstants.COLOR_WINDOW_BACKGROUND;
 
-        setStyle(String.format("""
+        this.setStyle(String.format("""
                 -fx-background-color: %s;
                 -fx-background-radius: 20;
                 """, tmpBgColor));
@@ -257,33 +233,32 @@ public final class MiniTimerView extends StackPane {
                 ? AppConstants.COLOR_TEXT_SECONDARY_DARK
                 : AppConstants.COLOR_TEXT_SECONDARY;
 
-        timeLabel.setTextFill(Color.web(tmpTextPrimary));
-        unitLabel.setTextFill(Color.web(tmpTextSecondary));
+        this.timeLabel.setTextFill(Color.web(tmpTextPrimary));
+        this.unitLabel.setTextFill(Color.web(tmpTextSecondary));
 
-        updateButtonStyle();
-        updateStateLabel();
-        drawProgressRing();
+        this.updateButtonStyle();
+        this.updateStateLabel();
+        this.drawProgressRing();
     }
 
     /**
      * Handles keyboard shortcuts within the mini view.
      *
-     * @param event the key event
+     * @param event The key event
      */
     public void handleKeyPress(KeyEvent event) {
         switch (event.getCode()) {
             case SPACE -> {
-                handleStartPauseClick();
+                this.handleStartPauseClick();
                 event.consume();
             }
             case R -> {
                 if (!event.isControlDown()) {
-                    controller.reset();
+                    this.controller.reset();
                     event.consume();
                 }
             }
             default -> {
-                // No action
             }
         }
     }
@@ -296,38 +271,34 @@ public final class MiniTimerView extends StackPane {
      * Binds to the shared TimerController's observable properties.
      */
     private void bindToController() {
-        // Remaining seconds updates
-        controller.remainingSecondsProperty().addListener((obs, oldVal, newVal) -> {
+        this.controller.remainingSecondsProperty().addListener((obs, oldVal, newVal) -> {
             this.remainingSeconds = newVal.intValue();
-            updateTimeDisplay();
-            drawProgressRing();
+            this.updateTimeDisplay();
+            this.drawProgressRing();
         });
 
-        // State changes
-        controller.currentStateProperty().addListener((obs, oldState, newState) -> {
+        this.controller.currentStateProperty().addListener((obs, oldState, newState) -> {
             this.currentState = newState;
 
-            // When entering a new session from IDLE, capture total seconds
             if (oldState == TimerState.IDLE) {
                 if (newState == TimerState.WORK) {
-                    this.totalSeconds = controller.getSettings().getWorkDurationSeconds();
+                    this.totalSeconds = this.controller.getSettings().getWorkDurationSeconds();
                 } else if (newState == TimerState.BREAK) {
-                    this.totalSeconds = controller.getSettings().getBreakDurationSeconds();
+                    this.totalSeconds = this.controller.getSettings().getBreakDurationSeconds();
                 }
             }
 
-            // When returning to IDLE, show the pending duration
             if (newState == TimerState.IDLE) {
-                if (controller.getPendingSessionType() == TimerState.BREAK) {
-                    showDuration(controller.getSettings().getBreakDurationMinutes(), "Break");
+                if (this.controller.getPendingSessionType() == TimerState.BREAK) {
+                    this.showDuration(this.controller.getSettings().getBreakDurationMinutes(), "Break");
                 } else {
-                    showDuration(controller.getSettings().getWorkDurationMinutes(), "min");
+                    this.showDuration(this.controller.getSettings().getWorkDurationMinutes(), "min");
                 }
             }
 
-            updateButtonIcon();
-            updateStateLabel();
-            drawProgressRing();
+            this.updateButtonIcon();
+            this.updateStateLabel();
+            this.drawProgressRing();
         });
     }
 
@@ -335,29 +306,29 @@ public final class MiniTimerView extends StackPane {
      * Refreshes all display elements to match the current controller state.
      */
     private void refreshDisplay() {
-        this.currentState = controller.getCurrentState();
-        this.remainingSeconds = controller.getRemainingSeconds();
+        this.currentState = this.controller.getCurrentState();
+        this.remainingSeconds = this.controller.getRemainingSeconds();
 
-        if (currentState == TimerState.IDLE) {
-            if (controller.getPendingSessionType() == TimerState.BREAK) {
-                showDuration(controller.getSettings().getBreakDurationMinutes(), "Break");
+        if (this.currentState == TimerState.IDLE) {
+            if (this.controller.getPendingSessionType() == TimerState.BREAK) {
+                this.showDuration(this.controller.getSettings().getBreakDurationMinutes(), "Break");
             } else {
-                showDuration(controller.getSettings().getWorkDurationMinutes(), "min");
+                this.showDuration(this.controller.getSettings().getWorkDurationMinutes(), "min");
             }
         } else {
-            if (currentState == TimerState.WORK
-                    || (currentState == TimerState.PAUSED
-                            && controller.getStateBeforePause() == TimerState.WORK)) {
-                this.totalSeconds = controller.getSettings().getWorkDurationSeconds();
+            if (this.currentState == TimerState.WORK
+                    || (this.currentState == TimerState.PAUSED
+                            && this.controller.getStateBeforePause() == TimerState.WORK)) {
+                this.totalSeconds = this.controller.getSettings().getWorkDurationSeconds();
             } else {
-                this.totalSeconds = controller.getSettings().getBreakDurationSeconds();
+                this.totalSeconds = this.controller.getSettings().getBreakDurationSeconds();
             }
-            updateTimeDisplay();
+            this.updateTimeDisplay();
         }
 
-        updateButtonIcon();
-        updateStateLabel();
-        drawProgressRing();
+        this.updateButtonIcon();
+        this.updateStateLabel();
+        this.drawProgressRing();
     }
 
     /**
@@ -365,25 +336,25 @@ public final class MiniTimerView extends StackPane {
      */
     private void showDuration(int durationMinutes, String label) {
         this.totalSeconds = durationMinutes * 60;
-        this.remainingSeconds = totalSeconds;
-        timeLabel.setText(String.valueOf(durationMinutes));
-        unitLabel.setText(label);
+        this.remainingSeconds = this.totalSeconds;
+        this.timeLabel.setText(String.valueOf(durationMinutes));
+        this.unitLabel.setText(label);
     }
 
     /**
      * Updates the time label from remaining seconds.
      */
     private void updateTimeDisplay() {
-        if (remainingSeconds >= 60) {
-            int tmpDisplayMinutes = (remainingSeconds + 59) / 60;
-            timeLabel.setText(String.valueOf(tmpDisplayMinutes));
-            unitLabel.setText("min");
-        } else if (remainingSeconds >= 10) {
-            timeLabel.setText(String.format("%02d", remainingSeconds));
-            unitLabel.setText("sec");
+        if (this.remainingSeconds >= 60) {
+            int tmpDisplayMinutes = (this.remainingSeconds + 59) / 60;
+            this.timeLabel.setText(String.valueOf(tmpDisplayMinutes));
+            this.unitLabel.setText("min");
+        } else if (this.remainingSeconds >= 10) {
+            this.timeLabel.setText(String.format("%02d", this.remainingSeconds));
+            this.unitLabel.setText("sec");
         } else {
-            timeLabel.setText(String.valueOf(remainingSeconds));
-            unitLabel.setText("sec");
+            this.timeLabel.setText(String.valueOf(this.remainingSeconds));
+            this.unitLabel.setText("sec");
         }
     }
 
@@ -391,71 +362,71 @@ public final class MiniTimerView extends StackPane {
      * Updates the state label text and color.
      */
     private void updateStateLabel() {
-        if (currentState == null) {
-            stateLabel.setText("");
+        if (this.currentState == null) {
+            this.stateLabel.setText("");
             return;
         }
 
         String tmpStateColor;
-        switch (currentState) {
+        switch (this.currentState) {
             case WORK -> {
-                stateLabel.setText("Focus");
+                this.stateLabel.setText("Focus");
                 tmpStateColor = AppConstants.COLOR_ACCENT;
             }
             case BREAK -> {
-                stateLabel.setText("Break");
-                tmpStateColor = darkMode
+                this.stateLabel.setText("Break");
+                tmpStateColor = this.darkMode
                         ? AppConstants.COLOR_TEXT_SECONDARY_DARK
                         : AppConstants.COLOR_TEXT_SECONDARY;
             }
             case PAUSED -> {
-                stateLabel.setText("Paused");
-                tmpStateColor = darkMode
+                this.stateLabel.setText("Paused");
+                tmpStateColor = this.darkMode
                         ? AppConstants.COLOR_TEXT_SECONDARY_DARK
                         : AppConstants.COLOR_TEXT_SECONDARY;
             }
             case IDLE -> {
-                if (controller.getPendingSessionType() == TimerState.BREAK) {
-                    stateLabel.setText("Break");
+                if (this.controller.getPendingSessionType() == TimerState.BREAK) {
+                    this.stateLabel.setText("Break");
                 } else {
-                    stateLabel.setText("Focus");
+                    this.stateLabel.setText("Focus");
                 }
-                tmpStateColor = darkMode
+                tmpStateColor = this.darkMode
                         ? AppConstants.COLOR_TEXT_SECONDARY_DARK
                         : AppConstants.COLOR_TEXT_SECONDARY;
             }
             default -> {
-                stateLabel.setText("");
-                tmpStateColor = darkMode
+                this.stateLabel.setText("");
+                tmpStateColor = this.darkMode
                         ? AppConstants.COLOR_TEXT_SECONDARY_DARK
                         : AppConstants.COLOR_TEXT_SECONDARY;
             }
         }
-        stateLabel.setTextFill(Color.web(tmpStateColor));
+        this.stateLabel.setTextFill(Color.web(tmpStateColor));
     }
 
     /**
      * Updates the start/pause button icon based on the current state.
      */
     private void updateButtonIcon() {
-        switch (currentState) {
+        switch (this.currentState) {
             case WORK, BREAK -> {
-                startPauseButton.setText(ICON_PAUSE);
-                startPauseButton.setPadding(new Insets(0));
+                this.startPauseButton.setText(ICON_PAUSE);
+                this.startPauseButton.setPadding(new Insets(0));
             }
             case IDLE, PAUSED -> {
-                startPauseButton.setText(ICON_PLAY);
-                startPauseButton.setPadding(new Insets(0, 0, 0, 2));
+                this.startPauseButton.setText(ICON_PLAY);
+                this.startPauseButton.setPadding(new Insets(0, 0, 0, 2));
             }
         }
-        updateButtonStyle();
+        this.updateButtonStyle();
     }
 
     /**
      * Applies theme-aware styling to the start/pause button.
      */
     private void updateButtonStyle() {
-        startPauseButton.setStyle(String.format("""
+        this.startPauseButton.setStyle(String.format("""
                 -fx-font-size: 12px;
                 -fx-background-radius: 50;
                 -fx-min-width: %fpx;
@@ -475,10 +446,10 @@ public final class MiniTimerView extends StackPane {
      * Handles the start/pause button click.
      */
     private void handleStartPauseClick() {
-        switch (currentState) {
-            case IDLE -> controller.startOrResume();
-            case WORK, BREAK -> controller.pause();
-            case PAUSED -> controller.resume();
+        switch (this.currentState) {
+            case IDLE -> this.controller.startOrResume();
+            case WORK, BREAK -> this.controller.pause();
+            case PAUSED -> this.controller.resume();
         }
     }
 
@@ -487,9 +458,9 @@ public final class MiniTimerView extends StackPane {
      */
     private void drawProgressRing() {
         GraphicsContext tmpGraphicsContext =
-                progressCanvas.getGraphicsContext2D();
-        double tmpWidth = progressCanvas.getWidth();
-        double tmpHeight = progressCanvas.getHeight();
+                this.progressCanvas.getGraphicsContext2D();
+        double tmpWidth = this.progressCanvas.getWidth();
+        double tmpHeight = this.progressCanvas.getHeight();
         double tmpCenterX = tmpWidth / 2;
         double tmpCenterY = tmpHeight / 2;
         double tmpRadius = (Math.min(tmpWidth, tmpHeight)
@@ -497,7 +468,7 @@ public final class MiniTimerView extends StackPane {
 
         tmpGraphicsContext.clearRect(0, 0, tmpWidth, tmpHeight);
 
-        String tmpRingBgColor = darkMode
+        String tmpRingBgColor = this.darkMode
                 ? AppConstants.COLOR_PROGRESS_RING_DARK
                 : AppConstants.COLOR_PROGRESS_RING;
         tmpGraphicsContext.setStroke(Color.web(tmpRingBgColor));
@@ -508,22 +479,22 @@ public final class MiniTimerView extends StackPane {
                 tmpRadius * 2,
                 tmpRadius * 2);
 
-        if (currentState != null
-                && currentState != TimerState.IDLE
-                && totalSeconds > 0) {
+        if (this.currentState != null
+                && this.currentState != TimerState.IDLE
+                && this.totalSeconds > 0) {
             double tmpProgress =
-                    1.0 - ((double) remainingSeconds / totalSeconds);
+                    1.0 - ((double) this.remainingSeconds / this.totalSeconds);
             double tmpSweepAngle = tmpProgress * 360;
 
             String tmpArcColor;
-            if (currentState == TimerState.BREAK) {
+            if (this.currentState == TimerState.BREAK) {
                 tmpArcColor = AppConstants.COLOR_BREAK_BACKGROUND;
             } else {
                 tmpArcColor = AppConstants.COLOR_PROGRESS_ACTIVE;
             }
 
             double tmpArcOpacity =
-                    (currentState == TimerState.PAUSED) ? 0.5 : 1.0;
+                    (this.currentState == TimerState.PAUSED) ? 0.5 : 1.0;
 
             tmpGraphicsContext.setGlobalAlpha(tmpArcOpacity);
             tmpGraphicsContext.setStroke(Color.web(tmpArcColor));
@@ -557,23 +528,23 @@ public final class MiniTimerView extends StackPane {
     /**
      * Creates the right-click context menu.
      *
-     * @return the configured context menu
+     * @return The configured context menu
      */
     private ContextMenu createContextMenu() {
         MenuItem tmpShowFullItem = new MenuItem("Show Full Window");
         tmpShowFullItem.setOnAction(event -> {
-            if (onShowFullWindow != null) {
-                onShowFullWindow.run();
+            if (this.onShowFullWindow != null) {
+                this.onShowFullWindow.run();
             }
         });
 
         MenuItem tmpResetItem = new MenuItem("Reset Timer");
-        tmpResetItem.setOnAction(event -> controller.reset());
+        tmpResetItem.setOnAction(event -> this.controller.reset());
 
         MenuItem tmpCloseItem = new MenuItem("Close Mini Mode");
         tmpCloseItem.setOnAction(event -> {
-            if (onCloseMiniMode != null) {
-                onCloseMiniMode.run();
+            if (this.onCloseMiniMode != null) {
+                this.onCloseMiniMode.run();
             }
         });
 
@@ -587,12 +558,10 @@ public final class MiniTimerView extends StackPane {
     /**
      * Creates the expand button to restore the full application window.
      *
-     * <p>
-     * Uses a "full screen" / expand icon so users have a visible way to
-     * return to the main window without needing the right-click context menu.
-     * </p>
+     * <p>Uses a full-screen expand icon so users have a visible way to
+     * return to the main window without needing the right-click context menu.</p>
      *
-     * @return the configured expand button
+     * @return The configured expand button
      */
     private Button createExpandButton() {
         SVGPath tmpExpandIcon = new SVGPath();
@@ -600,19 +569,19 @@ public final class MiniTimerView extends StackPane {
                 "M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12"
                 + " 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z");
 
-        String tmpIconColor = darkMode
+        String tmpIconColor = this.darkMode
                 ? AppConstants.COLOR_TEXT_SECONDARY_DARK
                 : AppConstants.COLOR_ACCENT;
-        String tmpIconHoverColor = darkMode
+        String tmpIconHoverColor = this.darkMode
                 ? AppConstants.COLOR_TEXT_PRIMARY_DARK
                 : AppConstants.COLOR_PROGRESS_ACTIVE;
-        String tmpHoverBg = darkMode
+        String tmpHoverBg = this.darkMode
                 ? "rgba(255, 255, 255, 0.08)"
                 : "rgba(160, 82, 45, 0.12)";
-        String tmpTooltipBg = darkMode
+        String tmpTooltipBg = this.darkMode
                 ? AppConstants.COLOR_CARD_BACKGROUND_DARK
                 : AppConstants.COLOR_CARD_BACKGROUND;
-        String tmpTooltipText = darkMode
+        String tmpTooltipText = this.darkMode
                 ? AppConstants.COLOR_TEXT_PRIMARY_DARK
                 : AppConstants.COLOR_TEXT_PRIMARY;
 
@@ -648,8 +617,8 @@ public final class MiniTimerView extends StackPane {
         });
 
         tmpButton.setOnAction(event -> {
-            if (onShowFullWindow != null) {
-                onShowFullWindow.run();
+            if (this.onShowFullWindow != null) {
+                this.onShowFullWindow.run();
             }
         });
 
@@ -673,30 +642,28 @@ public final class MiniTimerView extends StackPane {
     /**
      * Creates the minimize button for the mini window.
      *
-     * <p>
-     * Uses a horizontal line icon matching the main window's minimize button
-     * style, with theme-aware colors.
-     * </p>
+     * <p>Uses a horizontal line icon matching the main window's minimize button
+     * style, with theme-aware colors.</p>
      *
-     * @return the configured minimize button
+     * @return The configured minimize button
      */
     private Button createMinimizeButton() {
         SVGPath tmpMinimizeIcon = new SVGPath();
         tmpMinimizeIcon.setContent("M4 12h16");
 
-        String tmpIconColor = darkMode
+        String tmpIconColor = this.darkMode
                 ? AppConstants.COLOR_TEXT_SECONDARY_DARK
                 : AppConstants.COLOR_ACCENT;
-        String tmpIconHoverColor = darkMode
+        String tmpIconHoverColor = this.darkMode
                 ? AppConstants.COLOR_TEXT_PRIMARY_DARK
                 : AppConstants.COLOR_PROGRESS_ACTIVE;
-        String tmpHoverBg = darkMode
+        String tmpHoverBg = this.darkMode
                 ? "rgba(255, 255, 255, 0.08)"
                 : "rgba(160, 82, 45, 0.12)";
-        String tmpTooltipBg = darkMode
+        String tmpTooltipBg = this.darkMode
                 ? AppConstants.COLOR_CARD_BACKGROUND_DARK
                 : AppConstants.COLOR_CARD_BACKGROUND;
-        String tmpTooltipText = darkMode
+        String tmpTooltipText = this.darkMode
                 ? AppConstants.COLOR_TEXT_PRIMARY_DARK
                 : AppConstants.COLOR_TEXT_PRIMARY;
 
@@ -734,8 +701,8 @@ public final class MiniTimerView extends StackPane {
         });
 
         tmpButton.setOnAction(event -> {
-            if (onMinimize != null) {
-                onMinimize.run();
+            if (this.onMinimize != null) {
+                this.onMinimize.run();
             }
         });
 
