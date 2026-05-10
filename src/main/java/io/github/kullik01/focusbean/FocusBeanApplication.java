@@ -39,10 +39,12 @@ import io.github.kullik01.focusbean.service.TimerService;
 import io.github.kullik01.focusbean.util.AppConstants;
 import io.github.kullik01.focusbean.view.CustomTitleBar;
 import io.github.kullik01.focusbean.view.MainView;
+import io.github.kullik01.focusbean.view.MiniTimerView;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
@@ -65,6 +67,10 @@ public final class FocusBeanApplication extends Application {
 
     private TimerController controller;
     private PersistenceService persistenceService;
+    private Stage primaryStage;
+    private Stage miniStage;
+    private MainView mainView;
+    private MiniTimerView miniTimerView;
 
     /**
      * Application entry point called by JavaFX runtime.
@@ -88,7 +94,8 @@ public final class FocusBeanApplication extends Application {
      *
      * @param primaryStage the primary stage to configure
      */
-    private void initializeApplication(Stage primaryStage) {
+    private void initializeApplication(Stage stage) {
+        this.primaryStage = stage;
         // Set AppUserModelID for Windows notifications
         if (System.getProperty("os.name").toLowerCase().contains("win")) {
             try {
@@ -124,7 +131,7 @@ public final class FocusBeanApplication extends Application {
                 history);
 
         // Initialize view
-        MainView mainView = new MainView(controller);
+        mainView = new MainView(controller);
 
         // Create custom title bar for undecorated window
         CustomTitleBar titleBar = new CustomTitleBar(primaryStage);
@@ -212,6 +219,135 @@ public final class FocusBeanApplication extends Application {
 
         primaryStage.show();
         LOGGER.info("Application window displayed");
+
+        // Wire mini mode callbacks from MainView
+        mainView.setOnMiniModeRequested(this::showMiniMode);
+    }
+
+    /**
+     * Shows the mini floating timer and hides the main window.
+     *
+     * <p>
+     * The mini stage is a compact always-on-top window showing only the
+     * circular timer, time display, and a start/pause button. It shares
+     * the same {@link TimerController} as the main window.
+     * </p>
+     */
+    private void showMiniMode() {
+        if (miniStage != null && miniStage.isShowing()) {
+            LOGGER.fine("Mini mode already showing");
+            return;
+        }
+
+        // Capture position of main window for mini window placement
+        double mainX = primaryStage.getX();
+        double mainY = primaryStage.getY();
+
+        // Hide main window
+        primaryStage.hide();
+
+        // Create mini timer view
+        boolean isDark = controller.getSettings().isDarkModeEnabled();
+        miniTimerView = new MiniTimerView(controller, isDark);
+
+        // Wire callbacks
+        miniTimerView.setOnShowFullWindow(this::hideMiniMode);
+        miniTimerView.setOnCloseMiniMode(this::hideMiniMode);
+        miniTimerView.setOnMinimize(() -> {
+            if (miniStage != null) {
+                miniStage.setIconified(true);
+            }
+        });
+
+        // Clip content to rounded corners (bound to container size for precision)
+        javafx.scene.shape.Rectangle clip = new javafx.scene.shape.Rectangle();
+        clip.setArcWidth(40);
+        clip.setArcHeight(40);
+        clip.widthProperty().bind(miniTimerView.widthProperty());
+        clip.heightProperty().bind(miniTimerView.heightProperty());
+        miniTimerView.setClip(clip);
+
+        // Create a dedicated border overlay that won't be clipped
+        String borderColor = isDark ? AppConstants.COLOR_CARD_BORDER_DARK : AppConstants.COLOR_CARD_BORDER;
+        Region miniBorderOverlay = new Region();
+        miniBorderOverlay.setMouseTransparent(true);
+        miniBorderOverlay.setStyle(String.format("""
+                -fx-background-color: transparent;
+                -fx-border-color: %s;
+                -fx-border-width: 1;
+                -fx-border-radius: 20;
+                """, borderColor));
+
+        // Create outer wrapper with content and border overlay
+        StackPane miniRoot = new StackPane(miniTimerView, miniBorderOverlay);
+        miniRoot.setStyle("-fx-background-color: transparent;");
+
+        Scene miniScene = new Scene(miniRoot);
+        miniScene.setFill(javafx.scene.paint.Color.TRANSPARENT);
+
+        // Keyboard shortcuts in mini mode
+        miniScene.setOnKeyPressed(miniTimerView::handleKeyPress);
+
+        miniStage = new Stage();
+        miniStage.initStyle(StageStyle.TRANSPARENT);
+        miniStage.setTitle(AppConstants.APP_NAME + " - Mini");
+        miniStage.setScene(miniScene);
+        miniStage.setResizable(false);
+        miniStage.setAlwaysOnTop(true);
+
+        // Position near where the main window was
+        miniStage.setX(mainX + 50);
+        miniStage.setY(mainY + 50);
+
+        // Load application icon
+        try {
+            String logoPath = "/io/github/kullik01/focusbean/view/logo.png";
+            if (getClass().getResource(logoPath) != null) {
+                miniStage.getIcons().add(new Image(getClass().getResourceAsStream(logoPath)));
+            } else if (getClass().getResource("/logo.png") != null) {
+                miniStage.getIcons().add(new Image(getClass().getResourceAsStream("/logo.png")));
+            }
+        } catch (Exception e) {
+            LOGGER.log(Level.WARNING, "Failed to load mini window icon", e);
+        }
+
+        // Enable dragging on the mini window
+        final double[] dragOffset = new double[2];
+        miniRoot.setOnMousePressed(event -> {
+            if (event.getButton() == javafx.scene.input.MouseButton.PRIMARY) {
+                dragOffset[0] = event.getSceneX();
+                dragOffset[1] = event.getSceneY();
+            }
+        });
+        miniRoot.setOnMouseDragged(event -> {
+            if (event.getButton() == javafx.scene.input.MouseButton.PRIMARY) {
+                miniStage.setX(event.getScreenX() - dragOffset[0]);
+                miniStage.setY(event.getScreenY() - dragOffset[1]);
+            }
+        });
+
+        // When mini stage is closed externally, restore main window
+        miniStage.setOnCloseRequest(event -> {
+            event.consume();
+            hideMiniMode();
+        });
+
+        miniStage.show();
+        LOGGER.info("Mini mode activated");
+    }
+
+    /**
+     * Hides the mini timer and restores the main application window.
+     */
+    private void hideMiniMode() {
+        if (miniStage != null) {
+            miniStage.close();
+            miniStage = null;
+            miniTimerView = null;
+        }
+
+        primaryStage.show();
+        LOGGER.info("Full window restored from mini mode");
     }
 
     /**
@@ -224,6 +360,12 @@ public final class FocusBeanApplication extends Application {
     @Override
     public void stop() {
         LOGGER.info("Shutting down Focus Bean application");
+
+        // Close mini stage if open
+        if (miniStage != null) {
+            miniStage.close();
+            miniStage = null;
+        }
 
         if (controller != null) {
             controller.shutdown();

@@ -89,6 +89,8 @@ public final class MainView extends BorderPane {
     private Label focusHeaderLabel;
 
     private Region windowBorderOverlay;
+
+    private Runnable onMiniModeRequested;
     
     // Celebration components
     private javafx.scene.canvas.Canvas celebrationCanvas;
@@ -403,7 +405,7 @@ public final class MainView extends BorderPane {
         HBox headerBar = new HBox();
         headerBar.setAlignment(Pos.CENTER_LEFT);
         headerBar.setPadding(new Insets(15, 15, 0, 15));
-        headerBar.getChildren().addAll(focusHeaderLabel, spacer, settingsButton);
+        headerBar.getChildren().addAll(focusHeaderLabel, spacer, createMiniModeButton(), settingsButton);
 
         // Timer content - includes timer display and controls within the card
         VBox timerContent = new VBox(0);
@@ -512,6 +514,65 @@ public final class MainView extends BorderPane {
         settingsButton.setOnAction(e -> tabPane.getSelectionModel().select(2));
 
         return settingsButton;
+    }
+
+    /**
+     * Creates a styled mini mode button that shrinks the app into a compact floating widget.
+     * The button uses a "picture-in-picture" / collapse icon.
+     *
+     * @return the configured mini mode button
+     */
+    private Button createMiniModeButton() {
+        // PiP / mini-mode icon (two overlapping rectangles)
+        javafx.scene.shape.SVGPath icon = new javafx.scene.shape.SVGPath();
+        icon.setContent("M19 11h-8v6h8v-6zm4 8V4.98C23 3.88 22.1 3 21 3H3c-1.1 0-2 .88-2 1.98V19c0 "
+                + "1.1.9 2 2 2h18c1.1 0 2-.9 2-2zm-2 .02H3V4.97h18v14.05z");
+        icon.setFill(javafx.scene.paint.Color.web(AppConstants.COLOR_ACCENT));
+        icon.setScaleX(0.65);
+        icon.setScaleY(0.65);
+
+        Button miniButton = new Button();
+        miniButton.setGraphic(icon);
+        miniButton.setStyle("""
+                -fx-background-color: transparent;
+                -fx-cursor: hand;
+                -fx-padding: 2 6 2 6;
+                """);
+
+        // Tooltip
+        javafx.scene.control.Tooltip tooltip = new javafx.scene.control.Tooltip("Mini Mode (M)");
+        tooltip.setShowDelay(new javafx.util.Duration(0));
+        tooltip.setStyle(String.format("""
+                -fx-font-family: 'Segoe UI', sans-serif;
+                -fx-font-size: 12px;
+                -fx-background-color: %s;
+                -fx-text-fill: %s;
+                -fx-background-radius: 6;
+                -fx-padding: 6 10 6 10;
+                -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 4, 0, 0, 1);
+                """, AppConstants.COLOR_CARD_BACKGROUND, AppConstants.COLOR_TEXT_PRIMARY));
+        miniButton.setTooltip(tooltip);
+
+        miniButton.setOnMouseEntered(e -> miniButton.setStyle("""
+                -fx-background-color: rgba(160, 82, 45, 0.10);
+                -fx-background-radius: 6;
+                -fx-cursor: hand;
+                -fx-padding: 2 6 2 6;
+                """));
+
+        miniButton.setOnMouseExited(e -> miniButton.setStyle("""
+                -fx-background-color: transparent;
+                -fx-cursor: hand;
+                -fx-padding: 2 6 2 6;
+                """));
+
+        miniButton.setOnAction(e -> {
+            if (onMiniModeRequested != null) {
+                onMiniModeRequested.run();
+            }
+        });
+
+        return miniButton;
     }
 
     /**
@@ -681,6 +742,12 @@ public final class MainView extends BorderPane {
                 tabPane.getSelectionModel().select(1);
             } else {
                 tabPane.getSelectionModel().select(0);
+            }
+            event.consume();
+        } else if (event.getCode() == KeyCode.M && !event.isControlDown()) {
+            // Switch to mini mode
+            if (onMiniModeRequested != null) {
+                onMiniModeRequested.run();
             }
             event.consume();
         }
@@ -864,5 +931,14 @@ public final class MainView extends BorderPane {
      */
     public TabPane getTabPane() {
         return tabPane;
+    }
+
+    /**
+     * Sets the callback for when mini mode is requested.
+     *
+     * @param handler the callback to invoke
+     */
+    public void setOnMiniModeRequested(Runnable handler) {
+        this.onMiniModeRequested = handler;
     }
 }
