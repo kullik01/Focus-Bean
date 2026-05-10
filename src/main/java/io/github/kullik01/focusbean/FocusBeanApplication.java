@@ -92,7 +92,7 @@ public final class FocusBeanApplication extends Application {
     /**
      * Initializes all application components and displays the main window.
      *
-     * @param primaryStage the primary stage to configure
+     * @param stage the primary stage to configure
      */
     private void initializeApplication(Stage stage) {
         this.primaryStage = stage;

@@ -89,6 +89,10 @@ public final class MainView extends BorderPane {
     private Label focusHeaderLabel;
 
     private Region windowBorderOverlay;
+    private boolean darkMode;
+
+    private Button settingsButton;
+    private Button miniModeButton;
 
     private Runnable onMiniModeRequested;
     
@@ -363,6 +367,47 @@ public final class MainView extends BorderPane {
         if (historyView != null) {
             historyView.applyTheme(darkMode);
         }
+
+        this.darkMode = darkMode;
+        this.updateButtonThemes();
+    }
+
+    /**
+     * Updates tooltip and hover styles on the settings and mini-mode buttons
+     * to match the current theme.
+     */
+    private void updateButtonThemes() {
+        String tmpTooltipBg = this.darkMode
+                ? AppConstants.COLOR_CARD_BACKGROUND_DARK
+                : AppConstants.COLOR_CARD_BACKGROUND;
+        String tmpTooltipText = this.darkMode
+                ? AppConstants.COLOR_TEXT_PRIMARY_DARK
+                : AppConstants.COLOR_TEXT_PRIMARY;
+        String tmpTooltipStyle = String.format("""
+                -fx-font-family: 'Segoe UI', sans-serif;
+                -fx-font-size: 12px;
+                -fx-background-color: %s;
+                -fx-text-fill: %s;
+                -fx-background-radius: 6;
+                -fx-padding: 6 10 6 10;
+                -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 4, 0, 0, 1);
+                """, tmpTooltipBg, tmpTooltipText);
+
+        if (this.settingsButton != null) {
+            javafx.scene.control.Tooltip tmpSettingsTooltip =
+                    new javafx.scene.control.Tooltip("Open Settings");
+            tmpSettingsTooltip.setShowDelay(new javafx.util.Duration(0));
+            tmpSettingsTooltip.setStyle(tmpTooltipStyle);
+            this.settingsButton.setTooltip(tmpSettingsTooltip);
+        }
+
+        if (this.miniModeButton != null) {
+            javafx.scene.control.Tooltip tmpMiniTooltip =
+                    new javafx.scene.control.Tooltip("Mini Mode (M)");
+            tmpMiniTooltip.setShowDelay(new javafx.util.Duration(0));
+            tmpMiniTooltip.setStyle(tmpTooltipStyle);
+            this.miniModeButton.setTooltip(tmpMiniTooltip);
+        }
     }
 
     /**
@@ -472,48 +517,37 @@ public final class MainView extends BorderPane {
         icon.setScaleX(0.7);
         icon.setScaleY(0.7);
 
-        Button settingsButton = new Button();
-        settingsButton.setGraphic(icon);
-        settingsButton.setStyle("""
+        this.settingsButton = new Button();
+        this.settingsButton.setGraphic(icon);
+        this.settingsButton.setStyle("""
                 -fx-background-color: transparent;
                 -fx-cursor: hand;
                 -fx-padding: 2 6 2 6;
                 """);
 
-        // Add tooltip with warm colors matching the GUI design
-        javafx.scene.control.Tooltip tooltip = new javafx.scene.control.Tooltip("Open Settings");
-        tooltip.setShowDelay(new javafx.util.Duration(0));
-        tooltip.setStyle(String.format("""
-                -fx-font-family: 'Segoe UI', sans-serif;
-                -fx-font-size: 12px;
-                -fx-background-color: %s;
-                -fx-text-fill: %s;
-                -fx-background-radius: 6;
-                -fx-padding: 6 10 6 10;
-                -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 4, 0, 0, 1);
-                """, AppConstants.COLOR_CARD_BACKGROUND, AppConstants.COLOR_TEXT_PRIMARY));
-        settingsButton.setTooltip(tooltip);
-
-        settingsButton.setOnMouseEntered(e -> {
-            settingsButton.setStyle("""
-                    -fx-background-color: rgba(160, 82, 45, 0.10);
+        this.settingsButton.setOnMouseEntered(e -> {
+            String tmpHoverBg = this.darkMode
+                    ? "rgba(255, 255, 255, 0.08)"
+                    : "rgba(160, 82, 45, 0.10)";
+            this.settingsButton.setStyle(String.format("""
+                    -fx-background-color: %s;
                     -fx-background-radius: 6;
                     -fx-cursor: hand;
                     -fx-padding: 2 6 2 6;
-                    """);
+                    """, tmpHoverBg));
         });
 
-        settingsButton.setOnMouseExited(e -> {
-            settingsButton.setStyle("""
+        this.settingsButton.setOnMouseExited(e -> {
+            this.settingsButton.setStyle("""
                     -fx-background-color: transparent;
                     -fx-cursor: hand;
                     -fx-padding: 2 6 2 6;
                     """);
         });
 
-        settingsButton.setOnAction(e -> tabPane.getSelectionModel().select(2));
+        this.settingsButton.setOnAction(e -> tabPane.getSelectionModel().select(2));
 
-        return settingsButton;
+        return this.settingsButton;
     }
 
     /**
@@ -531,47 +565,39 @@ public final class MainView extends BorderPane {
         tmpIcon.setScaleX(0.65);
         tmpIcon.setScaleY(0.65);
 
-        Button tmpMiniButton = new Button();
-        tmpMiniButton.setGraphic(tmpIcon);
-        tmpMiniButton.setStyle("""
+        this.miniModeButton = new Button();
+        this.miniModeButton.setGraphic(tmpIcon);
+        this.miniModeButton.setStyle("""
                 -fx-background-color: transparent;
                 -fx-cursor: hand;
                 -fx-padding: 2 6 2 6;
                 """);
 
-        javafx.scene.control.Tooltip tmpTooltip = new javafx.scene.control.Tooltip("Mini Mode (M)");
-        tmpTooltip.setShowDelay(new javafx.util.Duration(0));
-        tmpTooltip.setStyle(String.format("""
-                -fx-font-family: 'Segoe UI', sans-serif;
-                -fx-font-size: 12px;
-                -fx-background-color: %s;
-                -fx-text-fill: %s;
-                -fx-background-radius: 6;
-                -fx-padding: 6 10 6 10;
-                -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 4, 0, 0, 1);
-                """, AppConstants.COLOR_CARD_BACKGROUND, AppConstants.COLOR_TEXT_PRIMARY));
-        tmpMiniButton.setTooltip(tmpTooltip);
+        this.miniModeButton.setOnMouseEntered(event -> {
+            String tmpHoverBg = this.darkMode
+                    ? "rgba(255, 255, 255, 0.08)"
+                    : "rgba(160, 82, 45, 0.10)";
+            this.miniModeButton.setStyle(String.format("""
+                    -fx-background-color: %s;
+                    -fx-background-radius: 6;
+                    -fx-cursor: hand;
+                    -fx-padding: 2 6 2 6;
+                    """, tmpHoverBg));
+        });
 
-        tmpMiniButton.setOnMouseEntered(event -> tmpMiniButton.setStyle("""
-                -fx-background-color: rgba(160, 82, 45, 0.10);
-                -fx-background-radius: 6;
-                -fx-cursor: hand;
-                -fx-padding: 2 6 2 6;
-                """));
-
-        tmpMiniButton.setOnMouseExited(event -> tmpMiniButton.setStyle("""
+        this.miniModeButton.setOnMouseExited(event -> this.miniModeButton.setStyle("""
                 -fx-background-color: transparent;
                 -fx-cursor: hand;
                 -fx-padding: 2 6 2 6;
                 """));
 
-        tmpMiniButton.setOnAction(event -> {
+        this.miniModeButton.setOnAction(event -> {
             if (this.onMiniModeRequested != null) {
                 this.onMiniModeRequested.run();
             }
         });
 
-        return tmpMiniButton;
+        return this.miniModeButton;
     }
 
     /**
