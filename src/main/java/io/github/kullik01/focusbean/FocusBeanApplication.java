@@ -239,18 +239,14 @@ public final class FocusBeanApplication extends Application {
             return;
         }
 
-        // Capture position of main window for mini window placement
-        double mainX = primaryStage.getX();
-        double mainY = primaryStage.getY();
+        double tmpMainX = primaryStage.getX();
+        double tmpMainY = primaryStage.getY();
 
-        // Hide main window
         primaryStage.hide();
 
-        // Create mini timer view
-        boolean isDark = controller.getSettings().isDarkModeEnabled();
-        miniTimerView = new MiniTimerView(controller, isDark);
+        boolean tmpIsDark = controller.getSettings().isDarkModeEnabled();
+        miniTimerView = new MiniTimerView(controller, tmpIsDark);
 
-        // Wire callbacks
         miniTimerView.setOnShowFullWindow(this::hideMiniMode);
         miniTimerView.setOnCloseMiniMode(this::hideMiniMode);
         miniTimerView.setOnMinimize(() -> {
@@ -259,74 +255,78 @@ public final class FocusBeanApplication extends Application {
             }
         });
 
-        // Clip content to rounded corners (bound to container size for precision)
-        javafx.scene.shape.Rectangle clip = new javafx.scene.shape.Rectangle();
-        clip.setArcWidth(40);
-        clip.setArcHeight(40);
-        clip.widthProperty().bind(miniTimerView.widthProperty());
-        clip.heightProperty().bind(miniTimerView.heightProperty());
-        miniTimerView.setClip(clip);
+        javafx.scene.shape.Rectangle tmpClip =
+                new javafx.scene.shape.Rectangle();
+        tmpClip.setArcWidth(40);
+        tmpClip.setArcHeight(40);
+        tmpClip.widthProperty().bind(miniTimerView.widthProperty());
+        tmpClip.heightProperty().bind(miniTimerView.heightProperty());
+        miniTimerView.setClip(tmpClip);
 
-        // Create a dedicated border overlay that won't be clipped
-        String borderColor = isDark ? AppConstants.COLOR_CARD_BORDER_DARK : AppConstants.COLOR_CARD_BORDER;
-        Region miniBorderOverlay = new Region();
-        miniBorderOverlay.setMouseTransparent(true);
-        miniBorderOverlay.setStyle(String.format("""
+        String tmpBorderColor = tmpIsDark
+                ? AppConstants.COLOR_CARD_BORDER_DARK
+                : AppConstants.COLOR_CARD_BORDER;
+        Region tmpMiniBorderOverlay = new Region();
+        tmpMiniBorderOverlay.setMouseTransparent(true);
+        tmpMiniBorderOverlay.setStyle(String.format("""
                 -fx-background-color: transparent;
                 -fx-border-color: %s;
                 -fx-border-width: 1;
                 -fx-border-radius: 20;
-                """, borderColor));
+                """, tmpBorderColor));
 
-        // Create outer wrapper with content and border overlay
-        StackPane miniRoot = new StackPane(miniTimerView, miniBorderOverlay);
-        miniRoot.setStyle("-fx-background-color: transparent;");
+        StackPane tmpMiniRoot =
+                new StackPane(miniTimerView, tmpMiniBorderOverlay);
+        tmpMiniRoot.setStyle("-fx-background-color: transparent;");
 
-        Scene miniScene = new Scene(miniRoot);
-        miniScene.setFill(javafx.scene.paint.Color.TRANSPARENT);
+        Scene tmpMiniScene = new Scene(tmpMiniRoot);
+        tmpMiniScene.setFill(javafx.scene.paint.Color.TRANSPARENT);
 
-        // Keyboard shortcuts in mini mode
-        miniScene.setOnKeyPressed(miniTimerView::handleKeyPress);
+        tmpMiniScene.setOnKeyPressed(miniTimerView::handleKeyPress);
 
         miniStage = new Stage();
         miniStage.initStyle(StageStyle.TRANSPARENT);
         miniStage.setTitle(AppConstants.APP_NAME + " - Mini");
-        miniStage.setScene(miniScene);
+        miniStage.setScene(tmpMiniScene);
         miniStage.setResizable(false);
         miniStage.setAlwaysOnTop(true);
 
-        // Position near where the main window was
-        miniStage.setX(mainX + 50);
-        miniStage.setY(mainY + 50);
+        miniStage.setX(tmpMainX + 50);
+        miniStage.setY(tmpMainY + 50);
 
-        // Load application icon
         try {
-            String logoPath = "/io/github/kullik01/focusbean/view/logo.png";
-            if (getClass().getResource(logoPath) != null) {
-                miniStage.getIcons().add(new Image(getClass().getResourceAsStream(logoPath)));
+            String tmpLogoPath =
+                    "/io/github/kullik01/focusbean/view/logo.png";
+            if (getClass().getResource(tmpLogoPath) != null) {
+                miniStage.getIcons().add(new Image(
+                        getClass().getResourceAsStream(tmpLogoPath)));
             } else if (getClass().getResource("/logo.png") != null) {
-                miniStage.getIcons().add(new Image(getClass().getResourceAsStream("/logo.png")));
+                miniStage.getIcons().add(new Image(
+                        getClass().getResourceAsStream("/logo.png")));
             }
-        } catch (Exception e) {
-            LOGGER.log(Level.WARNING, "Failed to load mini window icon", e);
+        } catch (Exception exception) {
+            LOGGER.log(Level.WARNING,
+                    "Failed to load mini window icon", exception);
         }
 
-        // Enable dragging on the mini window
-        final double[] dragOffset = new double[2];
-        miniRoot.setOnMousePressed(event -> {
-            if (event.getButton() == javafx.scene.input.MouseButton.PRIMARY) {
-                dragOffset[0] = event.getSceneX();
-                dragOffset[1] = event.getSceneY();
+        final double[] tmpDragOffset = new double[2];
+        tmpMiniRoot.setOnMousePressed(event -> {
+            if (event.getButton()
+                    == javafx.scene.input.MouseButton.PRIMARY) {
+                tmpDragOffset[0] = event.getSceneX();
+                tmpDragOffset[1] = event.getSceneY();
             }
         });
-        miniRoot.setOnMouseDragged(event -> {
-            if (event.getButton() == javafx.scene.input.MouseButton.PRIMARY) {
-                miniStage.setX(event.getScreenX() - dragOffset[0]);
-                miniStage.setY(event.getScreenY() - dragOffset[1]);
+        tmpMiniRoot.setOnMouseDragged(event -> {
+            if (event.getButton()
+                    == javafx.scene.input.MouseButton.PRIMARY) {
+                miniStage.setX(
+                        event.getScreenX() - tmpDragOffset[0]);
+                miniStage.setY(
+                        event.getScreenY() - tmpDragOffset[1]);
             }
         });
 
-        // When mini stage is closed externally, restore main window
         miniStage.setOnCloseRequest(event -> {
             event.consume();
             hideMiniMode();

@@ -38,11 +38,15 @@ import javafx.geometry.Pos;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
+import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.Tooltip;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
+import javafx.util.Duration;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -143,41 +147,40 @@ public final class MiniTimerView extends StackPane {
         stateLabel.setFont(Font.font(FONT_FAMILY, FontWeight.NORMAL, 10));
 
         // Center content over the ring
-        VBox centerContent = new VBox(0);
-        centerContent.setAlignment(Pos.CENTER);
-        centerContent.setMouseTransparent(true);
-        centerContent.getChildren().addAll(stateLabel, timeLabel, unitLabel);
+        VBox tmpCenterContent = new VBox(0);
+        tmpCenterContent.setAlignment(Pos.CENTER);
+        tmpCenterContent.setMouseTransparent(true);
+        tmpCenterContent.getChildren().addAll(stateLabel, timeLabel, unitLabel);
 
-        // Start/Pause button
         startPauseButton = new Button(ICON_PLAY);
         startPauseButton.setFont(Font.font(12));
         startPauseButton.setAlignment(Pos.CENTER);
-        startPauseButton.setContentDisplay(javafx.scene.control.ContentDisplay.CENTER);
-        startPauseButton.setOnAction(e -> handleStartPauseClick());
+        startPauseButton.setContentDisplay(ContentDisplay.CENTER);
+        startPauseButton.setOnAction(event -> handleStartPauseClick());
 
         // Stack the ring, center text, and position button at bottom
-        StackPane ringStack = new StackPane(progressCanvas, centerContent);
-        ringStack.setAlignment(Pos.CENTER);
+        StackPane tmpRingStack = new StackPane(progressCanvas, tmpCenterContent);
+        tmpRingStack.setAlignment(Pos.CENTER);
 
-        // Expand button (restore full window) - small icon at top-right
-        Button expandButton = createExpandButton();
+        Button tmpExpandButton = createExpandButton();
 
-        // Top bar with minimize and expand buttons pushed to the right
-        HBox topBar = new HBox(2);
-        topBar.setAlignment(Pos.CENTER_RIGHT);
-        topBar.setPadding(new Insets(4, 4, 0, 4));
-        Region topSpacer = new Region();
-        HBox.setHgrow(topSpacer, Priority.ALWAYS);
-        topBar.getChildren().addAll(topSpacer, createMinimizeButton(), expandButton);
+        HBox tmpTopBar = new HBox(2);
+        tmpTopBar.setAlignment(Pos.CENTER_RIGHT);
+        tmpTopBar.setPadding(new Insets(4, 4, 0, 4));
+        Region tmpTopSpacer = new Region();
+        HBox.setHgrow(tmpTopSpacer, Priority.ALWAYS);
+        tmpTopBar.getChildren().addAll(
+                tmpTopSpacer, createMinimizeButton(), tmpExpandButton);
 
-        VBox layout = new VBox(2);
-        layout.setAlignment(Pos.CENTER);
-        layout.setPadding(new Insets(0, 10, 10, 10));
-        layout.getChildren().addAll(topBar, ringStack, startPauseButton);
+        VBox tmpLayout = new VBox(2);
+        tmpLayout.setAlignment(Pos.CENTER);
+        tmpLayout.setPadding(new Insets(0, 10, 10, 10));
+        tmpLayout.getChildren().addAll(
+                tmpTopBar, tmpRingStack, startPauseButton);
 
         setAlignment(Pos.CENTER);
         setPrefSize(VIEW_SIZE, VIEW_SIZE + 30);
-        getChildren().add(layout);
+        getChildren().add(tmpLayout);
 
         // Context menu
         contextMenu = createContextMenu();
@@ -238,24 +241,24 @@ public final class MiniTimerView extends StackPane {
     public void applyTheme(boolean darkMode) {
         this.darkMode = darkMode;
 
-        String bgColor = darkMode
+        String tmpBgColor = darkMode
                 ? AppConstants.COLOR_WINDOW_BACKGROUND_DARK
                 : AppConstants.COLOR_WINDOW_BACKGROUND;
 
         setStyle(String.format("""
                 -fx-background-color: %s;
                 -fx-background-radius: 20;
-                """, bgColor));
+                """, tmpBgColor));
 
-        String textPrimary = darkMode
+        String tmpTextPrimary = darkMode
                 ? AppConstants.COLOR_TEXT_PRIMARY_DARK
                 : AppConstants.COLOR_TEXT_PRIMARY;
-        String textSecondary = darkMode
+        String tmpTextSecondary = darkMode
                 ? AppConstants.COLOR_TEXT_SECONDARY_DARK
                 : AppConstants.COLOR_TEXT_SECONDARY;
 
-        timeLabel.setTextFill(Color.web(textPrimary));
-        unitLabel.setTextFill(Color.web(textSecondary));
+        timeLabel.setTextFill(Color.web(tmpTextPrimary));
+        unitLabel.setTextFill(Color.web(tmpTextSecondary));
 
         updateButtonStyle();
         updateStateLabel();
@@ -267,7 +270,7 @@ public final class MiniTimerView extends StackPane {
      *
      * @param event the key event
      */
-    public void handleKeyPress(javafx.scene.input.KeyEvent event) {
+    public void handleKeyPress(KeyEvent event) {
         switch (event.getCode()) {
             case SPACE -> {
                 handleStartPauseClick();
@@ -372,8 +375,8 @@ public final class MiniTimerView extends StackPane {
      */
     private void updateTimeDisplay() {
         if (remainingSeconds >= 60) {
-            int displayMinutes = (remainingSeconds + 59) / 60;
-            timeLabel.setText(String.valueOf(displayMinutes));
+            int tmpDisplayMinutes = (remainingSeconds + 59) / 60;
+            timeLabel.setText(String.valueOf(tmpDisplayMinutes));
             unitLabel.setText("min");
         } else if (remainingSeconds >= 10) {
             timeLabel.setText(String.format("%02d", remainingSeconds));
@@ -393,21 +396,21 @@ public final class MiniTimerView extends StackPane {
             return;
         }
 
-        String stateColor;
+        String tmpStateColor;
         switch (currentState) {
             case WORK -> {
                 stateLabel.setText("Focus");
-                stateColor = AppConstants.COLOR_ACCENT;
+                tmpStateColor = AppConstants.COLOR_ACCENT;
             }
             case BREAK -> {
                 stateLabel.setText("Break");
-                stateColor = darkMode
+                tmpStateColor = darkMode
                         ? AppConstants.COLOR_TEXT_SECONDARY_DARK
                         : AppConstants.COLOR_TEXT_SECONDARY;
             }
             case PAUSED -> {
                 stateLabel.setText("Paused");
-                stateColor = darkMode
+                tmpStateColor = darkMode
                         ? AppConstants.COLOR_TEXT_SECONDARY_DARK
                         : AppConstants.COLOR_TEXT_SECONDARY;
             }
@@ -417,18 +420,18 @@ public final class MiniTimerView extends StackPane {
                 } else {
                     stateLabel.setText("Focus");
                 }
-                stateColor = darkMode
+                tmpStateColor = darkMode
                         ? AppConstants.COLOR_TEXT_SECONDARY_DARK
                         : AppConstants.COLOR_TEXT_SECONDARY;
             }
             default -> {
                 stateLabel.setText("");
-                stateColor = darkMode
+                tmpStateColor = darkMode
                         ? AppConstants.COLOR_TEXT_SECONDARY_DARK
                         : AppConstants.COLOR_TEXT_SECONDARY;
             }
         }
-        stateLabel.setTextFill(Color.web(stateColor));
+        stateLabel.setTextFill(Color.web(tmpStateColor));
     }
 
     /**
@@ -483,64 +486,71 @@ public final class MiniTimerView extends StackPane {
      * Draws the circular progress ring on the canvas.
      */
     private void drawProgressRing() {
-        GraphicsContext gc = progressCanvas.getGraphicsContext2D();
-        double width = progressCanvas.getWidth();
-        double height = progressCanvas.getHeight();
-        double centerX = width / 2;
-        double centerY = height / 2;
-        double radius = (Math.min(width, height) - RING_STROKE_WIDTH * 2 - DOT_RADIUS * 2) / 2;
+        GraphicsContext tmpGraphicsContext =
+                progressCanvas.getGraphicsContext2D();
+        double tmpWidth = progressCanvas.getWidth();
+        double tmpHeight = progressCanvas.getHeight();
+        double tmpCenterX = tmpWidth / 2;
+        double tmpCenterY = tmpHeight / 2;
+        double tmpRadius = (Math.min(tmpWidth, tmpHeight)
+                - RING_STROKE_WIDTH * 2 - DOT_RADIUS * 2) / 2;
 
-        // Clear canvas
-        gc.clearRect(0, 0, width, height);
+        tmpGraphicsContext.clearRect(0, 0, tmpWidth, tmpHeight);
 
-        // Background ring
-        String ringBgColor = darkMode
+        String tmpRingBgColor = darkMode
                 ? AppConstants.COLOR_PROGRESS_RING_DARK
                 : AppConstants.COLOR_PROGRESS_RING;
-        gc.setStroke(Color.web(ringBgColor));
-        gc.setLineWidth(RING_STROKE_WIDTH);
-        gc.strokeOval(
-                centerX - radius,
-                centerY - radius,
-                radius * 2,
-                radius * 2);
+        tmpGraphicsContext.setStroke(Color.web(tmpRingBgColor));
+        tmpGraphicsContext.setLineWidth(RING_STROKE_WIDTH);
+        tmpGraphicsContext.strokeOval(
+                tmpCenterX - tmpRadius,
+                tmpCenterY - tmpRadius,
+                tmpRadius * 2,
+                tmpRadius * 2);
 
-        // Progress arc (only when timer is active)
-        if (currentState != null && currentState != TimerState.IDLE && totalSeconds > 0) {
-            double progress = 1.0 - ((double) remainingSeconds / totalSeconds);
-            double sweepAngle = progress * 360;
+        if (currentState != null
+                && currentState != TimerState.IDLE
+                && totalSeconds > 0) {
+            double tmpProgress =
+                    1.0 - ((double) remainingSeconds / totalSeconds);
+            double tmpSweepAngle = tmpProgress * 360;
 
-            // Determine arc color based on state
-            String arcColor;
+            String tmpArcColor;
             if (currentState == TimerState.BREAK) {
-                arcColor = AppConstants.COLOR_BREAK_BACKGROUND;
+                tmpArcColor = AppConstants.COLOR_BREAK_BACKGROUND;
             } else {
-                arcColor = AppConstants.COLOR_PROGRESS_ACTIVE;
+                tmpArcColor = AppConstants.COLOR_PROGRESS_ACTIVE;
             }
 
-            // When paused, use reduced opacity to visually distinguish
-            double arcOpacity = (currentState == TimerState.PAUSED) ? 0.5 : 1.0;
+            double tmpArcOpacity =
+                    (currentState == TimerState.PAUSED) ? 0.5 : 1.0;
 
-            gc.setGlobalAlpha(arcOpacity);
-            gc.setStroke(Color.web(arcColor));
-            gc.setLineWidth(RING_STROKE_WIDTH);
-            gc.strokeArc(
-                    centerX - radius,
-                    centerY - radius,
-                    radius * 2,
-                    radius * 2,
+            tmpGraphicsContext.setGlobalAlpha(tmpArcOpacity);
+            tmpGraphicsContext.setStroke(Color.web(tmpArcColor));
+            tmpGraphicsContext.setLineWidth(RING_STROKE_WIDTH);
+            tmpGraphicsContext.strokeArc(
+                    tmpCenterX - tmpRadius,
+                    tmpCenterY - tmpRadius,
+                    tmpRadius * 2,
+                    tmpRadius * 2,
                     90,
-                    -sweepAngle,
+                    -tmpSweepAngle,
                     ArcType.OPEN);
 
-            // Progress indicator dot
-            double angle = Math.toRadians(progress * 360 - 90);
-            double dotX = centerX + radius * Math.cos(angle);
-            double dotY = centerY + radius * Math.sin(angle);
+            double tmpAngle =
+                    Math.toRadians(tmpProgress * 360 - 90);
+            double tmpDotX =
+                    tmpCenterX + tmpRadius * Math.cos(tmpAngle);
+            double tmpDotY =
+                    tmpCenterY + tmpRadius * Math.sin(tmpAngle);
 
-            gc.setFill(Color.web(arcColor));
-            gc.fillOval(dotX - DOT_RADIUS, dotY - DOT_RADIUS, DOT_RADIUS * 2, DOT_RADIUS * 2);
-            gc.setGlobalAlpha(1.0);
+            tmpGraphicsContext.setFill(Color.web(tmpArcColor));
+            tmpGraphicsContext.fillOval(
+                    tmpDotX - DOT_RADIUS,
+                    tmpDotY - DOT_RADIUS,
+                    DOT_RADIUS * 2,
+                    DOT_RADIUS * 2);
+            tmpGraphicsContext.setGlobalAlpha(1.0);
         }
     }
 
@@ -550,26 +560,28 @@ public final class MiniTimerView extends StackPane {
      * @return the configured context menu
      */
     private ContextMenu createContextMenu() {
-        MenuItem showFullItem = new MenuItem("Show Full Window");
-        showFullItem.setOnAction(e -> {
+        MenuItem tmpShowFullItem = new MenuItem("Show Full Window");
+        tmpShowFullItem.setOnAction(event -> {
             if (onShowFullWindow != null) {
                 onShowFullWindow.run();
             }
         });
 
-        MenuItem resetItem = new MenuItem("Reset Timer");
-        resetItem.setOnAction(e -> controller.reset());
+        MenuItem tmpResetItem = new MenuItem("Reset Timer");
+        tmpResetItem.setOnAction(event -> controller.reset());
 
-        MenuItem closeItem = new MenuItem("Close Mini Mode");
-        closeItem.setOnAction(e -> {
+        MenuItem tmpCloseItem = new MenuItem("Close Mini Mode");
+        tmpCloseItem.setOnAction(event -> {
             if (onCloseMiniMode != null) {
                 onCloseMiniMode.run();
             }
         });
 
-        ContextMenu menu = new ContextMenu();
-        menu.getItems().addAll(showFullItem, resetItem, new SeparatorMenuItem(), closeItem);
-        return menu;
+        ContextMenu tmpMenu = new ContextMenu();
+        tmpMenu.getItems().addAll(
+                tmpShowFullItem, tmpResetItem,
+                new SeparatorMenuItem(), tmpCloseItem);
+        return tmpMenu;
     }
 
     /**
@@ -583,80 +595,79 @@ public final class MiniTimerView extends StackPane {
      * @return the configured expand button
      */
     private Button createExpandButton() {
-        // Expand / full-screen icon (arrows pointing outward)
-        SVGPath expandIcon = new SVGPath();
-        expandIcon.setContent(
-                "M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z");
+        SVGPath tmpExpandIcon = new SVGPath();
+        tmpExpandIcon.setContent(
+                "M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12"
+                + " 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z");
 
-        // Theme-aware icon color
-        String iconColor = darkMode
+        String tmpIconColor = darkMode
                 ? AppConstants.COLOR_TEXT_SECONDARY_DARK
                 : AppConstants.COLOR_ACCENT;
-        String iconHoverColor = darkMode
+        String tmpIconHoverColor = darkMode
                 ? AppConstants.COLOR_TEXT_PRIMARY_DARK
                 : AppConstants.COLOR_PROGRESS_ACTIVE;
-        String hoverBg = darkMode
+        String tmpHoverBg = darkMode
                 ? "rgba(255, 255, 255, 0.08)"
                 : "rgba(160, 82, 45, 0.12)";
-        String tooltipBg = darkMode
+        String tmpTooltipBg = darkMode
                 ? AppConstants.COLOR_CARD_BACKGROUND_DARK
                 : AppConstants.COLOR_CARD_BACKGROUND;
-        String tooltipText = darkMode
+        String tmpTooltipText = darkMode
                 ? AppConstants.COLOR_TEXT_PRIMARY_DARK
                 : AppConstants.COLOR_TEXT_PRIMARY;
 
-        expandIcon.setFill(Color.web(iconColor));
-        expandIcon.setScaleX(0.6);
-        expandIcon.setScaleY(0.6);
+        tmpExpandIcon.setFill(Color.web(tmpIconColor));
+        tmpExpandIcon.setScaleX(0.6);
+        tmpExpandIcon.setScaleY(0.6);
 
-        Button button = new Button();
-        button.setGraphic(expandIcon);
-        button.setStyle("""
+        Button tmpButton = new Button();
+        tmpButton.setGraphic(tmpExpandIcon);
+        tmpButton.setStyle("""
                 -fx-background-color: transparent;
                 -fx-cursor: hand;
                 -fx-padding: 2;
                 """);
 
-        button.setOnMouseEntered(e -> {
-            button.setStyle(String.format("""
+        tmpButton.setOnMouseEntered(event -> {
+            tmpButton.setStyle(String.format("""
                     -fx-background-color: %s;
                     -fx-background-radius: 6;
                     -fx-cursor: hand;
                     -fx-padding: 2;
-                    """, hoverBg));
-            expandIcon.setFill(Color.web(iconHoverColor));
+                    """, tmpHoverBg));
+            tmpExpandIcon.setFill(Color.web(tmpIconHoverColor));
         });
 
-        button.setOnMouseExited(e -> {
-            button.setStyle("""
+        tmpButton.setOnMouseExited(event -> {
+            tmpButton.setStyle("""
                     -fx-background-color: transparent;
                     -fx-cursor: hand;
                     -fx-padding: 2;
                     """);
-            expandIcon.setFill(Color.web(iconColor));
+            tmpExpandIcon.setFill(Color.web(tmpIconColor));
         });
 
-        button.setOnAction(e -> {
+        tmpButton.setOnAction(event -> {
             if (onShowFullWindow != null) {
                 onShowFullWindow.run();
             }
         });
 
-        // Tooltip
-        javafx.scene.control.Tooltip tooltip = new javafx.scene.control.Tooltip("Expand");
-        tooltip.setShowDelay(new javafx.util.Duration(0));
-        tooltip.setStyle(String.format("""
+        Tooltip tmpTooltip = new Tooltip("Expand");
+        tmpTooltip.setShowDelay(new Duration(0));
+        tmpTooltip.setStyle(String.format("""
                 -fx-font-family: 'Segoe UI', sans-serif;
                 -fx-font-size: 12px;
                 -fx-background-color: %s;
                 -fx-text-fill: %s;
                 -fx-background-radius: 6;
                 -fx-padding: 6 10 6 10;
-                -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 4, 0, 0, 1);
-                """, tooltipBg, tooltipText));
-        button.setTooltip(tooltip);
+                -fx-effect: dropshadow(gaussian,
+                    rgba(0,0,0,0.15), 4, 0, 0, 1);
+                """, tmpTooltipBg, tmpTooltipText));
+        tmpButton.setTooltip(tmpTooltip);
 
-        return button;
+        return tmpButton;
     }
 
     /**
@@ -670,80 +681,78 @@ public final class MiniTimerView extends StackPane {
      * @return the configured minimize button
      */
     private Button createMinimizeButton() {
-        // Minimize icon (horizontal line)
-        SVGPath minimizeIcon = new SVGPath();
-        minimizeIcon.setContent("M4 12h16");
+        SVGPath tmpMinimizeIcon = new SVGPath();
+        tmpMinimizeIcon.setContent("M4 12h16");
 
-        // Theme-aware colors
-        String iconColor = darkMode
+        String tmpIconColor = darkMode
                 ? AppConstants.COLOR_TEXT_SECONDARY_DARK
                 : AppConstants.COLOR_ACCENT;
-        String iconHoverColor = darkMode
+        String tmpIconHoverColor = darkMode
                 ? AppConstants.COLOR_TEXT_PRIMARY_DARK
                 : AppConstants.COLOR_PROGRESS_ACTIVE;
-        String hoverBg = darkMode
+        String tmpHoverBg = darkMode
                 ? "rgba(255, 255, 255, 0.08)"
                 : "rgba(160, 82, 45, 0.12)";
-        String tooltipBg = darkMode
+        String tmpTooltipBg = darkMode
                 ? AppConstants.COLOR_CARD_BACKGROUND_DARK
                 : AppConstants.COLOR_CARD_BACKGROUND;
-        String tooltipText = darkMode
+        String tmpTooltipText = darkMode
                 ? AppConstants.COLOR_TEXT_PRIMARY_DARK
                 : AppConstants.COLOR_TEXT_PRIMARY;
 
-        minimizeIcon.setStroke(Color.web(iconColor));
-        minimizeIcon.setStrokeWidth(1.5);
-        minimizeIcon.setFill(Color.TRANSPARENT);
-        minimizeIcon.setScaleX(0.55);
-        minimizeIcon.setScaleY(0.55);
+        tmpMinimizeIcon.setStroke(Color.web(tmpIconColor));
+        tmpMinimizeIcon.setStrokeWidth(1.5);
+        tmpMinimizeIcon.setFill(Color.TRANSPARENT);
+        tmpMinimizeIcon.setScaleX(0.55);
+        tmpMinimizeIcon.setScaleY(0.55);
 
-        Button button = new Button();
-        button.setGraphic(minimizeIcon);
-        button.setStyle("""
+        Button tmpButton = new Button();
+        tmpButton.setGraphic(tmpMinimizeIcon);
+        tmpButton.setStyle("""
                 -fx-background-color: transparent;
                 -fx-cursor: hand;
                 -fx-padding: 2;
                 """);
 
-        button.setOnMouseEntered(e -> {
-            button.setStyle(String.format("""
+        tmpButton.setOnMouseEntered(event -> {
+            tmpButton.setStyle(String.format("""
                     -fx-background-color: %s;
                     -fx-background-radius: 6;
                     -fx-cursor: hand;
                     -fx-padding: 2;
-                    """, hoverBg));
-            minimizeIcon.setStroke(Color.web(iconHoverColor));
+                    """, tmpHoverBg));
+            tmpMinimizeIcon.setStroke(Color.web(tmpIconHoverColor));
         });
 
-        button.setOnMouseExited(e -> {
-            button.setStyle("""
+        tmpButton.setOnMouseExited(event -> {
+            tmpButton.setStyle("""
                     -fx-background-color: transparent;
                     -fx-cursor: hand;
                     -fx-padding: 2;
                     """);
-            minimizeIcon.setStroke(Color.web(iconColor));
+            tmpMinimizeIcon.setStroke(Color.web(tmpIconColor));
         });
 
-        button.setOnAction(e -> {
+        tmpButton.setOnAction(event -> {
             if (onMinimize != null) {
                 onMinimize.run();
             }
         });
 
-        // Tooltip
-        javafx.scene.control.Tooltip tooltip = new javafx.scene.control.Tooltip("Minimize");
-        tooltip.setShowDelay(new javafx.util.Duration(0));
-        tooltip.setStyle(String.format("""
+        Tooltip tmpTooltip = new Tooltip("Minimize");
+        tmpTooltip.setShowDelay(new Duration(0));
+        tmpTooltip.setStyle(String.format("""
                 -fx-font-family: 'Segoe UI', sans-serif;
                 -fx-font-size: 12px;
                 -fx-background-color: %s;
                 -fx-text-fill: %s;
                 -fx-background-radius: 6;
                 -fx-padding: 6 10 6 10;
-                -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 4, 0, 0, 1);
-                """, tooltipBg, tooltipText));
-        button.setTooltip(tooltip);
+                -fx-effect: dropshadow(gaussian,
+                    rgba(0,0,0,0.15), 4, 0, 0, 1);
+                """, tmpTooltipBg, tmpTooltipText));
+        tmpButton.setTooltip(tmpTooltip);
 
-        return button;
+        return tmpButton;
     }
 }

@@ -523,26 +523,24 @@ public final class MainView extends BorderPane {
      * @return the configured mini mode button
      */
     private Button createMiniModeButton() {
-        // PiP / mini-mode icon (two overlapping rectangles)
-        javafx.scene.shape.SVGPath icon = new javafx.scene.shape.SVGPath();
-        icon.setContent("M19 11h-8v6h8v-6zm4 8V4.98C23 3.88 22.1 3 21 3H3c-1.1 0-2 .88-2 1.98V19c0 "
+        javafx.scene.shape.SVGPath tmpIcon = new javafx.scene.shape.SVGPath();
+        tmpIcon.setContent("M19 11h-8v6h8v-6zm4 8V4.98C23 3.88 22.1 3 21 3H3c-1.1 0-2 .88-2 1.98V19c0 "
                 + "1.1.9 2 2 2h18c1.1 0 2-.9 2-2zm-2 .02H3V4.97h18v14.05z");
-        icon.setFill(javafx.scene.paint.Color.web(AppConstants.COLOR_ACCENT));
-        icon.setScaleX(0.65);
-        icon.setScaleY(0.65);
+        tmpIcon.setFill(javafx.scene.paint.Color.web(AppConstants.COLOR_ACCENT));
+        tmpIcon.setScaleX(0.65);
+        tmpIcon.setScaleY(0.65);
 
-        Button miniButton = new Button();
-        miniButton.setGraphic(icon);
-        miniButton.setStyle("""
+        Button tmpMiniButton = new Button();
+        tmpMiniButton.setGraphic(tmpIcon);
+        tmpMiniButton.setStyle("""
                 -fx-background-color: transparent;
                 -fx-cursor: hand;
                 -fx-padding: 2 6 2 6;
                 """);
 
-        // Tooltip
-        javafx.scene.control.Tooltip tooltip = new javafx.scene.control.Tooltip("Mini Mode (M)");
-        tooltip.setShowDelay(new javafx.util.Duration(0));
-        tooltip.setStyle(String.format("""
+        javafx.scene.control.Tooltip tmpTooltip = new javafx.scene.control.Tooltip("Mini Mode (M)");
+        tmpTooltip.setShowDelay(new javafx.util.Duration(0));
+        tmpTooltip.setStyle(String.format("""
                 -fx-font-family: 'Segoe UI', sans-serif;
                 -fx-font-size: 12px;
                 -fx-background-color: %s;
@@ -551,28 +549,28 @@ public final class MainView extends BorderPane {
                 -fx-padding: 6 10 6 10;
                 -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 4, 0, 0, 1);
                 """, AppConstants.COLOR_CARD_BACKGROUND, AppConstants.COLOR_TEXT_PRIMARY));
-        miniButton.setTooltip(tooltip);
+        tmpMiniButton.setTooltip(tmpTooltip);
 
-        miniButton.setOnMouseEntered(e -> miniButton.setStyle("""
+        tmpMiniButton.setOnMouseEntered(event -> tmpMiniButton.setStyle("""
                 -fx-background-color: rgba(160, 82, 45, 0.10);
                 -fx-background-radius: 6;
                 -fx-cursor: hand;
                 -fx-padding: 2 6 2 6;
                 """));
 
-        miniButton.setOnMouseExited(e -> miniButton.setStyle("""
+        tmpMiniButton.setOnMouseExited(event -> tmpMiniButton.setStyle("""
                 -fx-background-color: transparent;
                 -fx-cursor: hand;
                 -fx-padding: 2 6 2 6;
                 """));
 
-        miniButton.setOnAction(e -> {
+        tmpMiniButton.setOnAction(event -> {
             if (onMiniModeRequested != null) {
                 onMiniModeRequested.run();
             }
         });
 
-        return miniButton;
+        return tmpMiniButton;
     }
 
     /**
