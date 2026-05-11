@@ -137,7 +137,8 @@ public final class PersistenceService {
             ensureDataDirectoryExists();
 
             ApplicationData data = new ApplicationData(
-                    1, // schema version
+                    // schema version
+                    1,
                     settings,
                     history.getSessions());
 

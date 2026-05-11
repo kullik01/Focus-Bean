@@ -475,7 +475,8 @@ public final class SettingsDialog extends Dialog<UserSettings> {
         Label errorLabel = new Label("Value cannot exceed " + logicalMax + " minutes!");
         errorLabel.setStyle("-fx-text-fill: red; -fx-font-size: 10px;");
         errorLabel.setWrapText(true);
-        errorLabel.setPrefWidth(150); // Give it enough width to wrap if needed
+        // Give it enough width to wrap if needed
+        errorLabel.setPrefWidth(150);
         errorLabel.setVisible(false);
         errorLabel.setManaged(false);
 

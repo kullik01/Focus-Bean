@@ -351,7 +351,8 @@ public final class NotificationService {
                     java.awt.RenderingHints.KEY_RENDERING,
                     java.awt.RenderingHints.VALUE_RENDER_QUALITY);
 
-            g2d.setColor(new java.awt.Color(93, 64, 55)); // Dark Coffee Brown (#5D4037)
+            // Dark Coffee Brown (#5D4037)
+            g2d.setColor(new java.awt.Color(93, 64, 55));
 
             // Draw circle with slight padding
             int padding = size / 8;

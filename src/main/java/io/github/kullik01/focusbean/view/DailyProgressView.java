@@ -68,7 +68,8 @@ public final class DailyProgressView extends StackPane {
     private static final double GRAVITY = 0.5;
     private static final double TERMINAL_VELOCITY = 10;
 
-    private final VBox contentBox; // Container for the main UI
+    // Container for the main UI
+    private final VBox contentBox;
     private final Label headerLabel;
     private final HBox headerBar;
     private Button settingsButton;
@@ -92,8 +93,10 @@ public final class DailyProgressView extends StackPane {
     private final Label roundLabel;
 
     // State tracking for trigger
-    private int previousCompletedMinutes = -1; // -1 indicates not initialized
-    private boolean isInitialized = false; // Prevents celebration during startup
+    // -1 indicates not initialized
+    private int previousCompletedMinutes = -1;
+    // Prevents celebration during startup
+    private boolean isInitialized = false;
     private Runnable onDailyGoalReached;
 
     /**
@@ -249,9 +252,11 @@ public final class DailyProgressView extends StackPane {
         if (previousCompletedMinutes == -1) {
             previousCompletedMinutes = minutes;
             this.completedTodayMinutes = minutes;
-            isInitialized = true; // Mark as initialized after first call
+            // Mark as initialized after first call
+            isInitialized = true;
             refresh();
-            return; // Don't trigger celebration on app startup
+            // Don't trigger celebration on app startup
+            return;
         }
 
         // Trigger celebration if crossing the threshold

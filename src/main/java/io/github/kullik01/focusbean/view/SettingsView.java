@@ -436,7 +436,8 @@ public final class SettingsView extends VBox {
             boolean isInvalid = false;
             if (newVal != null && !newVal.isEmpty()) {
                 try {
-                    long valLex = Long.parseLong(newVal); // Use long to detect int overflow
+                    // Use long to detect int overflow
+                    long valLex = Long.parseLong(newVal);
                     if (valLex > logicalMax || valLex < min) {
                         isInvalid = true;
                     }
@@ -499,15 +500,18 @@ public final class SettingsView extends VBox {
                 createSettingRow("Work Duration (min):", createValidatedTextField(
                         UserSettings.MIN_DURATION_MINUTES,
                         UserSettings.MAX_WORK_DURATION_MINUTES,
-                        25, workField)), // Default 25
+                        // Default 25
+                        25, workField)),
                 createSettingRow("Break Duration (min):", createValidatedTextField(
                         UserSettings.MIN_DURATION_MINUTES,
                         UserSettings.MAX_BREAK_DURATION_MINUTES,
-                        5, breakField)), // Default 5
+                        // Default 5
+                        5, breakField)),
                 createSettingRow("Daily Goal (min):", createValidatedTextField(
                         UserSettings.MIN_DURATION_MINUTES,
                         UserSettings.MAX_DAILY_GOAL_MINUTES,
-                        25, dailyGoalField))); // Default 25
+                        // Default 25
+                        25, dailyGoalField)));
 
         return card;
     }
@@ -831,11 +835,14 @@ public final class SettingsView extends VBox {
         try {
             String text = field.getText();
             if (text == null || text.trim().isEmpty())
-                return true; // Empty is invalid
+                // Empty is invalid
+                return true;
             int val = Integer.parseInt(text);
-            return val > max; // Invalid if greater than max
+            // Invalid if greater than max
+            return val > max;
         } catch (NumberFormatException e) {
-            return true; // Invalid if not a number
+            // Invalid if not a number
+            return true;
         }
     }
 

@@ -67,7 +67,8 @@ public final class UserSettings {
     public static final int DEFAULT_BREAK_DURATION_MINUTES = 5;
 
     /** Default daily goal (in minutes). */
-    public static final int DEFAULT_DAILY_GOAL_MINUTES = 25; // 4 pomodoros
+    // 4 pomodoros
+    public static final int DEFAULT_DAILY_GOAL_MINUTES = 25;
 
     /** Default number of days to show in history chart. */
     public static final int DEFAULT_CHART_DAYS = 7;

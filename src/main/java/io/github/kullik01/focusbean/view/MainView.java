@@ -101,10 +101,13 @@ public final class MainView extends BorderPane {
     private javafx.animation.AnimationTimer celebrationTimer;
     private java.util.List<ConfettiParticle> particles;
     private Label congratsLabel;
-    private double celebrationElapsedSeconds = 0; // Track elapsed time for fade effects
-    private static final int PARTICLE_COUNT = 1500; // Heavy confetti coverage
+    // Track elapsed time for fade effects
+    private double celebrationElapsedSeconds = 0;
+    // Heavy confetti coverage
+    private static final int PARTICLE_COUNT = 1500;
     private static final double CELEBRATION_DURATION_SECONDS = 15.0;
-    private static final double FADE_DURATION_SECONDS = 2.0; // Fade in/out duration
+    // Fade in/out duration
+    private static final double FADE_DURATION_SECONDS = 2.0;
     private static final double FRAMES_PER_SECOND = 60.0;
 
     private boolean isSwitchingAfterSave = false;
@@ -161,7 +164,8 @@ public final class MainView extends BorderPane {
         // Update views when tab is selected, with unsaved settings check
         tabPane.getSelectionModel().selectedItemProperty().addListener((obs, oldTab, newTab) -> {
             if (handlingTabChange[0]) {
-                return; // Skip if we're programmatically reverting
+                // Skip if we're programmatically reverting
+                return;
             }
 
             // Check for unsaved settings when leaving the Settings tab
@@ -215,7 +219,8 @@ public final class MainView extends BorderPane {
         // Wire clear history callback
         historyView.setOnClearHistory(() -> {
             controller.clearHistory();
-            controller.resetToFocus(); // Reset timer to Focus (Work) state
+            // Reset timer to Focus (Work) state
+            controller.resetToFocus();
             historyView.update(controller.getHistory());
             updateDailyProgress();
         });
@@ -856,17 +861,22 @@ public final class MainView extends BorderPane {
         
         // Distribute particles uniformly from above screen to bottom of screen
         // So at any point during 15 seconds, there are particles visible
-        double totalJourneyHeight = height * 2; // Particles travel from -height to +height
+        // Particles travel from -height to +height
+        double totalJourneyHeight = height * 2;
         
         for (int i = 0; i < PARTICLE_COUNT; i++) {
             // Stagger particles uniformly across the journey
             double startY = -height + (rand.nextDouble() * totalJourneyHeight);
             particles.add(new ConfettiParticle(
-                rand.nextDouble() * width, // Spawn across full width
-                startY, // Distributed across full journey
+                // Spawn across full width
+                rand.nextDouble() * width,
+                // Distributed across full journey
+                startY,
                 colors[rand.nextInt(colors.length)],
-                (rand.nextDouble() - 0.5) * 0.3, // Very subtle horizontal drift
-                baseVelocity + rand.nextDouble() * 0.2 // Tiny velocity variation
+                // Very subtle horizontal drift
+                (rand.nextDouble() - 0.5) * 0.3,
+                // Tiny velocity variation
+                baseVelocity + rand.nextDouble() * 0.2
             ));
         }
 
@@ -878,11 +888,13 @@ public final class MainView extends BorderPane {
                 if (startTime == -1) startTime = now;
                 celebrationElapsedSeconds = (now - startTime) / 1_000_000_000.0;
 
-                if (celebrationElapsedSeconds > CELEBRATION_DURATION_SECONDS) { // Run for 15 seconds
+                // Run for 15 seconds
+                if (celebrationElapsedSeconds > CELEBRATION_DURATION_SECONDS) {
                     stop();
                     celebrationCanvas.getGraphicsContext2D().clearRect(0, 0, celebrationCanvas.getWidth(), celebrationCanvas.getHeight());
                     congratsLabel.setVisible(false);
-                    congratsLabel.setOpacity(1.0); // Reset opacity for next time
+                    // Reset opacity for next time
+                    congratsLabel.setOpacity(1.0);
                     celebrationElapsedSeconds = 0;
                     return;
                 }
@@ -920,14 +932,16 @@ public final class MainView extends BorderPane {
             // Fade out during last 2 seconds
             opacity = (CELEBRATION_DURATION_SECONDS - celebrationElapsedSeconds) / FADE_DURATION_SECONDS;
         }
-        opacity = Math.max(0, Math.min(1, opacity)); // Clamp to [0, 1]
+        // Clamp to [0, 1]
+        opacity = Math.max(0, Math.min(1, opacity));
 
         gc.setGlobalAlpha(opacity);
         for (ConfettiParticle p : particles) {
             gc.setFill(p.color);
             gc.fillOval(p.x, p.y, 6, 6);
         }
-        gc.setGlobalAlpha(1.0); // Reset global alpha
+        // Reset global alpha
+        gc.setGlobalAlpha(1.0);
     }
 
     private static class ConfettiParticle {

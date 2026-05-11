@@ -105,7 +105,8 @@ public final class HistoryView extends VBox {
         private Consumer<HistoryViewMode> onViewModeChanged;
         private Runnable onSettingsClicked;
         private HistoryViewMode currentMode = HistoryViewMode.TABLE;
-        private int historyChartDays = 7; // Default value
+        // Default value
+        private int historyChartDays = 7;
         private boolean darkModeEnabled = false;
         private Region tableBorderOverlay;
 
@@ -127,9 +128,11 @@ public final class HistoryView extends VBox {
                 // Set table width to exactly fit all columns (no empty space on right)
                 double totalColumnWidth = TABLE_COLUMN_DATE_WIDTH + TABLE_COLUMN_TIME_WIDTH
                                 + TABLE_COLUMN_TYPE_WIDTH + TABLE_COLUMN_DURATION_WIDTH
-                                + TABLE_COLUMN_STATUS_WIDTH + 2; // +2 for border
+                                // +2 for border
+                                + TABLE_COLUMN_STATUS_WIDTH + 2;
                 // Apply rounded clip to table to prevent square content from overflowing corners
-                sessionTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY); // Restored
+                // Restored
+                sessionTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
                 Rectangle clip = new Rectangle();
                 clip.widthProperty().bind(sessionTable.widthProperty());
                 clip.heightProperty().bind(sessionTable.heightProperty());
@@ -141,7 +144,8 @@ public final class HistoryView extends VBox {
                 tableBorderOverlay = new Region();
                 tableBorderOverlay.setMouseTransparent(true);
                 tableBorderOverlay.setPickOnBounds(false);
-                updateTableBorderColor(); // Set initial color
+                // Set initial color
+                updateTableBorderColor();
 
                 StackPane tableContainer = new StackPane(sessionTable, tableBorderOverlay);
                 tableContainer.setMaxWidth(totalColumnWidth);
@@ -163,7 +167,8 @@ public final class HistoryView extends VBox {
                 barChart = new BarChart<>(xAxis, yAxis);
                 barChart.setTitle("Last 7 Days Activity");
                 barChart.setLegendSide(Side.BOTTOM);
-                barChart.setAnimated(false); // Disable animation for smoother updates
+                // Disable animation for smoother updates
+                barChart.setAnimated(false);
                 barChart.setMaxWidth(totalColumnWidth);
 
                 // 3. Setup Container
@@ -612,7 +617,8 @@ public final class HistoryView extends VBox {
 
                 // Get sessions for the last N days
                 LocalDate today = LocalDate.now();
-                LocalDate sevenDaysAgo = today.minusDays(historyChartDays - 1); // inclusive of today
+                // inclusive of today
+                LocalDate sevenDaysAgo = today.minusDays(historyChartDays - 1);
 
                 try {
                         List<TimerSession> recentSessions = history.getSessionsInRange(sevenDaysAgo, today);

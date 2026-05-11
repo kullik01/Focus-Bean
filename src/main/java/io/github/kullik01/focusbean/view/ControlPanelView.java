@@ -146,21 +146,24 @@ public final class ControlPanelView extends HBox {
         switch (state) {
             case IDLE -> {
                 startPauseButton.setText(ICON_PLAY);
-                startPauseButton.setPadding(new Insets(0, 0, 0, 2)); // Left padding for play icon
+                // Left padding for play icon
+                startPauseButton.setPadding(new Insets(0, 0, 0, 2));
                 startPauseButton.setDisable(false);
                 resetButton.setDisable(true);
                 resetButton.setOpacity(0.4);
             }
             case WORK, BREAK, LONG_BREAK -> {
                 startPauseButton.setText(ICON_PAUSE);
-                startPauseButton.setPadding(new Insets(0, 0, 0, 0)); // No padding for pause icon
+                // No padding for pause icon
+                startPauseButton.setPadding(new Insets(0, 0, 0, 0));
                 startPauseButton.setDisable(false);
                 resetButton.setDisable(false);
                 resetButton.setOpacity(1.0);
             }
             case PAUSED -> {
                 startPauseButton.setText(ICON_PLAY);
-                startPauseButton.setPadding(new Insets(0, 0, 0, 2)); // Left padding for play icon
+                // Left padding for play icon
+                startPauseButton.setPadding(new Insets(0, 0, 0, 2));
                 startPauseButton.setDisable(false);
                 resetButton.setDisable(false);
                 resetButton.setOpacity(1.0);

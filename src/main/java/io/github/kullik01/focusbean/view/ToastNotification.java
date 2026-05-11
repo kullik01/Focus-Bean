@@ -71,7 +71,8 @@ public class ToastNotification extends Stage {
         String iconColor = isDarkMode ? "#A0522D" : "#5D4037"; // Lighter brown for icon in dark mode
 
         // Main container with styling
-        VBox root = new VBox(8); // Start with some spacing
+        // Start with some spacing
+        VBox root = new VBox(8);
         root.setAlignment(Pos.CENTER_LEFT);
         root.setStyle(String.format("""
                 -fx-background-color: %s;
@@ -83,7 +84,8 @@ public class ToastNotification extends Stage {
                 """, bgColor, borderColor));
         root.setPadding(new javafx.geometry.Insets(15));
         root.setPrefWidth(TOAST_WIDTH);
-        root.setMinHeight(TOAST_HEIGHT); // Allow growth, but set min height
+        // Allow growth, but set min height
+        root.setMinHeight(TOAST_HEIGHT);
 
         // Header: Icon + "Focus Bean" title
         HBox header = new HBox(10);
@@ -123,7 +125,8 @@ public class ToastNotification extends Stage {
         // Wrapper to overlay close button AND provide padding for shadow
         StackPane contentWrapper = new StackPane(root, closeBtn);
         contentWrapper.setStyle("-fx-background-color: transparent;");
-        contentWrapper.setPadding(new javafx.geometry.Insets(20)); // Margin for shadow
+        // Margin for shadow
+        contentWrapper.setPadding(new javafx.geometry.Insets(20));
 
         Scene scene = new Scene(contentWrapper);
         scene.setFill(Color.TRANSPARENT);
