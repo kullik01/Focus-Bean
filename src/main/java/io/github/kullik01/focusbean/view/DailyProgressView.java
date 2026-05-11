@@ -179,8 +179,8 @@ public final class DailyProgressView extends StackPane {
         contentBox.setPadding(new Insets(15, 20, 15, 20));
         contentBox.setAlignment(Pos.TOP_CENTER);
         VBox innerContentBox = new VBox(12);
-        innerContentBox.setAlignment(Pos.CENTER);
-        innerContentBox.setPadding(new Insets(25, 0, 0, 0)); // Shift down to match left circle
+        innerContentBox.setAlignment(Pos.TOP_CENTER);
+        innerContentBox.setPadding(new Insets(10, 0, 0, 0)); // Exact alignment with left circle
         innerContentBox.getChildren().addAll(statsRow, completedLabel, roundIndicatorBox);
         VBox.setVgrow(innerContentBox, Priority.ALWAYS);
 

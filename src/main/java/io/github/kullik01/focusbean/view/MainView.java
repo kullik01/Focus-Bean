@@ -454,8 +454,8 @@ public final class MainView extends BorderPane {
 
         // Timer content - includes timer display and controls within the card
         VBox timerContent = new VBox(0);
-        timerContent.setAlignment(Pos.CENTER);
-        timerContent.setPadding(new Insets(0, 20, 0, 20));
+        timerContent.setAlignment(Pos.TOP_CENTER);
+        timerContent.setPadding(new Insets(20, 20, 0, 20));
         VBox.setVgrow(timerContent, Priority.ALWAYS);
         timerContent.getChildren().addAll(timerDisplay, controlPanel);
 
