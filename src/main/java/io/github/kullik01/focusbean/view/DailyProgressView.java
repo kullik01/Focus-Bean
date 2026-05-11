@@ -90,7 +90,7 @@ public final class DailyProgressView extends StackPane {
     // Round progress indicator
     private final HBox roundIndicatorBox;
     private final Label roundLabel;
-    
+
     // State tracking for trigger
     private int previousCompletedMinutes = -1; // -1 indicates not initialized
     private boolean isInitialized = false; // Prevents celebration during startup
@@ -106,7 +106,7 @@ public final class DailyProgressView extends StackPane {
         this.streakDays = 0;
 
         // --- UI Construction ---
-        
+
         // Header
         headerLabel = new Label("Daily progress");
         headerLabel.setFont(Font.font(FONT_FAMILY, FontWeight.NORMAL, 14));
@@ -170,22 +170,24 @@ public final class DailyProgressView extends StackPane {
 
         roundIndicatorBox = new HBox(6);
         roundIndicatorBox.setAlignment(Pos.CENTER);
-        roundIndicatorBox.setPadding(new Insets(4, 0, 0, 0));
+        roundIndicatorBox.setMinHeight(44);
         roundIndicatorBox.setVisible(false);
         roundIndicatorBox.setManaged(false);
 
         // Content Layout (VBox)
         contentBox = new VBox(12);
-        contentBox.setPadding(new Insets(15, 20, 15, 20));
+        contentBox.setPadding(new Insets(15, 20, 100, 20));
         contentBox.setAlignment(Pos.TOP_CENTER);
         VBox innerContentBox = new VBox(12);
         innerContentBox.setAlignment(Pos.TOP_CENTER);
-        innerContentBox.setPadding(new Insets(10, 0, 0, 0)); // Exact alignment with left circle
-        innerContentBox.getChildren().addAll(statsRow, completedLabel, roundIndicatorBox);
+        innerContentBox.setPadding(new Insets(10, 0, 0, 0));
+        Region bottomSpacer = new Region();
+        VBox.setVgrow(bottomSpacer, Priority.ALWAYS);
+        innerContentBox.getChildren().addAll(statsRow, completedLabel, bottomSpacer, roundIndicatorBox);
         VBox.setVgrow(innerContentBox, Priority.ALWAYS);
 
         contentBox.getChildren().addAll(headerBar, innerContentBox);
-        
+
         // Root Layout (StackPane)
         setAlignment(Pos.TOP_CENTER);
         getChildren().addAll(contentBox);
@@ -205,10 +207,12 @@ public final class DailyProgressView extends StackPane {
         if (history != null) {
             this.yesterdayMinutes = history.getYesterdaysTotalWorkMinutes();
             this.streakDays = history.getCurrentStreak();
-            // Update completed without triggering celebration (that's handled by setDailyGoalMinutes or explicit calls)
+            // Update completed without triggering celebration (that's handled by
+            // setDailyGoalMinutes or explicit calls)
             this.completedTodayMinutes = history.getTodaysTotalWorkMinutes();
         }
-        // Now update goal - this will correctly compare against updated completedTodayMinutes
+        // Now update goal - this will correctly compare against updated
+        // completedTodayMinutes
         if (settings != null) {
             setDailyGoalMinutes(settings.getDailyGoalMinutes());
         }
@@ -223,15 +227,15 @@ public final class DailyProgressView extends StackPane {
     public void setDailyGoalMinutes(int dailyGoalMinutes) {
         int oldGoal = this.dailyGoalMinutes;
         this.dailyGoalMinutes = dailyGoalMinutes;
-        
+
         // Only trigger celebration if already initialized (not during startup)
         // and if we satisfy the new goal by lowering it
         if (isInitialized && completedTodayMinutes >= dailyGoalMinutes && completedTodayMinutes < oldGoal) {
-             if (onDailyGoalReached != null) {
-                 onDailyGoalReached.run();
-             }
+            if (onDailyGoalReached != null) {
+                onDailyGoalReached.run();
+            }
         }
-        
+
         refresh();
     }
 
@@ -393,7 +397,8 @@ public final class DailyProgressView extends StackPane {
             gc.setLineWidth(RING_STROKE_WIDTH);
 
             if (progress >= 1.0) {
-                // Draw full circle for completion to avoid rendering gaps with strokeArc on some platforms
+                // Draw full circle for completion to avoid rendering gaps with strokeArc on
+                // some platforms
                 gc.strokeOval(
                         centerX - radius,
                         centerY - radius,
