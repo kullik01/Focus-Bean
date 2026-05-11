@@ -79,6 +79,7 @@ public final class TimerController {
     private int currentSessionDuration;
     private TimerState currentSessionType;
     private TimerState pendingSessionType;
+    private int currentRound;
 
     /**
      * Creates a new TimerController with the specified services and models.
@@ -101,6 +102,7 @@ public final class TimerController {
         this.notificationService = Objects.requireNonNull(notificationService, "notificationService must not be null");
         this.settings = Objects.requireNonNull(settings, "settings must not be null");
         this.history = Objects.requireNonNull(history, "history must not be null");
+        this.currentRound = 1;
 
         timerService.setOnTimerComplete(this::onTimerComplete);
 
@@ -134,6 +136,19 @@ public final class TimerController {
     }
 
     /**
+     * Starts a new long break session.
+     *
+     * <p>
+     * A long break is triggered after completing a full set of Pomodoro rounds
+     * in auto-cycle mode.
+     * </p>
+     */
+    public void startLongBreak() {
+        int durationSeconds = settings.getLongBreakDurationSeconds();
+        startSession(TimerState.LONG_BREAK, durationSeconds, settings.getLongBreakDurationMinutes());
+    }
+
+    /**
      * Starts the timer based on the current state.
      *
      * <p>
@@ -147,6 +162,8 @@ public final class TimerController {
         if (state == TimerState.IDLE) {
             if (pendingSessionType == TimerState.BREAK) {
                 startBreak();
+            } else if (pendingSessionType == TimerState.LONG_BREAK) {
+                startLongBreak();
             } else {
                 startWork();
             }
@@ -198,6 +215,7 @@ public final class TimerController {
         currentSessionDuration = 0;
         currentSessionType = null;
         pendingSessionType = sessionToPreserve;
+        currentRound = 1;
         timerService.reset();
 
         LOGGER.log(Level.INFO, "Timer reset, pending session type: {0}",
@@ -213,6 +231,7 @@ public final class TimerController {
         currentSessionDuration = 0;
         currentSessionType = null;
         pendingSessionType = TimerState.WORK;
+        currentRound = 1;
         timerService.reset();
         LOGGER.info("Timer reset to initial Focus state");
     }
@@ -370,6 +389,21 @@ public final class TimerController {
     }
 
     /**
+     * Returns the current Pomodoro round number (1-based).
+     *
+     * <p>
+     * In auto-cycle mode, rounds count from 1 up to the configured
+     * {@code roundsBeforeLongBreak}. The counter resets after a long break
+     * or a manual reset.
+     * </p>
+     *
+     * @return the current round number
+     */
+    public int getCurrentRound() {
+        return currentRound;
+    }
+
+    /**
      * Starts a timer session with the given parameters.
      *
      * @param state           the session type (WORK or BREAK)
@@ -405,17 +439,59 @@ public final class TimerController {
             recordSession(true);
         }
 
-        // Set pending session type for next manual start
-        if (completedSessionType == TimerState.WORK) {
-            LOGGER.info("Work session complete, break is now pending");
-            pendingSessionType = TimerState.BREAK;
-        } else if (completedSessionType == TimerState.BREAK) {
-            LOGGER.info("Break session complete, work is now pending");
-            pendingSessionType = TimerState.WORK;
-        }
+        boolean autoCycle = settings.isAutoCycleEnabled();
 
-        // Return to IDLE state - user must press play to start next session
-        timerService.reset();
+        if (completedSessionType == TimerState.WORK) {
+            if (autoCycle) {
+                // Check if we've completed all rounds before long break
+                if (currentRound >= settings.getRoundsBeforeLongBreak()) {
+                    LOGGER.log(Level.INFO,
+                            "Work session complete (round {0}/{1}), auto-starting long break",
+                            new Object[] { currentRound, settings.getRoundsBeforeLongBreak() });
+                    pendingSessionType = TimerState.LONG_BREAK;
+                    timerService.reset();
+                    startLongBreak();
+                } else {
+                    LOGGER.log(Level.INFO,
+                            "Work session complete (round {0}/{1}), auto-starting break",
+                            new Object[] { currentRound, settings.getRoundsBeforeLongBreak() });
+                    pendingSessionType = TimerState.BREAK;
+                    timerService.reset();
+                    startBreak();
+                }
+            } else {
+                LOGGER.info("Work session complete, break is now pending");
+                pendingSessionType = TimerState.BREAK;
+                timerService.reset();
+            }
+        } else if (completedSessionType == TimerState.BREAK) {
+            if (autoCycle) {
+                currentRound++;
+                LOGGER.log(Level.INFO,
+                        "Break session complete, auto-starting work (round {0})",
+                        currentRound);
+                pendingSessionType = TimerState.WORK;
+                timerService.reset();
+                startWork();
+            } else {
+                LOGGER.info("Break session complete, work is now pending");
+                pendingSessionType = TimerState.WORK;
+                timerService.reset();
+            }
+        } else if (completedSessionType == TimerState.LONG_BREAK) {
+            // Long break complete - reset round counter and start new cycle
+            currentRound = 1;
+            if (autoCycle) {
+                LOGGER.info("Long break complete, auto-starting work (round 1)");
+                pendingSessionType = TimerState.WORK;
+                timerService.reset();
+                startWork();
+            } else {
+                LOGGER.info("Long break complete, work is now pending");
+                pendingSessionType = TimerState.WORK;
+                timerService.reset();
+            }
+        }
     }
 
     /**
@@ -430,6 +506,8 @@ public final class TimerController {
         if (completed) {
             if (currentSessionType == TimerState.WORK) {
                 session = TimerSession.completedWork(currentSessionStartTime, endTime, currentSessionDuration);
+            } else if (currentSessionType == TimerState.LONG_BREAK) {
+                session = TimerSession.completedLongBreak(currentSessionStartTime, endTime, currentSessionDuration);
             } else {
                 session = TimerSession.completedBreak(currentSessionStartTime, endTime, currentSessionDuration);
             }

@@ -93,6 +93,24 @@ public final class UserSettings {
     /** Default value for dark mode. */
     public static final boolean DEFAULT_DARK_MODE_ENABLED = false;
 
+    /** Default value for auto-cycle mode. */
+    public static final boolean DEFAULT_AUTO_CYCLE_ENABLED = false;
+
+    /** Default number of work rounds before a long break. */
+    public static final int DEFAULT_ROUNDS_BEFORE_LONG_BREAK = 4;
+
+    /** Default long break duration (in minutes). */
+    public static final int DEFAULT_LONG_BREAK_DURATION_MINUTES = 15;
+
+    /** Minimum number of rounds before long break. */
+    public static final int MIN_ROUNDS_BEFORE_LONG_BREAK = 2;
+
+    /** Maximum number of rounds before long break. */
+    public static final int MAX_ROUNDS_BEFORE_LONG_BREAK = 12;
+
+    /** Maximum allowed duration for long break sessions (in minutes). */
+    public static final int MAX_LONG_BREAK_DURATION_MINUTES = 60;
+
     private int workDurationMinutes;
     private int breakDurationMinutes;
     private int dailyGoalMinutes;
@@ -103,6 +121,9 @@ public final class UserSettings {
     private String customSoundPath;
     private HistoryViewMode historyViewMode;
     private boolean darkModeEnabled;
+    private boolean autoCycleEnabled;
+    private int roundsBeforeLongBreak;
+    private int longBreakDurationMinutes;
 
     /**
      * Creates a new UserSettings instance with default values.
@@ -126,6 +147,9 @@ public final class UserSettings {
         this.customSoundPath = null;
         this.historyViewMode = DEFAULT_HISTORY_VIEW_MODE;
         this.darkModeEnabled = DEFAULT_DARK_MODE_ENABLED;
+        this.autoCycleEnabled = DEFAULT_AUTO_CYCLE_ENABLED;
+        this.roundsBeforeLongBreak = DEFAULT_ROUNDS_BEFORE_LONG_BREAK;
+        this.longBreakDurationMinutes = DEFAULT_LONG_BREAK_DURATION_MINUTES;
         validate();
     }
 
@@ -148,6 +172,9 @@ public final class UserSettings {
         this.customSoundPath = null;
         this.historyViewMode = DEFAULT_HISTORY_VIEW_MODE;
         this.darkModeEnabled = DEFAULT_DARK_MODE_ENABLED;
+        this.autoCycleEnabled = DEFAULT_AUTO_CYCLE_ENABLED;
+        this.roundsBeforeLongBreak = DEFAULT_ROUNDS_BEFORE_LONG_BREAK;
+        this.longBreakDurationMinutes = DEFAULT_LONG_BREAK_DURATION_MINUTES;
         validate();
     }
 
@@ -171,6 +198,9 @@ public final class UserSettings {
         this.customSoundPath = null;
         this.historyViewMode = DEFAULT_HISTORY_VIEW_MODE;
         this.darkModeEnabled = DEFAULT_DARK_MODE_ENABLED;
+        this.autoCycleEnabled = DEFAULT_AUTO_CYCLE_ENABLED;
+        this.roundsBeforeLongBreak = DEFAULT_ROUNDS_BEFORE_LONG_BREAK;
+        this.longBreakDurationMinutes = DEFAULT_LONG_BREAK_DURATION_MINUTES;
         validate();
     }
 
@@ -196,6 +226,9 @@ public final class UserSettings {
         this.customSoundPath = null;
         this.historyViewMode = DEFAULT_HISTORY_VIEW_MODE;
         this.darkModeEnabled = DEFAULT_DARK_MODE_ENABLED;
+        this.autoCycleEnabled = DEFAULT_AUTO_CYCLE_ENABLED;
+        this.roundsBeforeLongBreak = DEFAULT_ROUNDS_BEFORE_LONG_BREAK;
+        this.longBreakDurationMinutes = DEFAULT_LONG_BREAK_DURATION_MINUTES;
         validate();
     }
 
@@ -225,6 +258,9 @@ public final class UserSettings {
         this.customSoundPath = customSoundPath;
         this.historyViewMode = DEFAULT_HISTORY_VIEW_MODE;
         this.darkModeEnabled = DEFAULT_DARK_MODE_ENABLED;
+        this.autoCycleEnabled = DEFAULT_AUTO_CYCLE_ENABLED;
+        this.roundsBeforeLongBreak = DEFAULT_ROUNDS_BEFORE_LONG_BREAK;
+        this.longBreakDurationMinutes = DEFAULT_LONG_BREAK_DURATION_MINUTES;
         validate();
     }
 
@@ -256,6 +292,9 @@ public final class UserSettings {
         this.customSoundPath = customSoundPath;
         this.historyViewMode = DEFAULT_HISTORY_VIEW_MODE;
         this.darkModeEnabled = DEFAULT_DARK_MODE_ENABLED;
+        this.autoCycleEnabled = DEFAULT_AUTO_CYCLE_ENABLED;
+        this.roundsBeforeLongBreak = DEFAULT_ROUNDS_BEFORE_LONG_BREAK;
+        this.longBreakDurationMinutes = DEFAULT_LONG_BREAK_DURATION_MINUTES;
         validate();
     }
 
@@ -279,6 +318,9 @@ public final class UserSettings {
                 other.historyChartDays);
         copy.setHistoryViewMode(other.historyViewMode);
         copy.setDarkModeEnabled(other.darkModeEnabled);
+        copy.setAutoCycleEnabled(other.autoCycleEnabled);
+        copy.setRoundsBeforeLongBreak(other.roundsBeforeLongBreak);
+        copy.setLongBreakDurationMinutes(other.longBreakDurationMinutes);
         return copy;
     }
 
@@ -498,6 +540,79 @@ public final class UserSettings {
     }
 
     /**
+     * Returns whether auto-cycle mode is enabled.
+     *
+     * @return {@code true} if auto-cycle mode is enabled
+     */
+    public boolean isAutoCycleEnabled() {
+        return autoCycleEnabled;
+    }
+
+    /**
+     * Sets whether auto-cycle mode is enabled.
+     *
+     * @param autoCycleEnabled {@code true} to enable auto-cycle mode
+     */
+    public void setAutoCycleEnabled(boolean autoCycleEnabled) {
+        this.autoCycleEnabled = autoCycleEnabled;
+    }
+
+    /**
+     * Returns the number of work rounds before a long break.
+     *
+     * @return the rounds before long break
+     */
+    public int getRoundsBeforeLongBreak() {
+        return roundsBeforeLongBreak;
+    }
+
+    /**
+     * Sets the number of work rounds before a long break.
+     *
+     * @param roundsBeforeLongBreak the rounds before long break
+     * @throws IllegalArgumentException if the value is outside the range
+     *                                  [{@value #MIN_ROUNDS_BEFORE_LONG_BREAK},
+     *                                  {@value #MAX_ROUNDS_BEFORE_LONG_BREAK}]
+     */
+    public void setRoundsBeforeLongBreak(int roundsBeforeLongBreak) {
+        validateDuration(roundsBeforeLongBreak, MIN_ROUNDS_BEFORE_LONG_BREAK, MAX_ROUNDS_BEFORE_LONG_BREAK,
+                "roundsBeforeLongBreak");
+        this.roundsBeforeLongBreak = roundsBeforeLongBreak;
+    }
+
+    /**
+     * Returns the long break duration in minutes.
+     *
+     * @return the long break duration in minutes
+     */
+    public int getLongBreakDurationMinutes() {
+        return longBreakDurationMinutes;
+    }
+
+    /**
+     * Sets the long break duration in minutes.
+     *
+     * @param longBreakDurationMinutes the long break duration in minutes
+     * @throws IllegalArgumentException if the value is outside the range
+     *                                  [{@value #MIN_DURATION_MINUTES},
+     *                                  {@value #MAX_LONG_BREAK_DURATION_MINUTES}]
+     */
+    public void setLongBreakDurationMinutes(int longBreakDurationMinutes) {
+        validateDuration(longBreakDurationMinutes, MIN_DURATION_MINUTES, MAX_LONG_BREAK_DURATION_MINUTES,
+                "longBreakDurationMinutes");
+        this.longBreakDurationMinutes = longBreakDurationMinutes;
+    }
+
+    /**
+     * Returns the long break duration in seconds.
+     *
+     * @return the long break duration converted to seconds
+     */
+    public int getLongBreakDurationSeconds() {
+        return longBreakDurationMinutes * 60;
+    }
+
+    /**
      * Validates all current settings.
      *
      * @throws IllegalArgumentException if any setting is outside its allowed range
@@ -544,22 +659,28 @@ public final class UserSettings {
                 && notificationSound == that.notificationSound
                 && Objects.equals(customSoundPath, that.customSoundPath)
                 && historyViewMode == that.historyViewMode
-                && darkModeEnabled == that.darkModeEnabled;
+                && darkModeEnabled == that.darkModeEnabled
+                && autoCycleEnabled == that.autoCycleEnabled
+                && roundsBeforeLongBreak == that.roundsBeforeLongBreak
+                && longBreakDurationMinutes == that.longBreakDurationMinutes;
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(workDurationMinutes, breakDurationMinutes, dailyGoalMinutes, historyChartDays,
                 soundNotificationEnabled, popupNotificationEnabled, notificationSound, customSoundPath,
-                historyViewMode, darkModeEnabled);
+                historyViewMode, darkModeEnabled, autoCycleEnabled, roundsBeforeLongBreak,
+                longBreakDurationMinutes);
     }
 
     @Override
     public String toString() {
         return String.format(
-                "UserSettings[work=%dmin, break=%dmin, dailyGoal=%dmin, sound=%s, popup=%s, notifSound=%s, customPath=%s, historyViewMode=%s, darkMode=%s]",
+                "UserSettings[work=%dmin, break=%dmin, dailyGoal=%dmin, sound=%s, popup=%s, notifSound=%s, "
+                        + "customPath=%s, historyViewMode=%s, darkMode=%s, autoCycle=%s, rounds=%d, longBreak=%dmin]",
                 workDurationMinutes, breakDurationMinutes, dailyGoalMinutes,
                 soundNotificationEnabled, popupNotificationEnabled, notificationSound, customSoundPath,
-                historyViewMode, darkModeEnabled);
+                historyViewMode, darkModeEnabled, autoCycleEnabled, roundsBeforeLongBreak,
+                longBreakDurationMinutes);
     }
 }

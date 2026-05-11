@@ -151,7 +151,7 @@ public final class ControlPanelView extends HBox {
                 resetButton.setDisable(true);
                 resetButton.setOpacity(0.4);
             }
-            case WORK, BREAK -> {
+            case WORK, BREAK, LONG_BREAK -> {
                 startPauseButton.setText(ICON_PAUSE);
                 startPauseButton.setPadding(new Insets(0, 0, 0, 0)); // No padding for pause icon
                 startPauseButton.setDisable(false);

@@ -455,7 +455,7 @@ public final class MainView extends BorderPane {
         // Timer content - includes timer display and controls within the card
         VBox timerContent = new VBox(0);
         timerContent.setAlignment(Pos.CENTER);
-        timerContent.setPadding(new Insets(0, 20, 25, 20));
+        timerContent.setPadding(new Insets(0, 20, 0, 20));
         VBox.setVgrow(timerContent, Priority.ALWAYS);
         timerContent.getChildren().addAll(timerDisplay, controlPanel);
 
@@ -489,6 +489,7 @@ public final class MainView extends BorderPane {
         progressCard.setMinWidth(380);
         progressCard.setMaxWidth(400);
         progressCard.setMinHeight(340);
+        VBox.setVgrow(dailyProgressView, Priority.ALWAYS);
         progressCard.getChildren().add(dailyProgressView);
 
         return progressCard;
@@ -617,6 +618,12 @@ public final class MainView extends BorderPane {
         dailyProgressView.update(controller.getHistory(), controller.getSettings());
         // Force update with the live total to ensure visual continuity
         dailyProgressView.setCompletedTodayMinutes(totalMinutes);
+
+        // Update round progress indicator
+        dailyProgressView.updateRoundProgress(
+                controller.getCurrentRound(),
+                controller.getSettings().getRoundsBeforeLongBreak(),
+                controller.getSettings().isAutoCycleEnabled());
     }
 
     /**
@@ -661,6 +668,8 @@ public final class MainView extends BorderPane {
             if (newState == TimerState.IDLE) {
                 if (controller.getPendingSessionType() == TimerState.BREAK) {
                     timerDisplay.showDuration(controller.getSettings().getBreakDurationMinutes(), "Break");
+                } else if (controller.getPendingSessionType() == TimerState.LONG_BREAK) {
+                    timerDisplay.showDuration(controller.getSettings().getLongBreakDurationMinutes(), "Long Break");
                 } else {
                     timerDisplay.showDuration(controller.getSettings().getWorkDurationMinutes());
                 }
@@ -674,6 +683,8 @@ public final class MainView extends BorderPane {
                     timerDisplay.setTotalSeconds(controller.getSettings().getWorkDurationSeconds());
                 } else if (newState == TimerState.BREAK) {
                     timerDisplay.setTotalSeconds(controller.getSettings().getBreakDurationSeconds());
+                } else if (newState == TimerState.LONG_BREAK) {
+                    timerDisplay.setTotalSeconds(controller.getSettings().getLongBreakDurationSeconds());
                 }
             }
         });
@@ -706,10 +717,17 @@ public final class MainView extends BorderPane {
             applyTheme(settings.isDarkModeEnabled());
         }
 
+        // Update auto-cycle settings
+        controller.getSettings().setAutoCycleEnabled(settings.isAutoCycleEnabled());
+        controller.getSettings().setRoundsBeforeLongBreak(settings.getRoundsBeforeLongBreak());
+        controller.getSettings().setLongBreakDurationMinutes(settings.getLongBreakDurationMinutes());
+
         // Update display if idle - respect pending session type
         if (controller.getCurrentState() == TimerState.IDLE) {
             if (controller.getPendingSessionType() == TimerState.BREAK) {
                 timerDisplay.showDuration(settings.getBreakDurationMinutes(), "Break");
+            } else if (controller.getPendingSessionType() == TimerState.LONG_BREAK) {
+                timerDisplay.showDuration(settings.getLongBreakDurationMinutes(), "Long Break");
             } else {
                 timerDisplay.showDuration(settings.getWorkDurationMinutes());
             }
@@ -736,6 +754,8 @@ public final class MainView extends BorderPane {
         if (state == TimerState.IDLE) {
             if (controller.getPendingSessionType() == TimerState.BREAK) {
                 timerDisplay.showDuration(controller.getSettings().getBreakDurationMinutes(), "Break");
+            } else if (controller.getPendingSessionType() == TimerState.LONG_BREAK) {
+                timerDisplay.showDuration(controller.getSettings().getLongBreakDurationMinutes(), "Long Break");
             } else {
                 timerDisplay.showDuration(controller.getSettings().getWorkDurationMinutes());
             }
@@ -786,7 +806,7 @@ public final class MainView extends BorderPane {
 
         switch (state) {
             case IDLE -> controller.startOrResume();
-            case WORK, BREAK -> controller.pause();
+            case WORK, BREAK, LONG_BREAK -> controller.pause();
             case PAUSED -> controller.resume();
         }
     }

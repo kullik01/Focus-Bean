@@ -234,6 +234,9 @@ public final class NotificationService {
         } else if (completedSessionType == TimerState.BREAK) {
             title = "Break Time Over!";
             message = "Ready to get back to work?";
+        } else if (completedSessionType == TimerState.LONG_BREAK) {
+            title = "Long Break Over!";
+            message = "You've completed a full cycle. Ready for the next round?";
         } else {
             title = "Session Complete!";
             message = "Your timer has finished.";
@@ -241,7 +244,8 @@ public final class NotificationService {
 
         try {
             // Use custom toast notification instead of system tray
-            io.github.kullik01.focusbean.view.ToastNotification.show(title, message, settings.isDarkModeEnabled(), this::stopSound);
+            io.github.kullik01.focusbean.view.ToastNotification.show(title, message, settings.isDarkModeEnabled(),
+                    this::stopSound);
             LOGGER.log(Level.FINE, "Displayed toast notification: {0}", title);
         } catch (Exception e) {
             LOGGER.log(Level.WARNING, "Failed to show toast notification", e);

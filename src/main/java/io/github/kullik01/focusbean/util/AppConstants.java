@@ -71,7 +71,7 @@ public final class AppConstants {
     public static final int DEFAULT_WINDOW_WIDTH = 820;
 
     /** Default window height in pixels. */
-    public static final int DEFAULT_WINDOW_HEIGHT = 420;
+    public static final int DEFAULT_WINDOW_HEIGHT = 560;
 
     /** Minimum window width in pixels. */
     public static final int MIN_WINDOW_WIDTH = 700;

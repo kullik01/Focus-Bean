@@ -103,6 +103,9 @@ public final class SettingsView extends VBox {
     private final Button browseButton;
     private final Button previewButton;
     private final Button saveButton;
+    private final CheckBox autoCycleCheckbox;
+    private TextField roundsField;
+    private TextField longBreakField;
 
     private final NotificationService notificationService;
     private String customSoundPath;
@@ -118,6 +121,8 @@ public final class SettingsView extends VBox {
     private Label historyHeaderLabel;
     private Label notificationsHeaderLabel;
     private Label appearanceHeaderLabel;
+    private Label autoCycleHeaderLabel;
+    private VBox autoCycleCard;
     private boolean darkModeEnabled = false;
 
     /**
@@ -153,6 +158,11 @@ public final class SettingsView extends VBox {
         darkModeCheckbox = new CheckBox("Dark mode");
         darkModeCheckbox.setSelected(currentSettings.isDarkModeEnabled());
         darkModeCheckbox.setStyle(STYLE_LABEL);
+
+        // Auto-cycle checkbox
+        autoCycleCheckbox = new CheckBox("Auto-cycle (Pomodoro rounds)");
+        autoCycleCheckbox.setSelected(currentSettings.isAutoCycleEnabled());
+        autoCycleCheckbox.setStyle(STYLE_LABEL);
 
         // Sound selection - only System Beep and Custom options work reliably
         soundComboBox = new ComboBox<>(FXCollections.observableArrayList(
@@ -308,20 +318,28 @@ public final class SettingsView extends VBox {
         // Create Notifications card
         notificationsCard = createNotificationsCard(soundSelectionRow, customSoundRow);
 
-        // Cards container - single row with 3 cards
-        HBox cardsRow = new HBox(15);
-        cardsRow.setAlignment(Pos.TOP_CENTER);
+        // Create Auto-Cycle card
+        autoCycleCard = createAutoCycleCard();
+
+        // Cards container - two rows: top row with 3 cards, bottom row with auto-cycle
+        HBox topCardsRow = new HBox(15);
+        topCardsRow.setAlignment(Pos.TOP_CENTER);
         HBox.setHgrow(timerSettingsCard, Priority.ALWAYS);
         HBox.setHgrow(historySettingsCard, Priority.ALWAYS);
         HBox.setHgrow(notificationsCard, Priority.ALWAYS);
-        cardsRow.getChildren().addAll(timerSettingsCard, historySettingsCard, notificationsCard);
+        topCardsRow.getChildren().addAll(timerSettingsCard, historySettingsCard, notificationsCard);
+
+        HBox bottomCardsRow = new HBox(15);
+        bottomCardsRow.setAlignment(Pos.TOP_CENTER);
+        HBox.setHgrow(autoCycleCard, Priority.ALWAYS);
+        bottomCardsRow.getChildren().add(autoCycleCard);
 
         // Save button container
         HBox saveButtonContainer = new HBox(saveButton);
         saveButtonContainer.setAlignment(Pos.CENTER);
         saveButtonContainer.setPadding(new Insets(10, 0, 0, 0));
 
-        getChildren().addAll(cardsRow, saveButtonContainer);
+        getChildren().addAll(topCardsRow, bottomCardsRow, saveButtonContainer);
     }
 
     /**
@@ -365,6 +383,12 @@ public final class SettingsView extends VBox {
         }
         if (appearanceHeaderLabel != null) {
             appearanceHeaderLabel.setTextFill(textColorPaint);
+        }
+        if (autoCycleHeaderLabel != null) {
+            autoCycleHeaderLabel.setTextFill(textColorPaint);
+        }
+        if (autoCycleCard != null) {
+            autoCycleCard.setStyle(cardStyle);
         }
     }
 
@@ -575,6 +599,53 @@ public final class SettingsView extends VBox {
     }
 
     /**
+     * Creates the Auto-Cycle settings card.
+     *
+     * @return the configured card VBox
+     */
+    private VBox createAutoCycleCard() {
+        autoCycleHeaderLabel = new Label("Auto-Cycle");
+        autoCycleHeaderLabel.setFont(Font.font(FONT_FAMILY, FontWeight.BOLD, 16));
+        autoCycleHeaderLabel.setTextFill(javafx.scene.paint.Color.web(AppConstants.COLOR_TEXT_PRIMARY));
+
+        roundsField = new TextField();
+        longBreakField = new TextField();
+
+        VBox roundsContainer = createValidatedTextField(
+                UserSettings.MIN_ROUNDS_BEFORE_LONG_BREAK,
+                UserSettings.MAX_ROUNDS_BEFORE_LONG_BREAK,
+                UserSettings.DEFAULT_ROUNDS_BEFORE_LONG_BREAK, roundsField);
+
+        VBox longBreakContainer = createValidatedTextField(
+                UserSettings.MIN_DURATION_MINUTES,
+                UserSettings.MAX_LONG_BREAK_DURATION_MINUTES,
+                UserSettings.DEFAULT_LONG_BREAK_DURATION_MINUTES, longBreakField);
+
+        HBox roundsRow = createSettingRow("Rounds before long break:", roundsContainer);
+        HBox longBreakRow = createSettingRow("Long break (min):", longBreakContainer);
+
+        // Bind visibility of detail fields to checkbox state
+        roundsRow.disableProperty().bind(autoCycleCheckbox.selectedProperty().not());
+        longBreakRow.disableProperty().bind(autoCycleCheckbox.selectedProperty().not());
+
+        VBox card = new VBox(15);
+        card.setStyle(String.format(STYLE_CARD,
+                AppConstants.COLOR_CARD_BACKGROUND,
+                AppConstants.COLOR_CARD_BORDER));
+        card.setPadding(new Insets(20));
+        card.setMinWidth(400);
+        card.setMaxWidth(770);
+
+        card.getChildren().addAll(
+                autoCycleHeaderLabel,
+                autoCycleCheckbox,
+                roundsRow,
+                longBreakRow);
+
+        return card;
+    }
+
+    /**
      * Creates a setting row with label and control.
      *
      * @param labelText the label text
@@ -686,6 +757,9 @@ public final class SettingsView extends VBox {
         } else {
             customSoundPathField.clear();
         }
+        autoCycleCheckbox.setSelected(settings.isAutoCycleEnabled());
+        roundsField.setText(String.valueOf(settings.getRoundsBeforeLongBreak()));
+        longBreakField.setText(String.valueOf(settings.getLongBreakDurationMinutes()));
     }
 
     /**
@@ -704,6 +778,9 @@ public final class SettingsView extends VBox {
                 soundComboBox.getValue() == NotificationSound.CUSTOM ? customSoundPath : null,
                 Integer.parseInt(chartDaysField.getText()));
         settings.setDarkModeEnabled(darkModeCheckbox.isSelected());
+        settings.setAutoCycleEnabled(autoCycleCheckbox.isSelected());
+        settings.setRoundsBeforeLongBreak(Integer.parseInt(roundsField.getText()));
+        settings.setLongBreakDurationMinutes(Integer.parseInt(longBreakField.getText()));
         return settings;
     }
 
@@ -743,7 +820,9 @@ public final class SettingsView extends VBox {
         return isFieldInvalid(workField, UserSettings.MAX_WORK_DURATION_MINUTES)
                 || isFieldInvalid(breakField, UserSettings.MAX_BREAK_DURATION_MINUTES)
                 || isFieldInvalid(dailyGoalField, UserSettings.MAX_DAILY_GOAL_MINUTES)
-                || isFieldInvalid(chartDaysField, UserSettings.MAX_CHART_DAYS);
+                || isFieldInvalid(chartDaysField, UserSettings.MAX_CHART_DAYS)
+                || isFieldInvalid(roundsField, UserSettings.MAX_ROUNDS_BEFORE_LONG_BREAK)
+                || isFieldInvalid(longBreakField, UserSettings.MAX_LONG_BREAK_DURATION_MINUTES);
     }
 
     private boolean isFieldInvalid(TextField field, int max) {
@@ -829,7 +908,10 @@ public final class SettingsView extends VBox {
                     || popupNotificationCheckbox.isSelected() != originalSettings.isPopupNotificationEnabled()
                     || soundComboBox.getValue() != originalSettings.getNotificationSound()
                     || !Objects.equals(soundComboBox.getValue() == NotificationSound.CUSTOM ? customSoundPath : null, originalSettings.getCustomSoundPath())
-                    || darkModeCheckbox.isSelected() != originalSettings.isDarkModeEnabled();
+                    || darkModeCheckbox.isSelected() != originalSettings.isDarkModeEnabled()
+                    || autoCycleCheckbox.isSelected() != originalSettings.isAutoCycleEnabled()
+                    || Integer.parseInt(roundsField.getText()) != originalSettings.getRoundsBeforeLongBreak()
+                    || Integer.parseInt(longBreakField.getText()) != originalSettings.getLongBreakDurationMinutes();
         } catch (NumberFormatException e) {
             // If parsing fails, consider it as a change (invalid input)
             return true;

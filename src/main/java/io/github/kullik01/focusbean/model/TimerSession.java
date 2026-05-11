@@ -90,8 +90,8 @@ public record TimerSession(
             throw new IllegalArgumentException("endTime must not be before startTime");
         }
 
-        if (type != TimerState.WORK && type != TimerState.BREAK) {
-            throw new IllegalArgumentException("type must be WORK or BREAK, was: " + type);
+        if (type != TimerState.WORK && type != TimerState.BREAK && type != TimerState.LONG_BREAK) {
+            throw new IllegalArgumentException("type must be WORK, BREAK, or LONG_BREAK, was: " + type);
         }
     }
 
@@ -131,6 +131,19 @@ public record TimerSession(
     public static TimerSession interrupted(LocalDateTime startTime, LocalDateTime endTime, TimerState type,
             int durationMinutes) {
         return new TimerSession(startTime, endTime, type, durationMinutes, false);
+    }
+
+    /**
+     * Creates a completed long break session record.
+     *
+     * @param startTime       when the long break session started
+     * @param endTime         when the long break session ended
+     * @param durationMinutes the configured long break duration
+     * @return a new TimerSession representing a completed long break session
+     */
+    public static TimerSession completedLongBreak(LocalDateTime startTime, LocalDateTime endTime,
+            int durationMinutes) {
+        return new TimerSession(startTime, endTime, TimerState.LONG_BREAK, durationMinutes, true);
     }
 
     /**

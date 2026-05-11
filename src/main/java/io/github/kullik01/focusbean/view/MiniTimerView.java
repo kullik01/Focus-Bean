@@ -285,12 +285,16 @@ public final class MiniTimerView extends StackPane {
                     this.totalSeconds = this.controller.getSettings().getWorkDurationSeconds();
                 } else if (newState == TimerState.BREAK) {
                     this.totalSeconds = this.controller.getSettings().getBreakDurationSeconds();
+                } else if (newState == TimerState.LONG_BREAK) {
+                    this.totalSeconds = this.controller.getSettings().getLongBreakDurationSeconds();
                 }
             }
 
             if (newState == TimerState.IDLE) {
                 if (this.controller.getPendingSessionType() == TimerState.BREAK) {
                     this.showDuration(this.controller.getSettings().getBreakDurationMinutes(), "Break");
+                } else if (this.controller.getPendingSessionType() == TimerState.LONG_BREAK) {
+                    this.showDuration(this.controller.getSettings().getLongBreakDurationMinutes(), "Long Break");
                 } else {
                     this.showDuration(this.controller.getSettings().getWorkDurationMinutes(), "min");
                 }
@@ -312,6 +316,8 @@ public final class MiniTimerView extends StackPane {
         if (this.currentState == TimerState.IDLE) {
             if (this.controller.getPendingSessionType() == TimerState.BREAK) {
                 this.showDuration(this.controller.getSettings().getBreakDurationMinutes(), "Break");
+            } else if (this.controller.getPendingSessionType() == TimerState.LONG_BREAK) {
+                this.showDuration(this.controller.getSettings().getLongBreakDurationMinutes(), "Long Break");
             } else {
                 this.showDuration(this.controller.getSettings().getWorkDurationMinutes(), "min");
             }
@@ -320,6 +326,10 @@ public final class MiniTimerView extends StackPane {
                     || (this.currentState == TimerState.PAUSED
                             && this.controller.getStateBeforePause() == TimerState.WORK)) {
                 this.totalSeconds = this.controller.getSettings().getWorkDurationSeconds();
+            } else if (this.currentState == TimerState.LONG_BREAK
+                    || (this.currentState == TimerState.PAUSED
+                            && this.controller.getStateBeforePause() == TimerState.LONG_BREAK)) {
+                this.totalSeconds = this.controller.getSettings().getLongBreakDurationSeconds();
             } else {
                 this.totalSeconds = this.controller.getSettings().getBreakDurationSeconds();
             }
@@ -379,6 +389,12 @@ public final class MiniTimerView extends StackPane {
                         ? AppConstants.COLOR_TEXT_SECONDARY_DARK
                         : AppConstants.COLOR_TEXT_SECONDARY;
             }
+            case LONG_BREAK -> {
+                this.stateLabel.setText("Long Break");
+                tmpStateColor = this.darkMode
+                        ? AppConstants.COLOR_TEXT_SECONDARY_DARK
+                        : AppConstants.COLOR_TEXT_SECONDARY;
+            }
             case PAUSED -> {
                 this.stateLabel.setText("Paused");
                 tmpStateColor = this.darkMode
@@ -388,6 +404,8 @@ public final class MiniTimerView extends StackPane {
             case IDLE -> {
                 if (this.controller.getPendingSessionType() == TimerState.BREAK) {
                     this.stateLabel.setText("Break");
+                } else if (this.controller.getPendingSessionType() == TimerState.LONG_BREAK) {
+                    this.stateLabel.setText("Long Break");
                 } else {
                     this.stateLabel.setText("Focus");
                 }
@@ -410,7 +428,7 @@ public final class MiniTimerView extends StackPane {
      */
     private void updateButtonIcon() {
         switch (this.currentState) {
-            case WORK, BREAK -> {
+            case WORK, BREAK, LONG_BREAK -> {
                 this.startPauseButton.setText(ICON_PAUSE);
                 this.startPauseButton.setPadding(new Insets(0));
             }
@@ -448,7 +466,7 @@ public final class MiniTimerView extends StackPane {
     private void handleStartPauseClick() {
         switch (this.currentState) {
             case IDLE -> this.controller.startOrResume();
-            case WORK, BREAK -> this.controller.pause();
+            case WORK, BREAK, LONG_BREAK -> this.controller.pause();
             case PAUSED -> this.controller.resume();
         }
     }
@@ -486,12 +504,7 @@ public final class MiniTimerView extends StackPane {
                     1.0 - ((double) this.remainingSeconds / this.totalSeconds);
             double tmpSweepAngle = tmpProgress * 360;
 
-            String tmpArcColor;
-            if (this.currentState == TimerState.BREAK) {
-                tmpArcColor = AppConstants.COLOR_BREAK_BACKGROUND;
-            } else {
-                tmpArcColor = AppConstants.COLOR_PROGRESS_ACTIVE;
-            }
+            String tmpArcColor = AppConstants.COLOR_PROGRESS_ACTIVE;
 
             double tmpArcOpacity =
                     (this.currentState == TimerState.PAUSED) ? 0.5 : 1.0;

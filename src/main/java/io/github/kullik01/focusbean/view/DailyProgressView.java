@@ -45,6 +45,7 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.SVGPath;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
@@ -85,6 +86,10 @@ public final class DailyProgressView extends StackPane {
     private int completedTodayMinutes;
     private int yesterdayMinutes;
     private int streakDays;
+
+    // Round progress indicator
+    private final HBox roundIndicatorBox;
+    private final Label roundLabel;
     
     // State tracking for trigger
     private int previousCompletedMinutes = -1; // -1 indicates not initialized
@@ -158,11 +163,28 @@ public final class DailyProgressView extends StackPane {
         completedLabel.setFont(Font.font(FONT_FAMILY, FontWeight.NORMAL, 13));
         completedLabel.setTextFill(Color.web(AppConstants.COLOR_TEXT_SECONDARY));
 
+        // Round progress indicator (hidden by default)
+        roundLabel = new Label();
+        roundLabel.setFont(Font.font(FONT_FAMILY, FontWeight.NORMAL, 12));
+        roundLabel.setTextFill(Color.web(AppConstants.COLOR_TEXT_SECONDARY));
+
+        roundIndicatorBox = new HBox(6);
+        roundIndicatorBox.setAlignment(Pos.CENTER);
+        roundIndicatorBox.setPadding(new Insets(4, 0, 0, 0));
+        roundIndicatorBox.setVisible(false);
+        roundIndicatorBox.setManaged(false);
+
         // Content Layout (VBox)
         contentBox = new VBox(12);
         contentBox.setPadding(new Insets(15, 20, 15, 20));
         contentBox.setAlignment(Pos.TOP_CENTER);
-        contentBox.getChildren().addAll(headerBar, statsRow, completedLabel);
+        VBox innerContentBox = new VBox(12);
+        innerContentBox.setAlignment(Pos.CENTER);
+        innerContentBox.setPadding(new Insets(25, 0, 0, 0)); // Shift down to match left circle
+        innerContentBox.getChildren().addAll(statsRow, completedLabel, roundIndicatorBox);
+        VBox.setVgrow(innerContentBox, Priority.ALWAYS);
+
+        contentBox.getChildren().addAll(headerBar, innerContentBox);
         
         // Root Layout (StackPane)
         setAlignment(Pos.TOP_CENTER);
@@ -286,6 +308,58 @@ public final class DailyProgressView extends StackPane {
 
         // Redraw progress
         drawGoalProgress();
+    }
+
+    /**
+     * Updates the round progress indicator.
+     *
+     * <p>
+     * Shows coffee bean icons indicating the current round out of the total
+     * rounds before a long break. Filled beans represent completed rounds,
+     * outlined beans represent remaining rounds.
+     * </p>
+     *
+     * @param currentRound     the current round number (1-based)
+     * @param totalRounds      the total rounds before long break
+     * @param autoCycleEnabled whether auto-cycle mode is active
+     */
+    public void updateRoundProgress(int currentRound, int totalRounds, boolean autoCycleEnabled) {
+        roundIndicatorBox.setVisible(autoCycleEnabled);
+        roundIndicatorBox.setManaged(autoCycleEnabled);
+
+        if (!autoCycleEnabled) {
+            return;
+        }
+
+        roundIndicatorBox.getChildren().clear();
+
+        // Coffee bean SVG path (simplified bean shape)
+        String beanPath = "M12 2C9.5 2 7 4 7 7c0 1.5.5 3 1.5 4C7 12.5 6 14.5 6 17c0 3 2.5 5 6 5s6-2 6-5"
+                + "c0-2.5-1-4.5-2.5-6 1-1 1.5-2.5 1.5-4 0-3-2.5-5-5-5z";
+
+        for (int i = 1; i <= totalRounds; i++) {
+            SVGPath bean = new SVGPath();
+            bean.setContent(beanPath);
+            bean.setScaleX(0.6);
+            bean.setScaleY(0.6);
+
+            if (i < currentRound) {
+                // Completed round - filled brown
+                bean.setFill(Color.web(AppConstants.COLOR_PROGRESS_ACTIVE));
+            } else if (i == currentRound) {
+                // Current round - accent color
+                bean.setFill(Color.web(AppConstants.COLOR_ACCENT));
+            } else {
+                // Future round - light outline
+                bean.setFill(Color.web(AppConstants.COLOR_PROGRESS_RING));
+            }
+
+            roundIndicatorBox.getChildren().add(bean);
+        }
+
+        // Add round label
+        roundLabel.setText(String.format("Round %d/%d", currentRound, totalRounds));
+        roundIndicatorBox.getChildren().add(roundLabel);
     }
 
     /**

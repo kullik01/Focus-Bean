@@ -40,7 +40,9 @@ package io.github.kullik01.focusbean.model;
  * <ul>
  * <li>{@link #IDLE} → {@link #WORK} (user starts timer)</li>
  * <li>{@link #WORK} → {@link #BREAK} (work session completes)</li>
+ * <li>{@link #WORK} → {@link #LONG_BREAK} (final round completes in auto-cycle)</li>
  * <li>{@link #BREAK} → {@link #WORK} (break session completes)</li>
+ * <li>{@link #LONG_BREAK} → {@link #WORK} (long break completes)</li>
  * <li>Any state → {@link #PAUSED} (user pauses)</li>
  * <li>{@link #PAUSED} → previous state (user resumes)</li>
  * <li>Any state → {@link #IDLE} (user resets)</li>
@@ -65,6 +67,12 @@ public enum TimerState {
      * The user should rest during this state.
      */
     BREAK("Break"),
+
+    /**
+     * Timer is actively counting down a long break session.
+     * This occurs after completing a full set of Pomodoro rounds in auto-cycle mode.
+     */
+    LONG_BREAK("Long Break"),
 
     /**
      * Timer is temporarily paused mid-session.
@@ -99,7 +107,7 @@ public enum TimerState {
      *         {@code false} otherwise
      */
     public boolean isRunning() {
-        return this == WORK || this == BREAK;
+        return this == WORK || this == BREAK || this == LONG_BREAK;
     }
 
     /**
@@ -119,6 +127,6 @@ public enum TimerState {
      * @return {@code true} if currently in a break session
      */
     public boolean isBreakPhase() {
-        return this == BREAK;
+        return this == BREAK || this == LONG_BREAK;
     }
 }

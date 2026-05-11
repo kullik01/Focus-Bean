@@ -110,8 +110,8 @@ public final class TimerService {
         if (durationSeconds <= 0) {
             throw new IllegalArgumentException("durationSeconds must be positive, was: " + durationSeconds);
         }
-        if (state != TimerState.WORK && state != TimerState.BREAK) {
-            throw new IllegalArgumentException("state must be WORK or BREAK, was: " + state);
+        if (state != TimerState.WORK && state != TimerState.BREAK && state != TimerState.LONG_BREAK) {
+            throw new IllegalArgumentException("state must be WORK, BREAK, or LONG_BREAK, was: " + state);
         }
 
         timeline.stop();
