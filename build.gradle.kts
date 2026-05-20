@@ -63,6 +63,7 @@ tasks.withType<Test> {
     useJUnitPlatform()
     // Add JVM args to allow reflective access for testing and Gson serialization
     jvmArgs(
+        "-Dnet.bytebuddy.experimental=true",
         "--add-reads", "io.github.kullik01.focusbean=ALL-UNNAMED",
         "--add-opens", "java.base/java.lang=ALL-UNNAMED",
         "--add-opens", "java.base/java.lang.reflect=ALL-UNNAMED",

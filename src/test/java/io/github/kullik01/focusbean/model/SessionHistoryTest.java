@@ -51,7 +51,7 @@ class SessionHistoryTest {
     @BeforeEach
     void setUp() {
         history = new SessionHistory();
-        now = LocalDateTime.now();
+        now = LocalDate.now().atTime(12, 0);
     }
 
     @Test
