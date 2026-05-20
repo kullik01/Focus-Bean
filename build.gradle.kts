@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "io.github.kullik01"
-version = "1.2.0"
+version = "1.3.0"
 
 repositories {
     mavenCentral()
@@ -100,7 +100,7 @@ jlink {
         installerType = typeProp ?: if (isWindows) "exe" else "rpm"
         
         installerName = "FocusBean"
-        appVersion = "1.2.0"
+        appVersion = "1.3.0"
         
         // Application metadata with platform-appropriate icon
         imageOptions = listOf(

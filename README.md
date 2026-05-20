@@ -6,7 +6,7 @@
 [![JavaFX 25](https://img.shields.io/badge/JavaFX-25-4aa2c9?style=for-the-badge&logo=java&logoColor=white)](https://openjfx.io/)
 [![Gradle](https://img.shields.io/badge/Gradle-Kotlin_DSL-3f297f?style=for-the-badge&logo=gradle&logoColor=white)](https://docs.gradle.org/current/kotlin-dsl/)
 [![License](https://img.shields.io/badge/License-BSD_3--Clause-green?style=for-the-badge)](https://opensource.org/license/bsd-3-clause)
-[![Release](https://img.shields.io/badge/Release-v1.2.0-602718?style=for-the-badge&color=602718&logo=github)](https://github.com/kullik01/Focus-Bean/releases)
+[![Release](https://img.shields.io/badge/Release-v1.3.0-602718?style=for-the-badge&color=602718&logo=github)](https://github.com/kullik01/Focus-Bean/releases)
 
 </p>
 
@@ -39,14 +39,16 @@
 
 ## ✨ Features
 
-- **⏲️ Smart Timer**: Configurable work (1-900 min) and break sessions with visual circular countdown.
+- **⏲️ Smart Timer**: Configurable work (1–900 min) and break sessions with visual circular countdown.
+- **🔁 Auto-Cycling**: Automatic Pomodoro rounds with configurable cycles before a long break. Includes a `LONG_BREAK` session type and round progress indicator with coffee bean icons.
+- **📌 Mini Mode**: Compact always-on-top floating widget showing only the circular timer, time display, and play/pause button. Expand back with a button, double-click, or right-click menu.
 - **📊 Progress Tracking**: Daily goal tracking, streak monitor, and "yesterday vs. today" comparison.
 - **🎉 Goal Celebration**: Confetti animation with congratulations message when you reach your daily goal.
 - **📜 Session History**: Detailed logs of all work sessions featuring both table and chart views.
 - **🔔 Notifications**: Custom sound support (MP3/WAV) and system tray alerts for session transitions.
-- **🌙 Dark Mode**: Checkbox that allows to choose between a light or dark theme for more comfortable viewing.
+- **🌙 Dark Mode**: Toggle between a light or dark theme for comfortable viewing. All UI elements — including tooltips, hover effects, and the Mini Mode widget — respect the selected theme.
 - **🖥️ Modern UI**: Clean, coffee-themed design with custom window controls.
-- **⌨️ Shortcuts**: Space (Start/Pause), R (Reset), S (Settings).
+- **⌨️ Shortcuts**: Space (Start/Pause), R (Reset), S (Settings), M (Mini Mode).
 - **🗂️ Local Data**: All data is stored locally:
   - Windows: `%APPDATA%/FocusBean/`
   - Linux: `~/.local/share/FocusBean/`
