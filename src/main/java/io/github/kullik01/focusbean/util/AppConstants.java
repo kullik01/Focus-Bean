@@ -55,7 +55,23 @@ public final class AppConstants {
     public static final String APP_NAME = "Focus Bean";
 
     /** The application version string. */
-    public static final String APP_VERSION = "1.0.0";
+    public static final String APP_VERSION = "1.3.0";
+
+    /** The application author name. */
+    public static final String APP_AUTHOR = "Hannah Kullik";
+
+    /** A short description of the application. */
+    public static final String APP_DESCRIPTION =
+            "A modern, elegant timer application designed for deep work and productivity.";
+
+    /** The license type. */
+    public static final String APP_LICENSE = "BSD 3-Clause License";
+
+    /** The project GitHub URL. */
+    public static final String APP_GITHUB_URL = "https://github.com/kullik01/Focus-Bean";
+
+    /** The copyright year. */
+    public static final String APP_COPYRIGHT_YEAR = "2026";
 
     /** The application data directory name (used under %APPDATA%). */
     public static final String APP_DATA_DIR_NAME = "FocusBean";
@@ -110,6 +126,9 @@ public final class AppConstants {
 
     /** Label for the settings button/menu. */
     public static final String LABEL_SETTINGS = "Settings";
+
+    /** Label for the about button/tab. */
+    public static final String LABEL_ABOUT = "About";
 
     /** Label for the history button/tab. */
     public static final String LABEL_HISTORY = "History";

@@ -83,6 +83,7 @@ public final class MainView extends BorderPane {
     private final DailyProgressView dailyProgressView;
     private final HistoryView historyView;
     private final SettingsView settingsView;
+    private final AboutView aboutView;
     private final TabPane tabPane;
     private VBox focusCard;
     private VBox progressCard;
@@ -127,6 +128,7 @@ public final class MainView extends BorderPane {
         dailyProgressView = new DailyProgressView();
         historyView = new HistoryView();
         settingsView = new SettingsView(controller.getSettings(), controller.getNotificationService());
+        aboutView = new AboutView();
 
         // Create and configure cards
         VBox focusCard = createFocusSessionCard();
@@ -139,7 +141,7 @@ public final class MainView extends BorderPane {
         // Create side-by-side card container with transparent background
         HBox cardContainer = new HBox(15);
         cardContainer.setPadding(new Insets(20));
-        cardContainer.setAlignment(Pos.CENTER);
+        cardContainer.setAlignment(Pos.TOP_CENTER);
         cardContainer.setStyle("-fx-background-color: transparent;");
         cardContainer.getChildren().addAll(focusCard, progressCard);
 
@@ -153,7 +155,10 @@ public final class MainView extends BorderPane {
         Tab settingsTab = new Tab(AppConstants.LABEL_SETTINGS, settingsView);
         settingsTab.setClosable(false);
 
-        tabPane = new TabPane(timerTab, historyTab, settingsTab);
+        Tab aboutTab = new Tab(AppConstants.LABEL_ABOUT, aboutView);
+        aboutTab.setClosable(false);
+
+        tabPane = new TabPane(timerTab, historyTab, settingsTab, aboutTab);
         tabPane.setTabMinWidth(80);
         tabPane.getSelectionModel().select(timerTab);
 
@@ -373,6 +378,11 @@ public final class MainView extends BorderPane {
             historyView.applyTheme(darkMode);
         }
 
+        // Update AboutView
+        if (aboutView != null) {
+            aboutView.applyTheme(darkMode);
+        }
+
         this.darkMode = darkMode;
         this.updateButtonThemes();
     }
@@ -473,7 +483,7 @@ public final class MainView extends BorderPane {
                 AppConstants.COLOR_CARD_BORDER));
         focusCard.setMinWidth(380);
         focusCard.setMaxWidth(400);
-        focusCard.setMinHeight(340);
+        focusCard.setMinHeight(440);
         focusCard.getChildren().addAll(headerBar, timerContent);
 
         return focusCard;
@@ -495,7 +505,7 @@ public final class MainView extends BorderPane {
                 AppConstants.COLOR_CARD_BORDER));
         progressCard.setMinWidth(380);
         progressCard.setMaxWidth(400);
-        progressCard.setMinHeight(340);
+        progressCard.setMinHeight(440);
         VBox.setVgrow(dailyProgressView, Priority.ALWAYS);
         progressCard.getChildren().add(dailyProgressView);
 
@@ -992,6 +1002,15 @@ public final class MainView extends BorderPane {
      */
     public TabPane getTabPane() {
         return tabPane;
+    }
+
+    /**
+     * Returns the about view for external wiring.
+     *
+     * @return the about view
+     */
+    public AboutView getAboutView() {
+        return aboutView;
     }
 
     /**

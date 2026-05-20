@@ -222,6 +222,9 @@ public final class FocusBeanApplication extends Application {
 
         // Wire mini mode callbacks from MainView
         mainView.setOnMiniModeRequested(this::showMiniMode);
+
+        // Wire HostServices for opening URLs from the About tab
+        mainView.getAboutView().setUrlOpener(url -> getHostServices().showDocument(url));
     }
 
     /**

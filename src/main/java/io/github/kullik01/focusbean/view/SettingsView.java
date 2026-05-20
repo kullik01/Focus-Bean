@@ -637,8 +637,8 @@ public final class SettingsView extends VBox {
                 AppConstants.COLOR_CARD_BACKGROUND,
                 AppConstants.COLOR_CARD_BORDER));
         card.setPadding(new Insets(20));
-        card.setMinWidth(400);
-        card.setMaxWidth(770);
+        card.setMinWidth(780);
+        card.setMaxWidth(780);
 
         card.getChildren().addAll(
                 autoCycleHeaderLabel,
