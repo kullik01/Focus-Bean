@@ -1,26 +1,41 @@
 #!/bin/bash
 
 # Focus Bean Desktop Shortcut Installer
+# Creates application menu and desktop shortcuts that always point to the
+# installed location at ~/.focusbean, regardless of where this script is run from.
 
-# Determine the directory where this script is located (resolved to absolute path)
+INSTALL_DIR="$HOME/.focusbean"
+
+# Determine the release directory name from this script's parent folder
 SCRIPT_DIR="$(dirname "$(realpath "$0")")"
-ICON_PATH="$SCRIPT_DIR/logo.png"
-EXEC_PATH="$SCRIPT_DIR/bin/FocusBean"
+RELEASE_DIR_NAME="$(basename "$SCRIPT_DIR")"
+
+# Shortcuts always point to the installed copy
+INSTALLED_DIR="$INSTALL_DIR/$RELEASE_DIR_NAME"
+ICON_PATH="$INSTALLED_DIR/logo.png"
+EXEC_PATH="$INSTALLED_DIR/bin/FocusBean"
 MENU_DESKTOP_FILE="$HOME/.local/share/applications/FocusBean.desktop"
 
 # Detect the user's desktop directory (respects localized folder names)
 DESKTOP_DIR="$(xdg-user-dir DESKTOP 2>/dev/null || echo "$HOME/Desktop")"
 DESKTOP_DESKTOP_FILE="$DESKTOP_DIR/FocusBean.desktop"
 
-# Check if icon exists
-if [ ! -f "$ICON_PATH" ]; then
-    echo "Error: logo.png not found in $SCRIPT_DIR"
+# Check that the application is installed
+if [ ! -d "$INSTALLED_DIR" ]; then
+    echo "Error: FocusBean is not installed at $INSTALLED_DIR"
+    echo "Please run install.sh first."
     exit 1
 fi
 
-# Check if executable exists
+# Check if icon exists at the installed location
+if [ ! -f "$ICON_PATH" ]; then
+    echo "Error: logo.png not found in $INSTALLED_DIR"
+    exit 1
+fi
+
+# Check if executable exists at the installed location
 if [ ! -f "$EXEC_PATH" ]; then
-    echo "Error: bin/FocusBean not found in $SCRIPT_DIR"
+    echo "Error: bin/FocusBean not found in $INSTALLED_DIR"
     exit 1
 fi
 
