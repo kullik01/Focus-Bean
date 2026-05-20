@@ -157,7 +157,7 @@ tasks.named("jlink") {
             copy {
                 from("src/main/resources/io/github/kullik01/focusbean/view/logo_linux.png")
                 into(imageDirPath)
-                rename { "icon.png" }
+                rename { "logo.png" }
             }
         }
     }
