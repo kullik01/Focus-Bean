@@ -125,7 +125,6 @@ public final class AboutView extends VBox {
         card.setPadding(new Insets(25));
         card.setMinWidth(380);
         card.setMaxWidth(400);
-        card.setMinHeight(440);
         card.setAlignment(Pos.TOP_CENTER);
 
         // Application name
@@ -207,7 +206,6 @@ public final class AboutView extends VBox {
         card.setPadding(new Insets(25));
         card.setMinWidth(380);
         card.setMaxWidth(400);
-        card.setMinHeight(440);
         card.setAlignment(Pos.TOP_LEFT);
 
         shortcutsTitleLabel = new Label("\u2328 Keyboard Shortcuts");

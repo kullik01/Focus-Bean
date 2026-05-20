@@ -145,8 +145,14 @@ public final class MainView extends BorderPane {
         cardContainer.setStyle("-fx-background-color: transparent;");
         cardContainer.getChildren().addAll(focusCard, progressCard);
 
+        // Wrap cardContainer in a transparent VBox so it sits at the top and sizes compact to content, matching others
+        VBox timerLayout = new VBox();
+        timerLayout.setAlignment(Pos.TOP_CENTER);
+        timerLayout.setStyle("-fx-background-color: transparent;");
+        timerLayout.getChildren().add(cardContainer);
+
         // Create tabs
-        Tab timerTab = new Tab("Timer", cardContainer);
+        Tab timerTab = new Tab("Timer", timerLayout);
         timerTab.setClosable(false);
 
         Tab historyTab = new Tab(AppConstants.LABEL_HISTORY, historyView);
@@ -454,7 +460,7 @@ public final class MainView extends BorderPane {
     private VBox createFocusSessionCard() {
         // Header
         focusHeaderLabel = new Label("Focus session");
-        focusHeaderLabel.setFont(Font.font(FONT_FAMILY, FontWeight.NORMAL, 14));
+        focusHeaderLabel.setFont(Font.font(FONT_FAMILY, FontWeight.BOLD, 16));
         focusHeaderLabel.setTextFill(javafx.scene.paint.Color.web(AppConstants.COLOR_TEXT_PRIMARY));
 
         Button settingsButton = createSettingsButton();
@@ -464,13 +470,13 @@ public final class MainView extends BorderPane {
 
         HBox headerBar = new HBox();
         headerBar.setAlignment(Pos.CENTER_LEFT);
-        headerBar.setPadding(new Insets(15, 15, 0, 15));
+        headerBar.setPadding(new Insets(20, 20, 0, 20));
         headerBar.getChildren().addAll(focusHeaderLabel, spacer, createMiniModeButton(), settingsButton);
 
         // Timer content - includes timer display and controls within the card
         VBox timerContent = new VBox(0);
         timerContent.setAlignment(Pos.TOP_CENTER);
-        timerContent.setPadding(new Insets(20, 20, 100, 20));
+        timerContent.setPadding(new Insets(20));
         VBox.setVgrow(timerContent, Priority.ALWAYS);
         Region timerSpacer = new Region();
         VBox.setVgrow(timerSpacer, Priority.ALWAYS);
@@ -483,7 +489,6 @@ public final class MainView extends BorderPane {
                 AppConstants.COLOR_CARD_BORDER));
         focusCard.setMinWidth(380);
         focusCard.setMaxWidth(400);
-        focusCard.setMinHeight(440);
         focusCard.getChildren().addAll(headerBar, timerContent);
 
         return focusCard;
@@ -505,7 +510,6 @@ public final class MainView extends BorderPane {
                 AppConstants.COLOR_CARD_BORDER));
         progressCard.setMinWidth(380);
         progressCard.setMaxWidth(400);
-        progressCard.setMinHeight(440);
         VBox.setVgrow(dailyProgressView, Priority.ALWAYS);
         progressCard.getChildren().add(dailyProgressView);
 

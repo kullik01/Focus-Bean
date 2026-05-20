@@ -112,7 +112,7 @@ public final class DailyProgressView extends StackPane {
 
         // Header
         headerLabel = new Label("Daily progress");
-        headerLabel.setFont(Font.font(FONT_FAMILY, FontWeight.NORMAL, 14));
+        headerLabel.setFont(Font.font(FONT_FAMILY, FontWeight.BOLD, 16));
         headerLabel.setTextFill(Color.web(AppConstants.COLOR_TEXT_PRIMARY));
 
         Region spacer = new Region();
@@ -179,7 +179,7 @@ public final class DailyProgressView extends StackPane {
 
         // Content Layout (VBox)
         contentBox = new VBox(12);
-        contentBox.setPadding(new Insets(15, 20, 100, 20));
+        contentBox.setPadding(new Insets(20));
         contentBox.setAlignment(Pos.TOP_CENTER);
         VBox innerContentBox = new VBox(12);
         innerContentBox.setAlignment(Pos.TOP_CENTER);
