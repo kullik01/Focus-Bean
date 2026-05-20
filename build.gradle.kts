@@ -144,9 +144,14 @@ tasks.named("jlink") {
                 from("src/main/scripts/linux/install_shortcut.sh")
                 into(imageDirPath)
             }
+            copy {
+                from("src/main/scripts/linux/install.sh")
+                into(imageDirPath)
+            }
             // Set permissions using Ant since fileMode in copy spec can be finicky in this context
             ant.withGroovyBuilder {
                 "chmod"("file" to File(imageDirPath, "install_shortcut.sh"), "perm" to "755")
+                "chmod"("file" to File(imageDirPath, "install.sh"), "perm" to "755")
             }
             
             copy {

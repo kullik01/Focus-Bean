@@ -80,17 +80,20 @@ sudo zypper install -y libgtk-3-0 libasound2 gstreamer-plugins-base gstreamer-pl
 
 #### Install & Run
 1. **Download**: Get `FocusBean-{version}-Linux.zip` from the **[Releases](../../releases)** page.
-2. **Install**: Open a terminal and run the following to install to `~/.focusbean`:
+2. **Extract**: Unzip the archive:
    ```bash
-   mkdir -p ~/.focusbean
-   unzip FocusBean-{version}-Linux.zip -d ~/.focusbean
+   unzip FocusBean-{version}-Linux.zip
    ```
-3. **Run**:
+3. **Install**: Run the installer. It will automatically remove any previous version from `~/.focusbean` and install the new one:
+   ```bash
+   sh FocusBean-{version}/install.sh
+   ```
+4. **Run**:
    ```bash
    sh ~/.focusbean/FocusBean-{version}/bin/FocusBean
    ```
 
-4. **Add to Desktop (Optional)**:
+5. **Add to Desktop (Optional)**:
    To add Focus Bean to your system menu and launcher, run:
    ```bash
    sh ~/.focusbean/FocusBean-{version}/install_shortcut.sh
