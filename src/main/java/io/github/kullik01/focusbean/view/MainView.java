@@ -92,7 +92,8 @@ public final class MainView extends BorderPane {
     private Region windowBorderOverlay;
     private boolean darkMode;
 
-    private Button settingsButton;
+    /** The settings buttons present on the UI. */
+    private final java.util.List<Button> settingsButtons = new java.util.ArrayList<>();
     private Button miniModeButton;
 
     private Runnable onMiniModeRequested;
@@ -414,12 +415,12 @@ public final class MainView extends BorderPane {
                 -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 4, 0, 0, 1);
                 """, tmpTooltipBg, tmpTooltipText);
 
-        if (this.settingsButton != null) {
+        for (Button tmpBtn : this.settingsButtons) {
             javafx.scene.control.Tooltip tmpSettingsTooltip =
                     new javafx.scene.control.Tooltip("Open Settings");
             tmpSettingsTooltip.setShowDelay(new javafx.util.Duration(0));
             tmpSettingsTooltip.setStyle(tmpTooltipStyle);
-            this.settingsButton.setTooltip(tmpSettingsTooltip);
+            tmpBtn.setTooltip(tmpSettingsTooltip);
         }
 
         if (this.miniModeButton != null) {
@@ -524,9 +525,9 @@ public final class MainView extends BorderPane {
      */
     private Button createSettingsButton() {
         // Create a clean outline-style gear icon using SVG
-        javafx.scene.shape.SVGPath icon = new javafx.scene.shape.SVGPath();
+        javafx.scene.shape.SVGPath tmpIcon = new javafx.scene.shape.SVGPath();
         // Clean gear/cog icon path (outline style matching the reference)
-        icon.setContent("M12 15.5A3.5 3.5 0 0 1 8.5 12 3.5 3.5 0 0 1 12 8.5a3.5 3.5 0 0 1 3.5 3.5 "
+        tmpIcon.setContent("M12 15.5A3.5 3.5 0 0 1 8.5 12 3.5 3.5 0 0 1 12 8.5a3.5 3.5 0 0 1 3.5 3.5 "
                 + "3.5 3.5 0 0 1-3.5 3.5m7.43-2.53c.04-.32.07-.64.07-.97 0-.33-.03-.66-.07-1l2.11-1.63"
                 + "c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.31-.61-.22l-2.49 1c-.52-.39-1.06-.73"
                 + "-1.69-.98l-.37-2.65A.506.506 0 0 0 14 2h-4c-.25 0-.46.18-.5.42l-.37 2.65c-.63.25"
@@ -535,23 +536,23 @@ public final class MainView extends BorderPane {
                 + ".22.39.3.61.22l2.49-1.01c.52.4 1.06.74 1.69.99l.37 2.65c.04.24.25.42.5.42h4c.25 0 "
                 + ".46-.18.5-.42l.37-2.65c.63-.26 1.17-.59 1.69-.99l2.49 1.01c.22.08.49 0 .61-.22l2-3.46"
                 + "c.12-.22.07-.49-.12-.64l-2.11-1.66Z");
-        icon.setFill(javafx.scene.paint.Color.web(AppConstants.COLOR_ACCENT));
-        icon.setScaleX(0.7);
-        icon.setScaleY(0.7);
+        tmpIcon.setFill(javafx.scene.paint.Color.web(AppConstants.COLOR_ACCENT));
+        tmpIcon.setScaleX(0.7);
+        tmpIcon.setScaleY(0.7);
 
-        this.settingsButton = new Button();
-        this.settingsButton.setGraphic(icon);
-        this.settingsButton.setStyle("""
+        Button tmpButton = new Button();
+        tmpButton.setGraphic(tmpIcon);
+        tmpButton.setStyle("""
                 -fx-background-color: transparent;
                 -fx-cursor: hand;
                 -fx-padding: 2 6 2 6;
                 """);
 
-        this.settingsButton.setOnMouseEntered(e -> {
+        tmpButton.setOnMouseEntered(e -> {
             String tmpHoverBg = this.darkMode
                     ? "rgba(255, 255, 255, 0.08)"
                     : "rgba(160, 82, 45, 0.10)";
-            this.settingsButton.setStyle(String.format("""
+            tmpButton.setStyle(String.format("""
                     -fx-background-color: %s;
                     -fx-background-radius: 6;
                     -fx-cursor: hand;
@@ -559,17 +560,18 @@ public final class MainView extends BorderPane {
                     """, tmpHoverBg));
         });
 
-        this.settingsButton.setOnMouseExited(e -> {
-            this.settingsButton.setStyle("""
+        tmpButton.setOnMouseExited(e -> {
+            tmpButton.setStyle("""
                     -fx-background-color: transparent;
                     -fx-cursor: hand;
                     -fx-padding: 2 6 2 6;
                     """);
         });
 
-        this.settingsButton.setOnAction(e -> tabPane.getSelectionModel().select(2));
+        tmpButton.setOnAction(e -> tabPane.getSelectionModel().select(2));
 
-        return this.settingsButton;
+        this.settingsButtons.add(tmpButton);
+        return tmpButton;
     }
 
     /**

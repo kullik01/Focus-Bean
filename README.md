@@ -47,8 +47,9 @@
 - **📜 Session History**: Detailed logs of all work sessions featuring both table and chart views.
 - **🔔 Notifications**: Custom sound support (MP3/WAV) and system tray alerts for session transitions.
 - **🌙 Dark Mode**: Toggle between a light or dark theme for comfortable viewing. All UI elements — including tooltips, hover effects, and the Mini Mode widget — respect the selected theme.
+- **ℹ️ About Tab**: A dedicated panel containing application metadata, licensing information, technology stack details, local data paths, and an interactive keyboard shortcuts guide.
 - **🖥️ Modern UI**: Clean, coffee-themed design with custom window controls.
-- **⌨️ Shortcuts**: Space (Start/Pause), R (Reset), S (Settings), M (Mini Mode).
+- **⌨️ Shortcuts**: Space (Start/Pause), R (Reset), S (Settings), H (Toggle History), M (Mini Mode).
 - **🗂️ Local Data**: All data is stored locally:
   - Windows: `%APPDATA%/FocusBean/`
   - Linux: `~/.local/share/FocusBean/`
