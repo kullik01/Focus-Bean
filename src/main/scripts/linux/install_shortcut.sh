@@ -10,7 +10,7 @@ DESKTOP_FILE="$HOME/.local/share/applications/FocusBean.desktop"
 
 # Check if icon exists
 if [ ! -f "$ICON_PATH" ]; then
-    echo "Error: icon.png not found in $SCRIPT_DIR"
+    echo "Error: logo.png not found in $SCRIPT_DIR"
     exit 1
 fi
 
