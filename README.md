@@ -100,6 +100,7 @@ sudo zypper install -y libgtk-3-0 libasound2 gstreamer-plugins-base gstreamer-pl
    sh ~/.focusbean/FocusBean-{version}/install_shortcut.sh
    ```
 
+
 ---
 
 ## <a id="build"></a> 🏗️ Build from Source (Optional)

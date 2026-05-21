@@ -98,7 +98,7 @@ jlink {
         
         // Allow overriding installer type via property (e.g. -PinstallerType=app-image)
         val typeProp = project.findProperty("installerType") as? String
-        installerType = typeProp ?: if (isWindows) "exe" else "rpm"
+        installerType = typeProp ?: if (isWindows) "exe" else "app-image"
         
         installerName = "FocusBean"
         appVersion = "1.3.0"
