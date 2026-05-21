@@ -480,9 +480,14 @@ public final class MainView extends BorderPane {
         timerContent.setAlignment(Pos.TOP_CENTER);
         timerContent.setPadding(new Insets(20));
         VBox.setVgrow(timerContent, Priority.ALWAYS);
+
         Region timerSpacer = new Region();
         VBox.setVgrow(timerSpacer, Priority.ALWAYS);
-        timerContent.getChildren().addAll(timerDisplay, timerSpacer, controlPanel);
+
+        Region bottomSpacer = new Region();
+        bottomSpacer.setMinHeight(50);
+
+        timerContent.getChildren().addAll(timerDisplay, timerSpacer, controlPanel, bottomSpacer);
 
         // Card container
         focusCard = new VBox();

@@ -181,12 +181,20 @@ public final class DailyProgressView extends StackPane {
         contentBox = new VBox(12);
         contentBox.setPadding(new Insets(20));
         contentBox.setAlignment(Pos.TOP_CENTER);
-        VBox innerContentBox = new VBox(12);
+        VBox innerContentBox = new VBox(0);
         innerContentBox.setAlignment(Pos.TOP_CENTER);
         innerContentBox.setPadding(new Insets(10, 0, 0, 0));
+
+        // Add explicit margin since VBox spacing is now 0
+        VBox.setMargin(completedLabel, new Insets(12, 0, 0, 0));
+
         Region bottomSpacer = new Region();
         VBox.setVgrow(bottomSpacer, Priority.ALWAYS);
-        innerContentBox.getChildren().addAll(statsRow, completedLabel, bottomSpacer, roundIndicatorBox);
+
+        Region pushUpSpacer = new Region();
+        pushUpSpacer.setMinHeight(50);
+
+        innerContentBox.getChildren().addAll(statsRow, completedLabel, bottomSpacer, roundIndicatorBox, pushUpSpacer);
         VBox.setVgrow(innerContentBox, Priority.ALWAYS);
 
         contentBox.getChildren().addAll(headerBar, innerContentBox);
