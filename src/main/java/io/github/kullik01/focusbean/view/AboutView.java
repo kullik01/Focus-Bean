@@ -109,6 +109,9 @@ public final class AboutView extends VBox {
         HBox.setHgrow(shortcutsCard, Priority.ALWAYS);
         cardsRow.getChildren().addAll(infoCard, shortcutsCard);
 
+        // Make cards row stretch vertically to fill the tab content area
+        VBox.setVgrow(cardsRow, Priority.ALWAYS);
+
         getChildren().add(cardsRow);
     }
 

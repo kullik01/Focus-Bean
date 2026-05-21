@@ -146,10 +146,11 @@ public final class MainView extends BorderPane {
         cardContainer.setStyle("-fx-background-color: transparent;");
         cardContainer.getChildren().addAll(focusCard, progressCard);
 
-        // Wrap cardContainer in a transparent VBox so it sits at the top and sizes compact to content, matching others
+        // Wrap cardContainer in a VBox that grows to fill the tab
         VBox timerLayout = new VBox();
         timerLayout.setAlignment(Pos.TOP_CENTER);
         timerLayout.setStyle("-fx-background-color: transparent;");
+        VBox.setVgrow(cardContainer, Priority.ALWAYS);
         timerLayout.getChildren().add(cardContainer);
 
         // Create tabs
