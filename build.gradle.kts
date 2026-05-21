@@ -118,7 +118,8 @@ jlink {
             listOf(
                 "--win-dir-chooser",
                 "--win-menu",
-                "--win-shortcut"
+                "--win-shortcut",
+                "--win-upgrade-uuid", "61f885f8-8f83-4a3d-82d8-5f2122650f92"
             )
         } else {
             val baseOptions = mutableListOf(
@@ -160,6 +161,12 @@ tasks.named("jlink") {
                 into(imageDirPath)
                 rename { "logo.png" }
             }
+        } else {
+            // Copy Windows setup script
+            copy {
+                from("src/main/scripts/windows/install_shortcut.bat")
+                into(imageDirPath)
+            }
         }
     }
 }
@@ -169,8 +176,14 @@ tasks.register<Zip>("windowsAppImageZip") {
     dependsOn("jpackageImage")
     onlyIf { osName.contains("win") }
     
-    from(layout.buildDirectory.dir("jpackage/FocusBean"))
-    into("FocusBean-${version}")
+    from(layout.buildDirectory.dir("jpackage/FocusBean")) {
+        into("FocusBean-${version}")
+    }
+    
+    from("src/main/scripts/windows/install_shortcut.bat") {
+        into("FocusBean-${version}")
+    }
+    
     archiveFileName.set("FocusBean-${version}-Windows.zip")
     destinationDirectory.set(layout.buildDirectory.dir("distributions"))
 }

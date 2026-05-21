@@ -60,8 +60,11 @@
 
 ### Windows
 1. **Download**: Get `FocusBean-{version}-Windows.zip` from the **[Releases](../../releases)** page.
-2. **Setup**: Extract the file to your desired location.
-3. **Run**: Double-click `FocusBean.exe` inside the `FocusBean-{version}` directory.
+2. **Extract**: Unzip the archive (e.g., to your Downloads folder).
+3. **Install**: Double-click **`install_shortcut.bat`** inside the `FocusBean-{version}` directory. This will:
+   - Create or update your **Desktop shortcut** to point to the new version.
+   - Automatically **clean up** older `FocusBean-*` folders from your Downloads.
+4. **Run**: Double-click the **Focus Bean** icon on your Desktop or `FocusBean.exe` in the folder.
 
 ### Linux
 *Focus Bean allows for a clean, user-local installation in your home directory.*
