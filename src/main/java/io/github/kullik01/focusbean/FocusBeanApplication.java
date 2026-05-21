@@ -63,13 +63,20 @@ import java.util.logging.Logger;
  */
 public final class FocusBeanApplication extends Application {
 
+    /** Logger for this class. */
     private static final Logger LOGGER = Logger.getLogger(FocusBeanApplication.class.getName());
 
+    /** The controller managing the application state and logic. */
     private TimerController controller;
+    /** The service responsible for persisting and loading data. */
     private PersistenceService persistenceService;
+    /** The primary stage for the main application window. */
     private Stage primaryStage;
+    /** The secondary stage for the mini floating timer. */
     private Stage miniStage;
+    /** The main view containing all application tabs. */
     private MainView mainView;
+    /** The compact view for the mini floating timer. */
     private MiniTimerView miniTimerView;
 
     /**
@@ -83,9 +90,9 @@ public final class FocusBeanApplication extends Application {
 
         try {
             initializeApplication(primaryStage);
-        } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Failed to start application", e);
-            throw e;
+        } catch (Exception exception) {
+            LOGGER.log(Level.SEVERE, "Failed to start application", exception);
+            throw exception;
         }
     }
 
@@ -102,9 +109,9 @@ public final class FocusBeanApplication extends Application {
                 com.sun.jna.platform.win32.Shell32.INSTANCE.SetCurrentProcessExplicitAppUserModelID(
                         new com.sun.jna.WString("Focus Bean"));
                 LOGGER.info("Set AppUserModelID to io.github.kullik01.focusbean");
-            } catch (Throwable t) {
+            } catch (Throwable throwable) {
                 // Use Throwable to catch potential linkage errors if JNA fails to load
-                LOGGER.log(Level.WARNING, "Failed to set AppUserModelID", t);
+                LOGGER.log(Level.WARNING, "Failed to set AppUserModelID", throwable);
             }
         }
 
@@ -204,8 +211,8 @@ public final class FocusBeanApplication extends Application {
                     primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("/logo.png")));
                 }
             }
-        } catch (Exception e) {
-            LOGGER.log(Level.WARNING, "Failed to load application icon", e);
+        } catch (Exception exception) {
+            LOGGER.log(Level.WARNING, "Failed to load application icon", exception);
         }
 
         // Prevent closing unless explicitly requested via the close button
@@ -240,13 +247,13 @@ public final class FocusBeanApplication extends Application {
             return;
         }
 
-        double tmpMainX = this.primaryStage.getX();
-        double tmpMainY = this.primaryStage.getY();
+        double mainX = this.primaryStage.getX();
+        double mainY = this.primaryStage.getY();
 
         this.primaryStage.hide();
 
-        boolean tmpIsDark = this.controller.getSettings().isDarkModeEnabled();
-        this.miniTimerView = new MiniTimerView(this.controller, tmpIsDark);
+        boolean isDark = this.controller.getSettings().isDarkModeEnabled();
+        this.miniTimerView = new MiniTimerView(this.controller, isDark);
 
         this.miniTimerView.setOnShowFullWindow(this::hideMiniMode);
         this.miniTimerView.setOnCloseMiniMode(this::hideMiniMode);
@@ -256,51 +263,51 @@ public final class FocusBeanApplication extends Application {
             }
         });
 
-        javafx.scene.shape.Rectangle tmpClip =
+        javafx.scene.shape.Rectangle clip =
                 new javafx.scene.shape.Rectangle();
-        tmpClip.setArcWidth(40);
-        tmpClip.setArcHeight(40);
-        tmpClip.widthProperty().bind(this.miniTimerView.widthProperty());
-        tmpClip.heightProperty().bind(this.miniTimerView.heightProperty());
-        this.miniTimerView.setClip(tmpClip);
+        clip.setArcWidth(40);
+        clip.setArcHeight(40);
+        clip.widthProperty().bind(this.miniTimerView.widthProperty());
+        clip.heightProperty().bind(this.miniTimerView.heightProperty());
+        this.miniTimerView.setClip(clip);
 
-        String tmpBorderColor = tmpIsDark
+        String borderColor = isDark
                 ? AppConstants.COLOR_CARD_BORDER_DARK
                 : AppConstants.COLOR_CARD_BORDER;
-        Region tmpMiniBorderOverlay = new Region();
-        tmpMiniBorderOverlay.setMouseTransparent(true);
-        tmpMiniBorderOverlay.setStyle(String.format("""
+        Region miniBorderOverlay = new Region();
+        miniBorderOverlay.setMouseTransparent(true);
+        miniBorderOverlay.setStyle(String.format("""
                 -fx-background-color: transparent;
                 -fx-border-color: %s;
                 -fx-border-width: 1;
                 -fx-border-radius: 20;
-                """, tmpBorderColor));
+                """, borderColor));
 
-        StackPane tmpMiniRoot =
-                new StackPane(this.miniTimerView, tmpMiniBorderOverlay);
-        tmpMiniRoot.setStyle("-fx-background-color: transparent;");
+        StackPane miniRoot =
+                new StackPane(this.miniTimerView, miniBorderOverlay);
+        miniRoot.setStyle("-fx-background-color: transparent;");
 
-        Scene tmpMiniScene = new Scene(tmpMiniRoot);
-        tmpMiniScene.setFill(javafx.scene.paint.Color.TRANSPARENT);
+        Scene miniScene = new Scene(miniRoot);
+        miniScene.setFill(javafx.scene.paint.Color.TRANSPARENT);
 
-        tmpMiniScene.setOnKeyPressed(this.miniTimerView::handleKeyPress);
+        miniScene.setOnKeyPressed(this.miniTimerView::handleKeyPress);
 
         this.miniStage = new Stage();
         this.miniStage.initStyle(StageStyle.TRANSPARENT);
         this.miniStage.setTitle(AppConstants.APP_NAME + " - Mini");
-        this.miniStage.setScene(tmpMiniScene);
+        this.miniStage.setScene(miniScene);
         this.miniStage.setResizable(false);
         this.miniStage.setAlwaysOnTop(true);
 
-        this.miniStage.setX(tmpMainX + 50);
-        this.miniStage.setY(tmpMainY + 50);
+        this.miniStage.setX(mainX + 50);
+        this.miniStage.setY(mainY + 50);
 
         try {
-            String tmpLogoPath =
+            String logoPath =
                     "/io/github/kullik01/focusbean/view/logo.png";
-            if (this.getClass().getResource(tmpLogoPath) != null) {
+            if (this.getClass().getResource(logoPath) != null) {
                 this.miniStage.getIcons().add(new Image(
-                        this.getClass().getResourceAsStream(tmpLogoPath)));
+                        this.getClass().getResourceAsStream(logoPath)));
             } else if (this.getClass().getResource("/logo.png") != null) {
                 this.miniStage.getIcons().add(new Image(
                         this.getClass().getResourceAsStream("/logo.png")));
@@ -310,21 +317,21 @@ public final class FocusBeanApplication extends Application {
                     "Failed to load mini window icon", exception);
         }
 
-        final double[] tmpDragOffset = new double[2];
-        tmpMiniRoot.setOnMousePressed(event -> {
+        final double[] dragOffset = new double[2];
+        miniRoot.setOnMousePressed(event -> {
             if (event.getButton()
                     == javafx.scene.input.MouseButton.PRIMARY) {
-                tmpDragOffset[0] = event.getSceneX();
-                tmpDragOffset[1] = event.getSceneY();
+                dragOffset[0] = event.getSceneX();
+                dragOffset[1] = event.getSceneY();
             }
         });
-        tmpMiniRoot.setOnMouseDragged(event -> {
+        miniRoot.setOnMouseDragged(event -> {
             if (event.getButton()
                     == javafx.scene.input.MouseButton.PRIMARY) {
                 this.miniStage.setX(
-                        event.getScreenX() - tmpDragOffset[0]);
+                        event.getScreenX() - dragOffset[0]);
                 this.miniStage.setY(
-                        event.getScreenY() - tmpDragOffset[1]);
+                        event.getScreenY() - dragOffset[1]);
             }
         });
 

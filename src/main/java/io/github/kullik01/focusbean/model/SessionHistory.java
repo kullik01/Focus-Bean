@@ -54,6 +54,7 @@ import java.util.stream.Collectors;
  */
 public final class SessionHistory {
 
+    /** The internal list of recorded timer sessions. */
     private final List<TimerSession> sessions;
 
     /**

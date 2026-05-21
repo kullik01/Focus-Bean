@@ -65,9 +65,12 @@ import java.util.logging.Logger;
  */
 public final class MainView extends BorderPane {
 
+    /** Logger for this class. */
     private static final Logger LOGGER = Logger.getLogger(MainView.class.getName());
+    /** The font family used across the main view. */
     private static final String FONT_FAMILY = "'Segoe UI', 'Helvetica Neue', sans-serif";
 
+    /** CSS template for card-style layout components. */
     private static final String STYLE_CARD = """
             -fx-background-color: %s;
             -fx-background-radius: 20;
@@ -77,41 +80,62 @@ public final class MainView extends BorderPane {
             -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 4, 0, 0, 1);
             """;
 
+    /** The controller managing timer logic and state. */
     private final TimerController controller;
+    /** The view displaying the countdown timer and session status. */
     private final TimerDisplayView timerDisplay;
+    /** The view containing timer control buttons (start, pause, etc.). */
     private final ControlPanelView controlPanel;
+    /** The view displaying daily progress and goals. */
     private final DailyProgressView dailyProgressView;
+    /** The view displaying session history statistics. */
     private final HistoryView historyView;
+    /** The view for configuring application settings. */
     private final SettingsView settingsView;
+    /** The view displaying application information. */
     private final AboutView aboutView;
+    /** The tab pane used for navigation between different views. */
     private final TabPane tabPane;
+    /** The container for the focus session timer card. */
     private VBox focusCard;
+    /** The container for the daily progress card. */
     private VBox progressCard;
+    /** The header label for the focus session card. */
     private Label focusHeaderLabel;
 
+    /** The region used for drawing the window border. */
     private Region windowBorderOverlay;
+    /** Flag indicating if dark mode is currently active. */
     private boolean darkMode;
 
     /** The settings buttons present on the UI. */
     private final java.util.List<Button> settingsButtons = new java.util.ArrayList<>();
+    /** The button for switching to mini mode. */
     private Button miniModeButton;
 
+    /** Callback invoked when mini mode is requested by the user. */
     private Runnable onMiniModeRequested;
     
-    // Celebration components
+    /** The canvas used for the confetti celebration animation. */
     private javafx.scene.canvas.Canvas celebrationCanvas;
+    /** The timer managing the celebration animation loop. */
     private javafx.animation.AnimationTimer celebrationTimer;
+    /** The list of active confetti particles for the celebration. */
     private java.util.List<ConfettiParticle> particles;
+    /** The label displaying a congratulatory message. */
     private Label congratsLabel;
-    // Track elapsed time for fade effects
+    /** The elapsed time in seconds since the celebration started. */
     private double celebrationElapsedSeconds = 0;
-    // Heavy confetti coverage
+    /** The total number of confetti particles to generate. */
     private static final int PARTICLE_COUNT = 1500;
+    /** The total duration of the celebration animation in seconds. */
     private static final double CELEBRATION_DURATION_SECONDS = 15.0;
-    // Fade in/out duration
+    /** The duration of the fade-in and fade-out effects in seconds. */
     private static final double FADE_DURATION_SECONDS = 2.0;
+    /** The target frames per second for the animation. */
     private static final double FRAMES_PER_SECOND = 60.0;
 
+    /** Flag indicating if a tab switch is happening automatically after a settings save. */
     private boolean isSwitchingAfterSave = false;
 
     /**
@@ -132,8 +156,8 @@ public final class MainView extends BorderPane {
         aboutView = new AboutView();
 
         // Create and configure cards
-        VBox focusCard = createFocusSessionCard();
-        VBox progressCard = createDailyProgressCard();
+        focusCard = createFocusSessionCard();
+        progressCard = createDailyProgressCard();
 
         // Make cards grow equally
         HBox.setHgrow(focusCard, Priority.ALWAYS);
@@ -175,7 +199,7 @@ public final class MainView extends BorderPane {
         final boolean[] handlingTabChange = { false };
 
         // Update views when tab is selected, with unsaved settings check
-        tabPane.getSelectionModel().selectedItemProperty().addListener((obs, oldTab, newTab) -> {
+        tabPane.getSelectionModel().selectedItemProperty().addListener((observable, oldTab, newTab) -> {
             if (handlingTabChange[0]) {
                 // Skip if we're programmatically reverting
                 return;
@@ -400,13 +424,13 @@ public final class MainView extends BorderPane {
      * to match the current theme.
      */
     private void updateButtonThemes() {
-        String tmpTooltipBg = this.darkMode
+        String tooltipBackground = this.darkMode
                 ? AppConstants.COLOR_CARD_BACKGROUND_DARK
                 : AppConstants.COLOR_CARD_BACKGROUND;
-        String tmpTooltipText = this.darkMode
+        String tooltipTextColor = this.darkMode
                 ? AppConstants.COLOR_TEXT_PRIMARY_DARK
                 : AppConstants.COLOR_TEXT_PRIMARY;
-        String tmpTooltipStyle = String.format("""
+        String tooltipStyle = String.format("""
                 -fx-font-family: 'Segoe UI', sans-serif;
                 -fx-font-size: 12px;
                 -fx-background-color: %s;
@@ -414,22 +438,22 @@ public final class MainView extends BorderPane {
                 -fx-background-radius: 6;
                 -fx-padding: 6 10 6 10;
                 -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 4, 0, 0, 1);
-                """, tmpTooltipBg, tmpTooltipText);
+                """, tooltipBackground, tooltipTextColor);
 
-        for (Button tmpBtn : this.settingsButtons) {
-            javafx.scene.control.Tooltip tmpSettingsTooltip =
+        for (Button settingsButtonElement : this.settingsButtons) {
+            javafx.scene.control.Tooltip settingsTooltip =
                     new javafx.scene.control.Tooltip("Open Settings");
-            tmpSettingsTooltip.setShowDelay(new javafx.util.Duration(0));
-            tmpSettingsTooltip.setStyle(tmpTooltipStyle);
-            tmpBtn.setTooltip(tmpSettingsTooltip);
+            settingsTooltip.setShowDelay(new javafx.util.Duration(0));
+            settingsTooltip.setStyle(tooltipStyle);
+            settingsButtonElement.setTooltip(settingsTooltip);
         }
 
         if (this.miniModeButton != null) {
-            javafx.scene.control.Tooltip tmpMiniTooltip =
+            javafx.scene.control.Tooltip miniTooltip =
                     new javafx.scene.control.Tooltip("Mini Mode (M)");
-            tmpMiniTooltip.setShowDelay(new javafx.util.Duration(0));
-            tmpMiniTooltip.setStyle(tmpTooltipStyle);
-            this.miniModeButton.setTooltip(tmpMiniTooltip);
+            miniTooltip.setShowDelay(new javafx.util.Duration(0));
+            miniTooltip.setStyle(tooltipStyle);
+            this.miniModeButton.setTooltip(miniTooltip);
         }
     }
 
@@ -443,8 +467,8 @@ public final class MainView extends BorderPane {
         this.windowBorderOverlay = windowBorderOverlay;
         // Apply current theme to the new overlay immediately
         if (windowBorderOverlay != null) {
-            boolean darkMode = controller.getSettings().isDarkModeEnabled();
-            String windowBorderColor = darkMode ? "#3D332B" : AppConstants.COLOR_CARD_BORDER;
+            boolean currentDarkMode = controller.getSettings().isDarkModeEnabled();
+            String windowBorderColor = currentDarkMode ? "#3D332B" : AppConstants.COLOR_CARD_BORDER;
             windowBorderOverlay.setStyle(String.format("""
                     -fx-background-color: transparent;
                     -fx-border-color: %s;
@@ -490,15 +514,15 @@ public final class MainView extends BorderPane {
         timerContent.getChildren().addAll(timerDisplay, timerSpacer, controlPanel, bottomSpacer);
 
         // Card container
-        focusCard = new VBox();
-        focusCard.setStyle(String.format(STYLE_CARD,
+        VBox card = new VBox();
+        card.setStyle(String.format(STYLE_CARD,
                 AppConstants.COLOR_CARD_BACKGROUND,
                 AppConstants.COLOR_CARD_BORDER));
-        focusCard.setMinWidth(380);
-        focusCard.setMaxWidth(400);
-        focusCard.getChildren().addAll(headerBar, timerContent);
+        card.setMinWidth(380);
+        card.setMaxWidth(400);
+        card.getChildren().addAll(headerBar, timerContent);
 
-        return focusCard;
+        return card;
     }
 
     /**
@@ -511,16 +535,16 @@ public final class MainView extends BorderPane {
         dailyProgressView.setSettingsButton(createSettingsButton());
 
         // Card container
-        progressCard = new VBox();
-        progressCard.setStyle(String.format(STYLE_CARD,
+        VBox card = new VBox();
+        card.setStyle(String.format(STYLE_CARD,
                 AppConstants.COLOR_CARD_BACKGROUND,
                 AppConstants.COLOR_CARD_BORDER));
-        progressCard.setMinWidth(380);
-        progressCard.setMaxWidth(400);
+        card.setMinWidth(380);
+        card.setMaxWidth(400);
         VBox.setVgrow(dailyProgressView, Priority.ALWAYS);
-        progressCard.getChildren().add(dailyProgressView);
+        card.getChildren().add(dailyProgressView);
 
-        return progressCard;
+        return card;
     }
 
     /**
@@ -531,9 +555,9 @@ public final class MainView extends BorderPane {
      */
     private Button createSettingsButton() {
         // Create a clean outline-style gear icon using SVG
-        javafx.scene.shape.SVGPath tmpIcon = new javafx.scene.shape.SVGPath();
+        javafx.scene.shape.SVGPath gearIcon = new javafx.scene.shape.SVGPath();
         // Clean gear/cog icon path (outline style matching the reference)
-        tmpIcon.setContent("M12 15.5A3.5 3.5 0 0 1 8.5 12 3.5 3.5 0 0 1 12 8.5a3.5 3.5 0 0 1 3.5 3.5 "
+        gearIcon.setContent("M12 15.5A3.5 3.5 0 0 1 8.5 12 3.5 3.5 0 0 1 12 8.5a3.5 3.5 0 0 1 3.5 3.5 "
                 + "3.5 3.5 0 0 1-3.5 3.5m7.43-2.53c.04-.32.07-.64.07-.97 0-.33-.03-.66-.07-1l2.11-1.63"
                 + "c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.31-.61-.22l-2.49 1c-.52-.39-1.06-.73"
                 + "-1.69-.98l-.37-2.65A.506.506 0 0 0 14 2h-4c-.25 0-.46.18-.5.42l-.37 2.65c-.63.25"
@@ -542,42 +566,42 @@ public final class MainView extends BorderPane {
                 + ".22.39.3.61.22l2.49-1.01c.52.4 1.06.74 1.69.99l.37 2.65c.04.24.25.42.5.42h4c.25 0 "
                 + ".46-.18.5-.42l.37-2.65c.63-.26 1.17-.59 1.69-.99l2.49 1.01c.22.08.49 0 .61-.22l2-3.46"
                 + "c.12-.22.07-.49-.12-.64l-2.11-1.66Z");
-        tmpIcon.setFill(javafx.scene.paint.Color.web(AppConstants.COLOR_ACCENT));
-        tmpIcon.setScaleX(0.7);
-        tmpIcon.setScaleY(0.7);
+        gearIcon.setFill(javafx.scene.paint.Color.web(AppConstants.COLOR_ACCENT));
+        gearIcon.setScaleX(0.7);
+        gearIcon.setScaleY(0.7);
 
-        Button tmpButton = new Button();
-        tmpButton.setGraphic(tmpIcon);
-        tmpButton.setStyle("""
+        Button settingsButton = new Button();
+        settingsButton.setGraphic(gearIcon);
+        settingsButton.setStyle("""
                 -fx-background-color: transparent;
                 -fx-cursor: hand;
                 -fx-padding: 2 6 2 6;
                 """);
 
-        tmpButton.setOnMouseEntered(e -> {
-            String tmpHoverBg = this.darkMode
+        settingsButton.setOnMouseEntered(event -> {
+            String hoverBackground = this.darkMode
                     ? "rgba(255, 255, 255, 0.08)"
                     : "rgba(160, 82, 45, 0.10)";
-            tmpButton.setStyle(String.format("""
+            settingsButton.setStyle(String.format("""
                     -fx-background-color: %s;
                     -fx-background-radius: 6;
                     -fx-cursor: hand;
                     -fx-padding: 2 6 2 6;
-                    """, tmpHoverBg));
+                    """, hoverBackground));
         });
 
-        tmpButton.setOnMouseExited(e -> {
-            tmpButton.setStyle("""
+        settingsButton.setOnMouseExited(event -> {
+            settingsButton.setStyle("""
                     -fx-background-color: transparent;
                     -fx-cursor: hand;
                     -fx-padding: 2 6 2 6;
                     """);
         });
 
-        tmpButton.setOnAction(e -> tabPane.getSelectionModel().select(2));
+        settingsButton.setOnAction(event -> tabPane.getSelectionModel().select(2));
 
-        this.settingsButtons.add(tmpButton);
-        return tmpButton;
+        this.settingsButtons.add(settingsButton);
+        return settingsButton;
     }
 
     /**
@@ -588,15 +612,15 @@ public final class MainView extends BorderPane {
      * @return The configured mini mode button
      */
     private Button createMiniModeButton() {
-        javafx.scene.shape.SVGPath tmpIcon = new javafx.scene.shape.SVGPath();
-        tmpIcon.setContent("M19 11h-8v6h8v-6zm4 8V4.98C23 3.88 22.1 3 21 3H3c-1.1 0-2 .88-2 1.98V19c0 "
+        javafx.scene.shape.SVGPath miniIcon = new javafx.scene.shape.SVGPath();
+        miniIcon.setContent("M19 11h-8v6h8v-6zm4 8V4.98C23 3.88 22.1 3 21 3H3c-1.1 0-2 .88-2 1.98V19c0 "
                 + "1.1.9 2 2 2h18c1.1 0 2-.9 2-2zm-2 .02H3V4.97h18v14.05z");
-        tmpIcon.setFill(javafx.scene.paint.Color.web(AppConstants.COLOR_ACCENT));
-        tmpIcon.setScaleX(0.65);
-        tmpIcon.setScaleY(0.65);
+        miniIcon.setFill(javafx.scene.paint.Color.web(AppConstants.COLOR_ACCENT));
+        miniIcon.setScaleX(0.65);
+        miniIcon.setScaleY(0.65);
 
         this.miniModeButton = new Button();
-        this.miniModeButton.setGraphic(tmpIcon);
+        this.miniModeButton.setGraphic(miniIcon);
         this.miniModeButton.setStyle("""
                 -fx-background-color: transparent;
                 -fx-cursor: hand;
@@ -604,7 +628,7 @@ public final class MainView extends BorderPane {
                 """);
 
         this.miniModeButton.setOnMouseEntered(event -> {
-            String tmpHoverBg = this.darkMode
+            String hoverBackground = this.darkMode
                     ? "rgba(255, 255, 255, 0.08)"
                     : "rgba(160, 82, 45, 0.10)";
             this.miniModeButton.setStyle(String.format("""
@@ -612,7 +636,7 @@ public final class MainView extends BorderPane {
                     -fx-background-radius: 6;
                     -fx-cursor: hand;
                     -fx-padding: 2 6 2 6;
-                    """, tmpHoverBg));
+                    """, hoverBackground));
         });
 
         this.miniModeButton.setOnMouseExited(event -> this.miniModeButton.setStyle("""
@@ -672,15 +696,15 @@ public final class MainView extends BorderPane {
     private void bindToController() {
         // Update time display when remaining seconds change
         controller.remainingSecondsProperty()
-                .addListener((obs, oldVal, newVal) -> {
-                    timerDisplay.updateTime(newVal.intValue());
+                .addListener((observable, oldValue, newValue) -> {
+                    timerDisplay.updateTime(newValue.intValue());
                     
                     // Calculate (current accumulated history) + (current running session elapsed)
                     int currentSessionMinutes = 0;
                     if (controller.getCurrentState() == TimerState.WORK) {
                          // Add elapsed time from current session to the progress
                          int totalSeconds = controller.getSettings().getWorkDurationSeconds();
-                         int elapsedSeconds = Math.max(0, totalSeconds - newVal.intValue());
+                         int elapsedSeconds = Math.max(0, totalSeconds - newValue.intValue());
                          currentSessionMinutes = elapsedSeconds / 60;
                     }
 
@@ -689,7 +713,7 @@ public final class MainView extends BorderPane {
                 });
 
         // Update state display and button states when state changes
-        controller.currentStateProperty().addListener((obs, oldState, newState) -> {
+        controller.currentStateProperty().addListener((observable, oldState, newState) -> {
             timerDisplay.updateState(newState);
             controlPanel.updateForState(newState, controller.getStateBeforePause());
 
@@ -874,7 +898,7 @@ public final class MainView extends BorderPane {
         double width = getWidth() > 0 ? getWidth() : 850;
         double height = getHeight() > 0 ? getHeight() : 450;
 
-        java.util.Random rand = new java.util.Random();
+        java.util.Random random = new java.util.Random();
 
         // Calculate velocity so particles take 15 seconds to travel from top to bottom
         // At 60fps, 15 seconds = 900 frames. velocity = height / 900 frames
@@ -888,27 +912,27 @@ public final class MainView extends BorderPane {
         
         for (int i = 0; i < PARTICLE_COUNT; i++) {
             // Stagger particles uniformly across the journey
-            double startY = -height + (rand.nextDouble() * totalJourneyHeight);
+            double startY = -height + (random.nextDouble() * totalJourneyHeight);
             particles.add(new ConfettiParticle(
                 // Spawn across full width
-                rand.nextDouble() * width,
+                random.nextDouble() * width,
                 // Distributed across full journey
                 startY,
-                colors[rand.nextInt(colors.length)],
+                colors[random.nextInt(colors.length)],
                 // Very subtle horizontal drift
-                (rand.nextDouble() - 0.5) * 0.3,
+                (random.nextDouble() - 0.5) * 0.3,
                 // Tiny velocity variation
-                baseVelocity + rand.nextDouble() * 0.2
+                baseVelocity + random.nextDouble() * 0.2
             ));
         }
 
         celebrationTimer = new javafx.animation.AnimationTimer() {
-            private long startTime = -1;
+            private long animationStartTime = -1;
             
             @Override
             public void handle(long now) {
-                if (startTime == -1) startTime = now;
-                celebrationElapsedSeconds = (now - startTime) / 1_000_000_000.0;
+                if (animationStartTime == -1) animationStartTime = now;
+                celebrationElapsedSeconds = (now - animationStartTime) / 1_000_000_000.0;
 
                 // Run for 15 seconds
                 if (celebrationElapsedSeconds > CELEBRATION_DURATION_SECONDS) {
@@ -934,16 +958,22 @@ public final class MainView extends BorderPane {
         celebrationTimer.start();
     }
 
+    /**
+     * Updates the position of all active confetti particles.
+     */
     private void updateParticles() {
-        for (ConfettiParticle p : particles) {
+        for (ConfettiParticle particle : particles) {
             // Simple straight falling - no wiggle or drift
-            p.y += p.vy;
+            particle.y += particle.vy;
         }
     }
 
+    /**
+     * Draws the confetti particles on the celebration canvas.
+     */
     private void drawParticles() {
-        javafx.scene.canvas.GraphicsContext gc = celebrationCanvas.getGraphicsContext2D();
-        gc.clearRect(0, 0, celebrationCanvas.getWidth(), celebrationCanvas.getHeight());
+        javafx.scene.canvas.GraphicsContext graphicsContext = celebrationCanvas.getGraphicsContext2D();
+        graphicsContext.clearRect(0, 0, celebrationCanvas.getWidth(), celebrationCanvas.getHeight());
 
         // Calculate opacity for fade in/out effect
         double opacity = 1.0;
@@ -957,20 +987,39 @@ public final class MainView extends BorderPane {
         // Clamp to [0, 1]
         opacity = Math.max(0, Math.min(1, opacity));
 
-        gc.setGlobalAlpha(opacity);
-        for (ConfettiParticle p : particles) {
-            gc.setFill(p.color);
-            gc.fillOval(p.x, p.y, 6, 6);
+        graphicsContext.setGlobalAlpha(opacity);
+        for (ConfettiParticle particle : particles) {
+            graphicsContext.setFill(particle.color);
+            graphicsContext.fillOval(particle.x, particle.y, 6, 6);
         }
         // Reset global alpha
-        gc.setGlobalAlpha(1.0);
+        graphicsContext.setGlobalAlpha(1.0);
     }
 
+    /**
+     * Represents a single confetti particle in the celebration animation.
+     */
     private static class ConfettiParticle {
-        double x, y;
+        /** The horizontal position of the particle. */
+        double x;
+        /** The vertical position of the particle. */
+        double y;
+        /** The color of the particle. */
         Color color;
-        double vx, vy;
+        /** The horizontal velocity of the particle. */
+        double vx;
+        /** The vertical velocity of the particle. */
+        double vy;
 
+        /**
+         * Creates a new ConfettiParticle.
+         *
+         * @param x     the initial x position
+         * @param y     the initial y position
+         * @param color the color of the particle
+         * @param vx    the horizontal velocity
+         * @param vy    the vertical velocity
+         */
         ConfettiParticle(double x, double y, Color color, double vx, double vy) {
             this.x = x;
             this.y = y;

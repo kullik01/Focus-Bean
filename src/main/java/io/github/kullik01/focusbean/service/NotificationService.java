@@ -33,12 +33,13 @@ package io.github.kullik01.focusbean.service;
 import io.github.kullik01.focusbean.model.NotificationSound;
 import io.github.kullik01.focusbean.model.TimerState;
 import io.github.kullik01.focusbean.model.UserSettings;
+import io.github.kullik01.focusbean.view.ToastNotification;
+import javafx.application.Platform;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 
 import java.awt.SystemTray;
 import java.awt.TrayIcon;
-import java.awt.TrayIcon.MessageType;
 import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -72,11 +73,19 @@ import java.util.logging.Logger;
  */
 public final class NotificationService {
 
+    /** Logger for this class. */
     private static final Logger LOGGER = Logger.getLogger(NotificationService.class.getName());
 
+    /** The system tray icon used for notifications. */
     private TrayIcon trayIcon;
+
+    /** The media player currently playing a notification sound. */
     private MediaPlayer currentSound;
+
+    /** The type of sound currently loaded in the media player. */
     private NotificationSound loadedSoundType;
+
+    /** The file path of the custom sound currently loaded. */
     private String loadedCustomPath;
 
     /**
@@ -147,8 +156,8 @@ public final class NotificationService {
                 LOGGER.warning("No sound loaded, falling back to system beep");
                 playSystemBeep();
             }
-        } catch (Exception e) {
-            LOGGER.log(Level.WARNING, "Failed to play sound, using fallback beep", e);
+        } catch (Exception exception) {
+            LOGGER.log(Level.WARNING, "Failed to play sound, using fallback beep", exception);
             playSystemBeep();
         }
     }
@@ -164,7 +173,7 @@ public final class NotificationService {
         if (sound.isSilent()) {
             if (onCompletion != null) {
                 // Run on FX thread just in case
-                javafx.application.Platform.runLater(onCompletion);
+                Platform.runLater(onCompletion);
             }
             return;
         }
@@ -172,7 +181,7 @@ public final class NotificationService {
         if (sound.isSystemBeep()) {
             playSystemBeep();
             if (onCompletion != null) {
-                javafx.application.Platform.runLater(onCompletion);
+                Platform.runLater(onCompletion);
             }
             return;
         }
@@ -197,14 +206,14 @@ public final class NotificationService {
                 currentSound.play();
             } else {
                 if (onCompletion != null) {
-                    javafx.application.Platform.runLater(onCompletion);
+                    Platform.runLater(onCompletion);
                 }
             }
-        } catch (Exception e) {
-            LOGGER.log(Level.WARNING, "Failed to preview sound", e);
+        } catch (Exception exception) {
+            LOGGER.log(Level.WARNING, "Failed to preview sound", exception);
             playSystemBeep();
             if (onCompletion != null) {
-                javafx.application.Platform.runLater(onCompletion);
+                Platform.runLater(onCompletion);
             }
         }
     }
@@ -213,6 +222,7 @@ public final class NotificationService {
      * Shows a Windows system tray notification indicating session completion.
      *
      * @param completedSessionType the type of session that completed
+     * @param settings             the user settings
      */
     public void showSystemTrayNotification(TimerState completedSessionType, UserSettings settings) {
         if (!SystemTray.isSupported()) {
@@ -244,16 +254,20 @@ public final class NotificationService {
 
         try {
             // Use custom toast notification instead of system tray
-            io.github.kullik01.focusbean.view.ToastNotification.show(title, message, settings.isDarkModeEnabled(),
+            ToastNotification.show(title, message, settings.isDarkModeEnabled(),
                     this::stopSound);
             LOGGER.log(Level.FINE, "Displayed toast notification: {0}", title);
-        } catch (Exception e) {
-            LOGGER.log(Level.WARNING, "Failed to show toast notification", e);
+        } catch (Exception exception) {
+            LOGGER.log(Level.WARNING, "Failed to show toast notification", exception);
         }
     }
 
     /**
      * Checks if the sound needs to be reloaded.
+     *
+     * @param sound      the sound to check
+     * @param customPath the custom sound path
+     * @return true if the sound needs to be reloaded
      */
     private boolean needsReload(NotificationSound sound, String customPath) {
         if (currentSound == null || loadedSoundType != sound) {
@@ -310,8 +324,8 @@ public final class NotificationService {
             loadedCustomPath = customPath;
 
             LOGGER.log(Level.FINE, "Loaded sound: {0}", sound);
-        } catch (Exception e) {
-            LOGGER.log(Level.WARNING, "Failed to load sound", e);
+        } catch (Exception exception) {
+            LOGGER.log(Level.WARNING, "Failed to load sound", exception);
             currentSound = null;
         }
     }
@@ -341,23 +355,23 @@ public final class NotificationService {
             // Windows will downscale it for the tray but use the resolution for toasts
             int size = 256;
             BufferedImage image = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
-            java.awt.Graphics2D g2d = image.createGraphics();
+            java.awt.Graphics2D graphics = image.createGraphics();
 
             // Enable anti-aliasing for smooth edges
-            g2d.setRenderingHint(
+            graphics.setRenderingHint(
                     java.awt.RenderingHints.KEY_ANTIALIASING,
                     java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
-            g2d.setRenderingHint(
+            graphics.setRenderingHint(
                     java.awt.RenderingHints.KEY_RENDERING,
                     java.awt.RenderingHints.VALUE_RENDER_QUALITY);
 
             // Dark Coffee Brown (#5D4037)
-            g2d.setColor(new java.awt.Color(93, 64, 55));
+            graphics.setColor(new java.awt.Color(93, 64, 55));
 
             // Draw circle with slight padding
             int padding = size / 8;
-            g2d.fillOval(padding, padding, size - (2 * padding), size - (2 * padding));
-            g2d.dispose();
+            graphics.fillOval(padding, padding, size - (2 * padding), size - (2 * padding));
+            graphics.dispose();
 
             trayIcon = new TrayIcon(image, "Focus Bean");
             trayIcon.setImageAutoSize(true);
@@ -366,8 +380,8 @@ public final class NotificationService {
             systemTray.add(trayIcon);
 
             LOGGER.fine("System tray icon added for notification");
-        } catch (Exception e) {
-            LOGGER.log(Level.WARNING, "Failed to initialize system tray", e);
+        } catch (Exception exception) {
+            LOGGER.log(Level.WARNING, "Failed to initialize system tray", exception);
             trayIcon = null;
         }
     }
@@ -397,8 +411,8 @@ public final class NotificationService {
                 currentSound.stop();
                 currentSound.dispose();
                 currentSound = null;
-            } catch (Exception e) {
-                LOGGER.log(Level.WARNING, "Error disposing media player", e);
+            } catch (Exception exception) {
+                LOGGER.log(Level.WARNING, "Error disposing media player", exception);
             }
         }
 
@@ -408,8 +422,8 @@ public final class NotificationService {
                 SystemTray.getSystemTray().remove(trayIcon);
                 trayIcon = null;
                 LOGGER.fine("System tray icon removed");
-            } catch (Exception e) {
-                LOGGER.log(Level.WARNING, "Error removing tray icon", e);
+            } catch (Exception exception) {
+                LOGGER.log(Level.WARNING, "Error removing tray icon", exception);
             }
         }
 

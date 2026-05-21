@@ -35,21 +35,31 @@ import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Unit tests for {@link TimerSession}.
  */
 class TimerSessionTest {
 
+    /** A constant start time for testing. */
     private static final LocalDateTime START = LocalDateTime.of(2026, 1, 7, 10, 0, 0);
+    /** A constant end time for testing. */
     private static final LocalDateTime END = LocalDateTime.of(2026, 1, 7, 10, 25, 0);
 
+    /**
+     * Verifies that a completed work session can be created via its factory method.
+     */
     @Test
     @DisplayName("Should create completed work session via factory method")
     void createCompletedWorkSession() {
+        // Act
         TimerSession session = TimerSession.completedWork(START, END, 25);
 
+        // Assert
         assertEquals(START, session.startTime());
         assertEquals(END, session.endTime());
         assertEquals(TimerState.WORK, session.type());
@@ -59,11 +69,16 @@ class TimerSessionTest {
         assertFalse(session.isBreakSession());
     }
 
+    /**
+     * Verifies that a completed break session can be created via its factory method.
+     */
     @Test
     @DisplayName("Should create completed break session via factory method")
     void createCompletedBreakSession() {
+        // Act
         TimerSession session = TimerSession.completedBreak(START, END, 5);
 
+        // Assert
         assertEquals(TimerState.BREAK, session.type());
         assertEquals(5, session.durationMinutes());
         assertTrue(session.completed());
@@ -71,51 +86,82 @@ class TimerSessionTest {
         assertTrue(session.isBreakSession());
     }
 
+    /**
+     * Verifies that an interrupted session can be created via its factory method.
+     */
     @Test
     @DisplayName("Should create interrupted session via factory method")
     void createInterruptedSession() {
+        // Act
         TimerSession session = TimerSession.interrupted(START, END, TimerState.WORK, 25);
 
+        // Assert
         assertEquals(TimerState.WORK, session.type());
         assertFalse(session.completed());
     }
 
+    /**
+     * Verifies that the constructor rejects a null start time.
+     */
     @Test
     @DisplayName("Should reject null startTime")
     void rejectNullStartTime() {
+        // Act & Assert
         assertThrows(NullPointerException.class, () -> new TimerSession(null, END, TimerState.WORK, 25, true));
     }
 
+    /**
+     * Verifies that the constructor rejects a null end time.
+     */
     @Test
     @DisplayName("Should reject null endTime")
     void rejectNullEndTime() {
+        // Act & Assert
         assertThrows(NullPointerException.class, () -> new TimerSession(START, null, TimerState.WORK, 25, true));
     }
 
+    /**
+     * Verifies that the constructor rejects a null session type.
+     */
     @Test
     @DisplayName("Should reject null type")
     void rejectNullType() {
+        // Act & Assert
         assertThrows(NullPointerException.class, () -> new TimerSession(START, END, null, 25, true));
     }
 
+    /**
+     * Verifies that the constructor rejects non-positive durations.
+     */
     @Test
     @DisplayName("Should reject non-positive duration")
     void rejectNonPositiveDuration() {
+        // Act & Assert
         assertThrows(IllegalArgumentException.class, () -> new TimerSession(START, END, TimerState.WORK, 0, true));
         assertThrows(IllegalArgumentException.class, () -> new TimerSession(START, END, TimerState.WORK, -1, true));
     }
 
+    /**
+     * Verifies that the constructor rejects an end time that is before the start time.
+     */
     @Test
     @DisplayName("Should reject endTime before startTime")
     void rejectEndTimeBeforeStartTime() {
+        // Arrange
         LocalDateTime endBeforeStart = START.minusMinutes(1);
+
+        // Act & Assert
         assertThrows(IllegalArgumentException.class,
                 () -> new TimerSession(START, endBeforeStart, TimerState.WORK, 25, true));
     }
 
+    /**
+     * Verifies that the constructor rejects IDLE and PAUSED states as session types.
+     */
     @Test
     @DisplayName("Should reject IDLE and PAUSED types")
     void rejectInvalidTypes() {
+        // Act & Assert
         assertThrows(IllegalArgumentException.class, () -> new TimerSession(START, END, TimerState.IDLE, 25, true));
         assertThrows(IllegalArgumentException.class, () -> new TimerSession(START, END, TimerState.PAUSED, 25, true));
     }

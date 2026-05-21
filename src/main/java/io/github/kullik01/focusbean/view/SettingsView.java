@@ -66,12 +66,15 @@ import java.util.function.Consumer;
  */
 public final class SettingsView extends VBox {
 
+    /** The font family used for labels and inputs. */
     private static final String FONT_FAMILY = "'Segoe UI', 'Helvetica Neue', sans-serif";
+    /** CSS style for section labels. */
     private static final String STYLE_LABEL = """
             -fx-font-family: 'Segoe UI', 'Helvetica Neue', sans-serif;
             -fx-font-size: 14px;
             """;
 
+    /** CSS template for card-style layout components. */
     private static final String STYLE_CARD = """
             -fx-background-color: %s;
             -fx-background-radius: 20;
@@ -81,6 +84,7 @@ public final class SettingsView extends VBox {
             -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 4, 0, 0, 1);
             """;
 
+    /** CSS style for the save button. */
     private static final String STYLE_SAVE_BUTTON = """
             -fx-background-color: %s;
             -fx-text-fill: white;
@@ -91,39 +95,70 @@ public final class SettingsView extends VBox {
             -fx-cursor: hand;
             """;
 
+    /** Input field for work duration in minutes. */
     private TextField workField;
+    /** Input field for break duration in minutes. */
     private TextField breakField;
+    /** Input field for daily goal in minutes. */
     private TextField dailyGoalField;
+    /** Input field for history chart days. */
     private TextField chartDaysField;
+    /** Checkbox to enable or disable sound notifications. */
     private final CheckBox soundNotificationCheckbox;
+    /** Checkbox to enable or disable popup notifications. */
     private final CheckBox popupNotificationCheckbox;
+    /** Checkbox to enable or disable dark mode. */
     private final CheckBox darkModeCheckbox;
+    /** Dropdown for selecting the notification sound. */
     private final ComboBox<NotificationSound> soundComboBox;
+    /** Field displaying the path to a custom notification sound. */
     private final TextField customSoundPathField;
+    /** Button to browse for a custom sound file. */
     private final Button browseButton;
+    /** Button to preview the selected notification sound. */
     private final Button previewButton;
+    /** Button to save settings. */
     private final Button saveButton;
+    /** Checkbox to enable or disable auto-cycle mode. */
     private final CheckBox autoCycleCheckbox;
+    /** Input field for rounds before a long break. */
     private TextField roundsField;
+    /** Input field for long break duration in minutes. */
     private TextField longBreakField;
 
+    /** Service used for handling notifications and sound previews. */
     private final NotificationService notificationService;
+    /** The file path to the custom notification sound. */
     private String customSoundPath;
 
+    /** Callback invoked when the save button is clicked. */
     private Runnable onSave;
+    /** Snapshot of settings before any modifications. */
     private UserSettings originalSettings;
 
-    // Card references for theme updates
+    /** The container for timer-related settings. */
     private VBox timerSettingsCard;
+    /** The container for history-related settings. */
     private VBox historySettingsCard;
+    /** The container for notification-related settings. */
     private VBox notificationsCard;
+    /** Header label for the timer settings section. */
     private Label timerHeaderLabel;
+    /** Header label for the history settings section. */
     private Label historyHeaderLabel;
+    /** Header label for the notifications settings section. */
     private Label notificationsHeaderLabel;
+    /** Header label for the appearance settings section. */
     private Label appearanceHeaderLabel;
+    /** Header label for the auto-cycle settings section. */
     private Label autoCycleHeaderLabel;
+    /** The container for auto-cycle settings. */
     private VBox autoCycleCard;
+    /** Flag indicating if dark mode is currently active in the view. */
     private boolean darkModeEnabled = false;
+
+    /** Flag indicating if a sound preview is currently playing. */
+    private boolean isPreviewPlaying = false;
 
     /**
      * Creates a new SettingsView with the given settings and notification service.
@@ -208,20 +243,20 @@ public final class SettingsView extends VBox {
                 """, AppConstants.COLOR_CARD_BACKGROUND, AppConstants.COLOR_TEXT_PRIMARY));
         previewButton.setTooltip(playTooltip);
 
-        previewButton.setOnMouseEntered(e -> previewButton.setStyle("""
+        previewButton.setOnMouseEntered(event -> previewButton.setStyle("""
                 -fx-background-color: rgba(160, 82, 45, 0.10);
                 -fx-background-radius: 6;
                 -fx-cursor: hand;
                 -fx-padding: 2 6 2 6;
                 """));
 
-        previewButton.setOnMouseExited(e -> previewButton.setStyle("""
+        previewButton.setOnMouseExited(event -> previewButton.setStyle("""
                 -fx-background-color: transparent;
                 -fx-cursor: hand;
                 -fx-padding: 2 6 2 6;
                 """));
 
-        previewButton.setOnAction(e -> previewCurrentSound());
+        previewButton.setOnAction(event -> previewCurrentSound());
 
         // Custom sound path
         customSoundPathField = new TextField();
@@ -264,7 +299,7 @@ public final class SettingsView extends VBox {
                 """, AppConstants.COLOR_CARD_BACKGROUND, AppConstants.COLOR_TEXT_PRIMARY));
         browseButton.setTooltip(browseTooltip);
 
-        browseButton.setOnMouseEntered(e -> browseButton.setStyle(String.format("""
+        browseButton.setOnMouseEntered(event -> browseButton.setStyle(String.format("""
                 -fx-background-color: rgba(160, 82, 45, 0.10);
                 -fx-background-radius: 6;
                 -fx-cursor: hand;
@@ -273,7 +308,7 @@ public final class SettingsView extends VBox {
                 -fx-text-fill: %s;
                 """, AppConstants.COLOR_PROGRESS_ACTIVE)));
 
-        browseButton.setOnMouseExited(e -> browseButton.setStyle(String.format("""
+        browseButton.setOnMouseExited(event -> browseButton.setStyle(String.format("""
                 -fx-background-color: transparent;
                 -fx-cursor: hand;
                 -fx-font-size: 14px;
@@ -281,7 +316,7 @@ public final class SettingsView extends VBox {
                 -fx-text-fill: %s;
                 """, AppConstants.COLOR_PROGRESS_ACTIVE)));
 
-        browseButton.setOnAction(e -> browseForCustomSound());
+        browseButton.setOnAction(event -> browseForCustomSound());
 
         // Custom sound row visibility
         HBox customSoundRow = new HBox(10, customSoundPathField, browseButton);
@@ -303,7 +338,7 @@ public final class SettingsView extends VBox {
         // Save button
         saveButton = new Button("Save");
         saveButton.setStyle(String.format(STYLE_SAVE_BUTTON, AppConstants.COLOR_PROGRESS_ACTIVE));
-        saveButton.setOnAction(e -> {
+        saveButton.setOnAction(event -> {
             if (onSave != null) {
                 onSave.run();
             }
@@ -423,25 +458,25 @@ public final class SettingsView extends VBox {
         javafx.scene.control.TextFormatter<Integer> formatter = new javafx.scene.control.TextFormatter<>(
                 new javafx.util.converter.IntegerStringConverter(),
                 initial,
-                c -> {
-                    if (c.getControlNewText().matches("\\d*")) {
-                        return c;
+                change -> {
+                    if (change.getControlNewText().matches("\\d*")) {
+                        return change;
                     }
                     return null;
                 });
         textField.setTextFormatter(formatter);
 
         // Synchronous Validation listener on text property
-        textField.textProperty().addListener((obs, oldVal, newVal) -> {
+        textField.textProperty().addListener((observable, oldValue, newValue) -> {
             boolean isInvalid = false;
-            if (newVal != null && !newVal.isEmpty()) {
+            if (newValue != null && !newValue.isEmpty()) {
                 try {
                     // Use long to detect int overflow
-                    long valLex = Long.parseLong(newVal);
-                    if (valLex > logicalMax || valLex < min) {
+                    long valueAsLong = Long.parseLong(newValue);
+                    if (valueAsLong > logicalMax || valueAsLong < min) {
                         isInvalid = true;
                     }
-                } catch (NumberFormatException e) {
+                } catch (NumberFormatException exception) {
                     // If it doesn't parse as long, it's definitely invalid
                     isInvalid = true;
                 }
@@ -489,7 +524,6 @@ public final class SettingsView extends VBox {
         card.setMinWidth(220);
         card.setMaxWidth(250);
 
-        // Create text fields first
         // Create text fields first
         workField = new TextField();
         breakField = new TextField();
@@ -669,11 +703,6 @@ public final class SettingsView extends VBox {
     /**
      * Previews the currently selected sound.
      */
-    private boolean isPreviewPlaying = false;
-
-    /**
-     * Previews the currently selected sound.
-     */
     private void previewCurrentSound() {
         if (isPreviewPlaying) {
             // Stop logic
@@ -691,6 +720,11 @@ public final class SettingsView extends VBox {
         }
     }
 
+    /**
+     * Updates the visual state of the preview button.
+     *
+     * @param playing true if sound is playing, false otherwise
+     */
     private void updatePreviewButtonState(boolean playing) {
         isPreviewPlaying = playing;
         javafx.scene.shape.SVGPath icon = (javafx.scene.shape.SVGPath) previewButton.getGraphic();
@@ -829,6 +863,13 @@ public final class SettingsView extends VBox {
                 || isFieldInvalid(longBreakField, UserSettings.MAX_LONG_BREAK_DURATION_MINUTES);
     }
 
+    /**
+     * Validates if a specific text field contains a valid numeric value within range.
+     *
+     * @param field the text field to validate
+     * @param max   the maximum allowed value
+     * @return true if the field is invalid, false otherwise
+     */
     private boolean isFieldInvalid(TextField field, int max) {
         if (field == null)
             return false;
@@ -837,10 +878,10 @@ public final class SettingsView extends VBox {
             if (text == null || text.trim().isEmpty())
                 // Empty is invalid
                 return true;
-            int val = Integer.parseInt(text);
+            int value = Integer.parseInt(text);
             // Invalid if greater than max
-            return val > max;
-        } catch (NumberFormatException e) {
+            return value > max;
+        } catch (NumberFormatException exception) {
             // Invalid if not a number
             return true;
         }
@@ -919,7 +960,7 @@ public final class SettingsView extends VBox {
                     || autoCycleCheckbox.isSelected() != originalSettings.isAutoCycleEnabled()
                     || Integer.parseInt(roundsField.getText()) != originalSettings.getRoundsBeforeLongBreak()
                     || Integer.parseInt(longBreakField.getText()) != originalSettings.getLongBreakDurationMinutes();
-        } catch (NumberFormatException e) {
+        } catch (NumberFormatException exception) {
             // If parsing fails, consider it as a change (invalid input)
             return true;
         }
@@ -969,7 +1010,7 @@ public final class SettingsView extends VBox {
                         getClass().getResource(logoPath).toExternalForm());
                 dialogStage.getIcons().add(logoImage);
             }
-        } catch (Exception e) {
+        } catch (Exception exception) {
             // Ignore
         }
 
@@ -1005,9 +1046,9 @@ public final class SettingsView extends VBox {
         String closeBtnStyle = "-fx-background-color: transparent; -fx-text-fill: " + closeBtnColor + "; -fx-font-size: 14px; -fx-cursor: hand; -fx-padding: 0 5 0 5;";
         String closeBtnHoverStyle = "-fx-background-color: rgba(93, 64, 55, 0.15); -fx-text-fill: " + closeBtnColor + "; -fx-font-size: 14px; -fx-cursor: hand; -fx-padding: 0 5 0 5; -fx-background-radius: 4;";
         closeBtn.setStyle(closeBtnStyle);
-        closeBtn.setOnMouseEntered(e -> closeBtn.setStyle(closeBtnHoverStyle));
-        closeBtn.setOnMouseExited(e -> closeBtn.setStyle(closeBtnStyle));
-        closeBtn.setOnAction(e -> {
+        closeBtn.setOnMouseEntered(event -> closeBtn.setStyle(closeBtnHoverStyle));
+        closeBtn.setOnMouseExited(event -> closeBtn.setStyle(closeBtnStyle));
+        closeBtn.setOnAction(event -> {
             dialogStage.close();
             onResult.accept(false);
         });
@@ -1082,9 +1123,9 @@ public final class SettingsView extends VBox {
                 -fx-min-width: 70;
                 """;
         okButton.setStyle(okButtonStyle);
-        okButton.setOnMouseEntered(e -> okButton.setStyle(okButtonHoverStyle));
-        okButton.setOnMouseExited(e -> okButton.setStyle(okButtonStyle));
-        okButton.setOnAction(e -> {
+        okButton.setOnMouseEntered(event -> okButton.setStyle(okButtonHoverStyle));
+        okButton.setOnMouseExited(event -> okButton.setStyle(okButtonStyle));
+        okButton.setOnAction(event -> {
             dialogStage.close();
             onResult.accept(true);
         });
@@ -1108,9 +1149,9 @@ public final class SettingsView extends VBox {
                 -fx-font-size: 13px;
                 """, okBtnBgHover, okBtnText);
         cancelButton.setStyle(cancelButtonStyle);
-        cancelButton.setOnMouseEntered(e -> cancelButton.setStyle(cancelButtonHoverStyle));
-        cancelButton.setOnMouseExited(e -> cancelButton.setStyle(cancelButtonStyle));
-        cancelButton.setOnAction(e -> {
+        cancelButton.setOnMouseEntered(event -> cancelButton.setStyle(cancelButtonHoverStyle));
+        cancelButton.setOnMouseExited(event -> cancelButton.setStyle(cancelButtonStyle));
+        cancelButton.setOnAction(event -> {
             dialogStage.close();
             onResult.accept(false);
         });

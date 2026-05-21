@@ -40,23 +40,40 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Unit tests for {@link TimerController}.
  */
 class TimerControllerTest {
 
+    /** Mocked timer service. */
     private TimerService timerService;
+    /** Mocked persistence service. */
     private PersistenceService persistenceService;
+    /** Mocked notification service. */
     private NotificationService notificationService;
+    /** User settings for testing. */
     private UserSettings settings;
+    /** Session history for testing. */
     private SessionHistory history;
+    /** The controller under test. */
     private TimerController controller;
 
+    /**
+     * Initializes the test environment before each test.
+     */
     @BeforeEach
     void setUp() {
+        // Arrange
         timerService = mock(TimerService.class);
         persistenceService = mock(PersistenceService.class);
         notificationService = mock(NotificationService.class);
@@ -74,33 +91,43 @@ class TimerControllerTest {
                 history);
     }
 
+    /**
+     * Verifies that the pending session type is null upon initialization.
+     */
     @Test
     @DisplayName("Pending session type should be null initially")
     void pendingSessionTypeNullInitially() {
+        // Act & Assert
         assertNull(controller.getPendingSessionType());
     }
 
+    /**
+     * Verifies that startOrResume starts a work session when no session is pending.
+     */
     @Test
     @DisplayName("startOrResume should start work when pending session is null")
     void startOrResumeStartsWorkWhenNoPending() {
+        // Act
         controller.startOrResume();
+
+        // Assert
         verify(timerService).start(anyInt(), eq(TimerState.WORK));
     }
 
+    /**
+     * Verifies that updating settings does not affect the pending session type.
+     */
     @Test
     @DisplayName("updateSettings should not affect pending session type")
     void updateSettingsShouldNotAffectPendingSessionType() {
-        // Simulate that pendingSessionType would be BREAK after a completed work
-        // session
-        // We can't directly set pendingSessionType, but we can verify updateSettings
-        // doesn't reset it
-
+        // Arrange
         // Initial state: no pending session
         assertNull(controller.getPendingSessionType());
 
-        // Update settings
+        // Act
         controller.updateSettings(30, 10);
 
+        // Assert
         // Pending session type should still be null (not affected by settings update)
         assertNull(controller.getPendingSessionType());
 
@@ -109,60 +136,107 @@ class TimerControllerTest {
         assertEquals(10, settings.getBreakDurationMinutes());
     }
 
+    /**
+     * Verifies that reset preserves the null pending session type when no session was active.
+     */
     @Test
     @DisplayName("reset should preserve null pending session type when no session was active")
     void resetPreservesNullPendingSessionType() {
-        // When reset from initial state (no session active), pending should stay null
+        // Act
         controller.reset();
+
+        // Assert
         assertNull(controller.getPendingSessionType());
     }
 
+    /**
+     * Verifies that updateSettings triggers data persistence.
+     */
     @Test
     @DisplayName("updateSettings should persist data")
     void updateSettingsPersistsData() {
+        // Act
         controller.updateSettings(25, 5);
+
+        // Assert
         verify(persistenceService, atLeastOnce()).save(eq(settings), eq(history));
     }
 
+    /**
+     * Verifies that the controller returns the correct settings object.
+     */
     @Test
     @DisplayName("Controller should return correct settings")
     void controllerReturnsSettings() {
+        // Act & Assert
         assertSame(settings, controller.getSettings());
     }
 
+    /**
+     * Verifies that the controller returns the correct history object.
+     */
     @Test
     @DisplayName("Controller should return correct history")
     void controllerReturnsHistory() {
+        // Act & Assert
         assertSame(history, controller.getHistory());
     }
 
+    /**
+     * Verifies that startWork initiates a work session with the configured duration.
+     */
     @Test
     @DisplayName("startWork should start work session with correct duration")
     void startWorkStartsWithCorrectDuration() {
+        // Arrange
         settings.setWorkDurationMinutes(25);
+
+        // Act
         controller.startWork();
+
+        // Assert
         verify(timerService).start(eq(25 * 60), eq(TimerState.WORK));
     }
 
+    /**
+     * Verifies that startBreak initiates a break session with the configured duration.
+     */
     @Test
     @DisplayName("startBreak should start break session with correct duration")
     void startBreakStartsWithCorrectDuration() {
+        // Arrange
         settings.setBreakDurationMinutes(5);
+
+        // Act
         controller.startBreak();
+
+        // Assert
         verify(timerService).start(eq(5 * 60), eq(TimerState.BREAK));
     }
 
+    /**
+     * Verifies that pause delegates the call to the timer service.
+     */
     @Test
     @DisplayName("pause should delegate to timerService")
     void pauseDelegatesToTimerService() {
+        // Act
         controller.pause();
+
+        // Assert
         verify(timerService).pause();
     }
 
+    /**
+     * Verifies that resume delegates the call to the timer service.
+     */
     @Test
     @DisplayName("resume should delegate to timerService")
     void resumeDelegatesToTimerService() {
+        // Act
         controller.resume();
+
+        // Assert
         verify(timerService).resume();
     }
 }

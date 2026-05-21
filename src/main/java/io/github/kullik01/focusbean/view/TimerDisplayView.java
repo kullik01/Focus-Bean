@@ -40,6 +40,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.ArcType;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
@@ -56,22 +57,36 @@ import javafx.scene.text.FontWeight;
  */
 public final class TimerDisplayView extends StackPane {
 
+    /** The size of the progress ring canvas. */
     private static final double RING_SIZE = 200;
+    /** The stroke width of the progress ring. */
     private static final double RING_STROKE_WIDTH = 4;
+    /** The number of tick marks around the ring. */
     private static final int TICK_COUNT = 60;
+    /** The length of major tick marks. */
     private static final double TICK_LENGTH_MAJOR = 12;
+    /** The length of minor tick marks. */
     private static final double TICK_LENGTH_MINOR = 6;
+    /** The width of the tick marks. */
     private static final double TICK_WIDTH = 2;
 
+    /** The font family used for the timer display. */
     private static final String FONT_FAMILY = "'Segoe UI', 'Helvetica Neue', sans-serif";
 
+    /** The canvas used to draw the progress ring and ticks. */
     private final Canvas progressCanvas;
+    /** The label displaying the time remaining. */
     private final Label timeLabel;
+    /** The label displaying the unit (e.g., "min", "sec"). */
     private final Label unitLabel;
+    /** The container for the labels in the center of the ring. */
     private final VBox centerContent;
 
+    /** The total seconds for the current session. */
     private int totalSeconds;
+    /** The remaining seconds in the current session. */
     private int remainingSeconds;
+    /** The current state of the timer. */
     private TimerState currentState;
 
     /**
@@ -209,7 +224,7 @@ public final class TimerDisplayView extends StackPane {
      * Draws the circular progress ring with tick marks.
      */
     private void drawProgressRing() {
-        GraphicsContext gc = progressCanvas.getGraphicsContext2D();
+        GraphicsContext graphicsContext = progressCanvas.getGraphicsContext2D();
         double width = progressCanvas.getWidth();
         double height = progressCanvas.getHeight();
         double centerX = width / 2;
@@ -217,15 +232,15 @@ public final class TimerDisplayView extends StackPane {
         double radius = (Math.min(width, height) - RING_STROKE_WIDTH * 2 - TICK_LENGTH_MAJOR * 2) / 2;
 
         // Clear canvas
-        gc.clearRect(0, 0, width, height);
+        graphicsContext.clearRect(0, 0, width, height);
 
         // Draw tick marks positioned inside the ring, extending toward center
-        drawTickMarks(gc, centerX, centerY, radius - RING_STROKE_WIDTH);
+        drawTickMarks(graphicsContext, centerX, centerY, radius - RING_STROKE_WIDTH);
 
         // Draw background ring
-        gc.setStroke(Color.web(AppConstants.COLOR_PROGRESS_RING));
-        gc.setLineWidth(RING_STROKE_WIDTH);
-        gc.strokeOval(
+        graphicsContext.setStroke(Color.web(AppConstants.COLOR_PROGRESS_RING));
+        graphicsContext.setLineWidth(RING_STROKE_WIDTH);
+        graphicsContext.strokeOval(
                 centerX - radius,
                 centerY - radius,
                 radius * 2,
@@ -236,33 +251,33 @@ public final class TimerDisplayView extends StackPane {
             double progress = 1.0 - ((double) remainingSeconds / totalSeconds);
             double sweepAngle = progress * 360;
 
-            gc.setStroke(Color.web(AppConstants.COLOR_PROGRESS_ACTIVE));
-            gc.setLineWidth(RING_STROKE_WIDTH);
-            gc.strokeArc(
+            graphicsContext.setStroke(Color.web(AppConstants.COLOR_PROGRESS_ACTIVE));
+            graphicsContext.setLineWidth(RING_STROKE_WIDTH);
+            graphicsContext.strokeArc(
                     centerX - radius,
                     centerY - radius,
                     radius * 2,
                     radius * 2,
                     90,
                     -sweepAngle,
-                    javafx.scene.shape.ArcType.OPEN);
+                    ArcType.OPEN);
 
             // Draw progress indicator dot
-            drawProgressIndicator(gc, centerX, centerY, radius, progress);
+            drawProgressIndicator(graphicsContext, centerX, centerY, radius, progress);
         }
     }
 
     /**
      * Draws the tick marks around the progress ring.
      *
-     * @param gc      the graphics context
-     * @param centerX the center X coordinate
-     * @param centerY the center Y coordinate
-     * @param radius  the radius for tick mark placement
+     * @param graphicsContext the graphics context
+     * @param centerX         the center X coordinate
+     * @param centerY         the center Y coordinate
+     * @param radius          the radius for tick mark placement
      */
-    private void drawTickMarks(GraphicsContext gc, double centerX, double centerY, double radius) {
-        gc.setStroke(Color.web(AppConstants.COLOR_TICK_MARK));
-        gc.setLineWidth(TICK_WIDTH);
+    private void drawTickMarks(GraphicsContext graphicsContext, double centerX, double centerY, double radius) {
+        graphicsContext.setStroke(Color.web(AppConstants.COLOR_TICK_MARK));
+        graphicsContext.setLineWidth(TICK_WIDTH);
 
         for (int i = 0; i < TICK_COUNT; i++) {
             double angle = Math.toRadians(i * (360.0 / TICK_COUNT) - 90);
@@ -273,33 +288,33 @@ public final class TimerDisplayView extends StackPane {
             double outerRadius = radius;
             double innerRadius = radius - tickLength;
 
-            double x1 = centerX + outerRadius * Math.cos(angle);
-            double y1 = centerY + outerRadius * Math.sin(angle);
-            double x2 = centerX + innerRadius * Math.cos(angle);
-            double y2 = centerY + innerRadius * Math.sin(angle);
+            double startX = centerX + outerRadius * Math.cos(angle);
+            double startY = centerY + outerRadius * Math.sin(angle);
+            double endX = centerX + innerRadius * Math.cos(angle);
+            double endY = centerY + innerRadius * Math.sin(angle);
 
-            gc.strokeLine(x1, y1, x2, y2);
+            graphicsContext.strokeLine(startX, startY, endX, endY);
         }
     }
 
     /**
      * Draws the progress indicator dot at the current position.
      *
-     * @param gc       the graphics context
-     * @param centerX  the center X coordinate
-     * @param centerY  the center Y coordinate
-     * @param radius   the radius of the progress ring
-     * @param progress the current progress (0.0 to 1.0)
+     * @param graphicsContext the graphics context
+     * @param centerX         the center X coordinate
+     * @param centerY         the center Y coordinate
+     * @param radius          the radius of the progress ring
+     * @param progress        the current progress (0.0 to 1.0)
      */
-    private void drawProgressIndicator(GraphicsContext gc, double centerX, double centerY,
+    private void drawProgressIndicator(GraphicsContext graphicsContext, double centerX, double centerY,
             double radius, double progress) {
         double angle = Math.toRadians(progress * 360 - 90);
         double indicatorX = centerX + radius * Math.cos(angle);
         double indicatorY = centerY + radius * Math.sin(angle);
         double indicatorRadius = 8;
 
-        gc.setFill(Color.web(AppConstants.COLOR_PROGRESS_ACTIVE));
-        gc.fillOval(
+        graphicsContext.setFill(Color.web(AppConstants.COLOR_PROGRESS_ACTIVE));
+        graphicsContext.fillOval(
                 indicatorX - indicatorRadius,
                 indicatorY - indicatorRadius,
                 indicatorRadius * 2,

@@ -60,43 +60,64 @@ import javafx.scene.text.FontWeight;
  */
 public final class DailyProgressView extends StackPane {
 
+    /** The size of the progress ring in pixels. */
     private static final double RING_SIZE = 140;
+    /** The width of the ring stroke in pixels. */
     private static final double RING_STROKE_WIDTH = 5;
+    /** The font family used for text elements. */
     private static final String FONT_FAMILY = "'Segoe UI', 'Helvetica Neue', sans-serif";
-    // Celebration constants
+    /** The number of particles for celebration effects. */
     private static final int PARTICLE_COUNT = 100;
+    /** The gravity value applied to particles. */
     private static final double GRAVITY = 0.5;
+    /** The maximum velocity for falling particles. */
     private static final double TERMINAL_VELOCITY = 10;
 
-    // Container for the main UI
+    /** The main container for UI content. */
     private final VBox contentBox;
+    /** The label for the view header. */
     private final Label headerLabel;
+    /** The horizontal bar containing header elements. */
     private final HBox headerBar;
+    /** The button for accessing settings from this view. */
     private Button settingsButton;
 
+    /** The label displaying yesterday's value. */
     private final Label yesterdayValueLabel;
+    /** The label displaying the unit for yesterday's value. */
     private final Label yesterdayUnitLabel;
+    /** The label displaying the daily goal value. */
     private final Label dailyGoalValueLabel;
+    /** The label displaying the unit for the daily goal. */
     private final Label dailyGoalUnitLabel;
+    /** The label displaying the current streak value. */
     private final Label streakValueLabel;
+    /** The label displaying the unit for the streak value. */
     private final Label streakUnitLabel;
+    /** The label displaying total completed time for today. */
     private final Label completedLabel;
+    /** The canvas used to draw the circular goal progress. */
     private final Canvas goalProgressCanvas;
 
+    /** The user's daily goal in minutes. */
     private int dailyGoalMinutes;
+    /** The total minutes completed today. */
     private int completedTodayMinutes;
+    /** The total minutes completed yesterday. */
     private int yesterdayMinutes;
+    /** The current daily streak in days. */
     private int streakDays;
 
-    // Round progress indicator
+    /** The container for round progress indicators. */
     private final HBox roundIndicatorBox;
+    /** The label displaying current round information. */
     private final Label roundLabel;
 
-    // State tracking for trigger
-    // -1 indicates not initialized
+    /** The previous completed minutes used to detect goal completion. */
     private int previousCompletedMinutes = -1;
-    // Prevents celebration during startup
+    /** Flag indicating if the view has been fully initialized. */
     private boolean isInitialized = false;
+    /** The callback invoked when the daily goal is reached. */
     private Runnable onDailyGoalReached;
 
     /**
@@ -383,7 +404,7 @@ public final class DailyProgressView extends StackPane {
      * Draws the circular goal progress ring.
      */
     private void drawGoalProgress() {
-        GraphicsContext gc = goalProgressCanvas.getGraphicsContext2D();
+        GraphicsContext graphicsContext = goalProgressCanvas.getGraphicsContext2D();
         double width = goalProgressCanvas.getWidth();
         double height = goalProgressCanvas.getHeight();
         double centerX = width / 2;
@@ -391,12 +412,12 @@ public final class DailyProgressView extends StackPane {
         double radius = (Math.min(width, height) - RING_STROKE_WIDTH * 2) / 2;
 
         // Clear canvas
-        gc.clearRect(0, 0, width, height);
+        graphicsContext.clearRect(0, 0, width, height);
 
         // Draw background ring
-        gc.setStroke(Color.web(AppConstants.COLOR_PROGRESS_RING));
-        gc.setLineWidth(RING_STROKE_WIDTH);
-        gc.strokeOval(
+        graphicsContext.setStroke(Color.web(AppConstants.COLOR_PROGRESS_RING));
+        graphicsContext.setLineWidth(RING_STROKE_WIDTH);
+        graphicsContext.strokeOval(
                 centerX - radius,
                 centerY - radius,
                 radius * 2,
@@ -406,20 +427,20 @@ public final class DailyProgressView extends StackPane {
         if (dailyGoalMinutes > 0) {
             double progress = Math.min(1.0, (double) completedTodayMinutes / dailyGoalMinutes);
 
-            gc.setStroke(Color.web(AppConstants.COLOR_PROGRESS_ACTIVE));
-            gc.setLineWidth(RING_STROKE_WIDTH);
+            graphicsContext.setStroke(Color.web(AppConstants.COLOR_PROGRESS_ACTIVE));
+            graphicsContext.setLineWidth(RING_STROKE_WIDTH);
 
             if (progress >= 1.0) {
                 // Draw full circle for completion to avoid rendering gaps with strokeArc on
                 // some platforms
-                gc.strokeOval(
+                graphicsContext.strokeOval(
                         centerX - radius,
                         centerY - radius,
                         radius * 2,
                         radius * 2);
             } else {
                 double sweepAngle = progress * 360;
-                gc.strokeArc(
+                graphicsContext.strokeArc(
                         centerX - radius,
                         centerY - radius,
                         radius * 2,

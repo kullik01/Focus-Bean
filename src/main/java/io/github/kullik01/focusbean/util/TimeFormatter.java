@@ -40,6 +40,7 @@ package io.github.kullik01.focusbean.util;
  */
 public final class TimeFormatter {
 
+    /** The number of seconds in one minute. */
     private static final int SECONDS_PER_MINUTE = 60;
 
     /**

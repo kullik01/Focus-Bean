@@ -58,10 +58,14 @@ import java.util.logging.Logger;
  */
 public final class AboutView extends VBox {
 
+    /** Logger for this class. */
     private static final Logger LOGGER = Logger.getLogger(AboutView.class.getName());
+    /** The font family used for text elements in this view. */
     private static final String FONT_FAMILY = "'Segoe UI', 'Helvetica Neue', sans-serif";
+    /** The fixed height for the bottom section of cards to ensure alignment. */
     private static final double BOTTOM_SECTION_HEIGHT = 110;
 
+    /** CSS template for card-style layout components. */
     private static final String STYLE_CARD = """
             -fx-background-color: %s;
             -fx-background-radius: 20;
@@ -71,25 +75,42 @@ public final class AboutView extends VBox {
             -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 4, 0, 0, 1);
             """;
 
+    /** The container for general application information. */
     private VBox infoCard;
+    /** The container for keyboard shortcut information. */
     private VBox shortcutsCard;
+    /** The label displaying the application name. */
     private Label appNameLabel;
+    /** The label displaying the application version. */
     private Label versionLabel;
+    /** The label for the author section title. */
     private Label authorTitleLabel;
+    /** The label displaying the author's name. */
     private Label authorValueLabel;
+    /** The label for the license section title. */
     private Label licenseTitleLabel;
+    /** The label displaying the license type. */
     private Label licenseValueLabel;
+    /** The label displaying copyright information. */
     private Label copyrightLabel;
+    /** The label for the technology stack section title. */
     private Label techTitleLabel;
+    /** The label for the keyboard shortcuts section title. */
     private Label shortcutsTitleLabel;
+    /** The hyperlink pointing to the project's GitHub repository. */
     private Hyperlink githubLink;
 
+    /** The list of labels used for keyboard shortcut keys. */
     private final java.util.List<Label> shortcutKeyLabels = new java.util.ArrayList<>();
+    /** The list of labels used for keyboard shortcut descriptions. */
     private final java.util.List<Label> shortcutDescLabels = new java.util.ArrayList<>();
+    /** The list of labels used for technology stack items. */
     private final java.util.List<Label> techLabels = new java.util.ArrayList<>();
 
+    /** Flag indicating if dark mode is currently active. */
     private boolean darkModeEnabled = false;
 
+    /** Callback consumer used to open URLs in the system browser. */
     private java.util.function.Consumer<String> urlOpener;
 
     /**
@@ -146,13 +167,13 @@ public final class AboutView extends VBox {
 
         // Author row
         HBox authorRow = createDetailRow("\u270D Author", AppConstants.APP_AUTHOR);
-        authorTitleLabel = (Label) ((HBox) authorRow).getChildren().get(0);
-        authorValueLabel = (Label) ((HBox) authorRow).getChildren().get(2);
+        authorTitleLabel = (Label) authorRow.getChildren().get(0);
+        authorValueLabel = (Label) authorRow.getChildren().get(2);
 
         // License row
         HBox licenseRow = createDetailRow("\u2696 License", AppConstants.APP_LICENSE);
-        licenseTitleLabel = (Label) ((HBox) licenseRow).getChildren().get(0);
-        licenseValueLabel = (Label) ((HBox) licenseRow).getChildren().get(2);
+        licenseTitleLabel = (Label) licenseRow.getChildren().get(0);
+        licenseValueLabel = (Label) licenseRow.getChildren().get(2);
 
         // Copyright
         copyrightLabel = new Label(
@@ -186,7 +207,7 @@ public final class AboutView extends VBox {
                 -fx-padding: 4 0 4 0;
                 -fx-cursor: hand;
                 """);
-        githubLink.setOnAction(e -> openGithubUrl());
+        githubLink.setOnAction(event -> openGithubUrl());
 
         // Bottom section with fixed height to match the right card's bottom section
         VBox bottomSection = new VBox(12);

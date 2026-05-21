@@ -67,18 +67,29 @@ import java.util.logging.Logger;
  */
 public final class TimerController {
 
+    /** Logger for this class. */
     private static final Logger LOGGER = Logger.getLogger(TimerController.class.getName());
 
+    /** The service providing countdown and state management for the timer. */
     private final TimerService timerService;
+    /** The service used for persisting and loading user data. */
     private final PersistenceService persistenceService;
+    /** The service responsible for notifications and alerts. */
     private final NotificationService notificationService;
+    /** The user settings model. */
     private final UserSettings settings;
+    /** The session history model. */
     private final SessionHistory history;
 
+    /** The start time of the current active session. */
     private LocalDateTime currentSessionStartTime;
+    /** The duration of the current session in minutes. */
     private int currentSessionDuration;
+    /** The type of the current active session (WORK, BREAK, LONG_BREAK). */
     private TimerState currentSessionType;
+    /** The type of the session that will start next. */
     private TimerState pendingSessionType;
+    /** The current Pomodoro round number (1-based). */
     private int currentRound;
 
     /**
@@ -384,6 +395,11 @@ public final class TimerController {
         return pendingSessionType;
     }
 
+    /**
+     * Sets the pending session type that will start when the user presses play.
+     *
+     * @param pendingSessionType the session type to set as pending
+     */
     public void setPendingSessionType(TimerState pendingSessionType) {
         this.pendingSessionType = pendingSessionType;
     }

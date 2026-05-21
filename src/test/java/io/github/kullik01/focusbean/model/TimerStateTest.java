@@ -33,54 +33,84 @@ package io.github.kullik01.focusbean.model;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Unit tests for {@link TimerState}.
  */
 class TimerStateTest {
 
+    /**
+     * Verifies that the WORK state is considered a running state.
+     */
     @Test
     @DisplayName("WORK state should be running")
     void workStateIsRunning() {
+        // Act & Assert
         assertTrue(TimerState.WORK.isRunning());
     }
 
+    /**
+     * Verifies that the BREAK state is considered a running state.
+     */
     @Test
     @DisplayName("BREAK state should be running")
     void breakStateIsRunning() {
+        // Act & Assert
         assertTrue(TimerState.BREAK.isRunning());
     }
 
+    /**
+     * Verifies that the IDLE state is not considered a running state.
+     */
     @Test
     @DisplayName("IDLE state should not be running")
     void idleStateIsNotRunning() {
+        // Act & Assert
         assertFalse(TimerState.IDLE.isRunning());
     }
 
+    /**
+     * Verifies that the PAUSED state is not considered a running state.
+     */
     @Test
     @DisplayName("PAUSED state should not be running")
     void pausedStateIsNotRunning() {
+        // Act & Assert
         assertFalse(TimerState.PAUSED.isRunning());
     }
 
+    /**
+     * Verifies that the WORK state is correctly identified as a work phase.
+     */
     @Test
     @DisplayName("WORK state should be work phase")
     void workStateIsWorkPhase() {
+        // Act & Assert
         assertTrue(TimerState.WORK.isWorkPhase());
         assertFalse(TimerState.BREAK.isWorkPhase());
     }
 
+    /**
+     * Verifies that the BREAK state is correctly identified as a break phase.
+     */
     @Test
     @DisplayName("BREAK state should be break phase")
     void breakStateIsBreakPhase() {
+        // Act & Assert
         assertTrue(TimerState.BREAK.isBreakPhase());
         assertFalse(TimerState.WORK.isBreakPhase());
     }
 
+    /**
+     * Verifies that all timer states have a valid display name.
+     */
     @Test
     @DisplayName("All states should have display names")
     void allStatesHaveDisplayNames() {
+        // Act & Assert
         for (TimerState state : TimerState.values()) {
             assertNotNull(state.getDisplayName());
             assertFalse(state.getDisplayName().isBlank());

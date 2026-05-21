@@ -34,8 +34,10 @@ import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
+import javafx.scene.Cursor;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
@@ -50,14 +52,30 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.Duration;
 
+/**
+ * A custom toast notification window that appears in the bottom right corner of the screen.
+ * It supports dark mode and can execute an action when closed.
+ */
 public class ToastNotification extends Stage {
 
+    /** The preferred width of the toast content. */
     private static final double TOAST_WIDTH = 350;
+    /** The minimum height of the toast content. */
     private static final double TOAST_HEIGHT = 100;
+    /** The margin between the toast and the screen edges. */
     private static final double SCREEN_MARGIN = 20;
 
+    /** Action to run when the toast is closed. */
     private final Runnable onCloseAction;
 
+    /**
+     * Creates a new ToastNotification.
+     *
+     * @param title         the title of the notification
+     * @param message       the message body
+     * @param isDarkMode    whether to use dark mode styling
+     * @param onCloseAction action to perform when the toast is dismissed
+     */
     public ToastNotification(String title, String message, boolean isDarkMode, Runnable onCloseAction) {
         this.onCloseAction = onCloseAction;
         initStyle(StageStyle.TRANSPARENT);
@@ -82,7 +100,7 @@ public class ToastNotification extends Stage {
                 -fx-border-radius: 12;
                 -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 5);
                 """, bgColor, borderColor));
-        root.setPadding(new javafx.geometry.Insets(15));
+        root.setPadding(new Insets(15));
         root.setPrefWidth(TOAST_WIDTH);
         // Allow growth, but set min height
         root.setMinHeight(TOAST_HEIGHT);
@@ -117,16 +135,16 @@ public class ToastNotification extends Stage {
         // Close button (Top Right overlay)
         Label closeBtn = new Label("✕");
         closeBtn.setTextFill(Color.web(isDarkMode ? "#E8E0D8" : "#a4a4a4"));
-        closeBtn.setCursor(javafx.scene.Cursor.HAND);
-        closeBtn.setOnMouseClicked(e -> closeToast());
+        closeBtn.setCursor(Cursor.HAND);
+        closeBtn.setOnMouseClicked(event -> closeToast());
         StackPane.setAlignment(closeBtn, Pos.TOP_RIGHT);
-        StackPane.setMargin(closeBtn, new javafx.geometry.Insets(15));
+        StackPane.setMargin(closeBtn, new Insets(15));
 
         // Wrapper to overlay close button AND provide padding for shadow
         StackPane contentWrapper = new StackPane(root, closeBtn);
         contentWrapper.setStyle("-fx-background-color: transparent;");
         // Margin for shadow
-        contentWrapper.setPadding(new javafx.geometry.Insets(20));
+        contentWrapper.setPadding(new Insets(20));
 
         Scene scene = new Scene(contentWrapper);
         scene.setFill(Color.TRANSPARENT);
@@ -149,6 +167,9 @@ public class ToastNotification extends Stage {
         fadeIn.play();
     }
 
+    /**
+     * Fades out and closes the toast.
+     */
     private void closeToast() {
         // Stop sound immediately
         if (onCloseAction != null) {
@@ -157,15 +178,30 @@ public class ToastNotification extends Stage {
 
         Timeline fadeOut = new Timeline(
                 new KeyFrame(Duration.ZERO, new KeyValue(getScene().getRoot().opacityProperty(), 1)),
-                new KeyFrame(Duration.millis(300), e -> close(),
+                new KeyFrame(Duration.millis(300), event -> close(),
                         new KeyValue(getScene().getRoot().opacityProperty(), 0)));
         fadeOut.play();
     }
 
+    /**
+     * Displays a new toast notification.
+     *
+     * @param title      the title
+     * @param message    the message
+     * @param isDarkMode whether to use dark mode
+     */
     public static void show(String title, String message, boolean isDarkMode) {
         show(title, message, isDarkMode, null);
     }
 
+    /**
+     * Displays a new toast notification with a close action.
+     *
+     * @param title         the title
+     * @param message       the message
+     * @param isDarkMode    whether to use dark mode
+     * @param onCloseAction action to perform on close
+     */
     public static void show(String title, String message, boolean isDarkMode, Runnable onCloseAction) {
         Platform.runLater(() -> new ToastNotification(title, message, isDarkMode, onCloseAction));
     }

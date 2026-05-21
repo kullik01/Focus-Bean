@@ -35,13 +35,20 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Unit tests for {@link TimeFormatter}.
  */
 class TimeFormatterTest {
 
+    /**
+     * Verifies that formatSeconds correctly formats various second values into MM:SS.
+     *
+     * @param seconds  the input seconds
+     * @param expected the expected formatted string
+     */
     @ParameterizedTest
     @CsvSource({
             "0, 00:00",
@@ -53,15 +60,26 @@ class TimeFormatterTest {
     })
     @DisplayName("formatSeconds should format correctly")
     void formatSeconds(int seconds, String expected) {
+        // Act & Assert
         assertEquals(expected, TimeFormatter.formatSeconds(seconds));
     }
 
+    /**
+     * Verifies that formatSeconds rejects negative input.
+     */
     @Test
     @DisplayName("formatSeconds should reject negative values")
     void formatSecondsRejectsNegative() {
+        // Act & Assert
         assertThrows(IllegalArgumentException.class, () -> TimeFormatter.formatSeconds(-1));
     }
 
+    /**
+     * Verifies that formatSecondsReadable correctly formats various second values into a readable string.
+     *
+     * @param seconds  the input seconds
+     * @param expected the expected readable string
+     */
     @ParameterizedTest
     @CsvSource({
             "0, 0 min 0 sec",
@@ -71,26 +89,39 @@ class TimeFormatterTest {
     })
     @DisplayName("formatSecondsReadable should format correctly")
     void formatSecondsReadable(int seconds, String expected) {
+        // Act & Assert
         assertEquals(expected, TimeFormatter.formatSecondsReadable(seconds));
     }
 
+    /**
+     * Verifies that minutesToSeconds correctly converts minutes to seconds.
+     */
     @Test
     @DisplayName("minutesToSeconds should convert correctly")
     void minutesToSeconds() {
+        // Act & Assert
         assertEquals(0, TimeFormatter.minutesToSeconds(0));
         assertEquals(60, TimeFormatter.minutesToSeconds(1));
         assertEquals(1500, TimeFormatter.minutesToSeconds(25));
     }
 
+    /**
+     * Verifies that minutesToSeconds rejects negative input.
+     */
     @Test
     @DisplayName("minutesToSeconds should reject negative values")
     void minutesToSecondsRejectsNegative() {
+        // Act & Assert
         assertThrows(IllegalArgumentException.class, () -> TimeFormatter.minutesToSeconds(-1));
     }
 
+    /**
+     * Verifies that secondsToMinutes correctly truncates seconds into minutes.
+     */
     @Test
     @DisplayName("secondsToMinutes should truncate correctly")
     void secondsToMinutes() {
+        // Act & Assert
         assertEquals(0, TimeFormatter.secondsToMinutes(0));
         assertEquals(0, TimeFormatter.secondsToMinutes(59));
         assertEquals(1, TimeFormatter.secondsToMinutes(60));
@@ -98,6 +129,12 @@ class TimeFormatterTest {
         assertEquals(25, TimeFormatter.secondsToMinutes(1500));
     }
 
+    /**
+     * Verifies that formatMinutes correctly pluralizes the minutes string.
+     *
+     * @param minutes  the input minutes
+     * @param expected the expected pluralized string
+     */
     @ParameterizedTest
     @CsvSource({
             "0, 0 minutes",
@@ -106,6 +143,7 @@ class TimeFormatterTest {
     })
     @DisplayName("formatMinutes should use correct pluralization")
     void formatMinutes(int minutes, String expected) {
+        // Act & Assert
         assertEquals(expected, TimeFormatter.formatMinutes(minutes));
     }
 }

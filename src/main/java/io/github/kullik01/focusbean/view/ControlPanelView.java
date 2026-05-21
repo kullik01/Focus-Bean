@@ -35,6 +35,7 @@ import io.github.kullik01.focusbean.util.AppConstants;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
+import javafx.scene.control.ContentDisplay;
 import javafx.scene.layout.HBox;
 
 import java.util.Objects;
@@ -50,11 +51,16 @@ import java.util.Objects;
  */
 public final class ControlPanelView extends HBox {
 
+    /** The size of the primary icon button in pixels. */
     private static final double ICON_BUTTON_SIZE = 44;
+    /** The size of the secondary menu buttons in pixels. */
     private static final double MENU_BUTTON_SIZE = 36;
+    /** The spacing between buttons in pixels. */
     private static final double BUTTON_SPACING = 12;
+    /** The padding around the control panel in pixels. */
     private static final double PANEL_PADDING = 0;
 
+    /** CSS style for the primary (start/pause) button. */
     private static final String STYLE_PRIMARY_BUTTON = """
             -fx-font-size: 18px;
             -fx-background-radius: 50;
@@ -69,6 +75,7 @@ public final class ControlPanelView extends HBox {
             -fx-content-display: center;
             """;
 
+    /** CSS style for the secondary (reset/skip) buttons. */
     private static final String STYLE_SECONDARY_BUTTON = """
             -fx-font-size: 14px;
             -fx-background-radius: 50;
@@ -84,18 +91,29 @@ public final class ControlPanelView extends HBox {
             -fx-border-width: 1;
             """;
 
+    /** Icon for the play/start action. */
     private static final String ICON_PLAY = "▶";
+    /** Icon for the pause action. */
     private static final String ICON_PAUSE = "⏸";
+    /** Icon for the reset action. */
     private static final String ICON_RESET = "⟲";
 
+    /** The primary button used for starting and pausing the timer. */
     private final Button startPauseButton;
+    /** The secondary button used for resetting the timer. */
     private final Button resetButton;
+    /** The secondary button used for skipping the current session. */
     private final Button skipButton;
 
+    /** Callback for the start action. */
     private Runnable onStart;
+    /** Callback for the pause action. */
     private Runnable onPause;
+    /** Callback for the resume action. */
     private Runnable onResume;
+    /** Callback for the reset action. */
     private Runnable onReset;
+    /** Callback for the skip action. */
     private Runnable onSkip;
 
     /**
@@ -111,13 +129,13 @@ public final class ControlPanelView extends HBox {
         skipButton.setManaged(false);
 
         // Set up event handlers
-        startPauseButton.setOnAction(e -> handleStartPauseClick());
-        resetButton.setOnAction(e -> {
+        startPauseButton.setOnAction(event -> handleStartPauseClick());
+        resetButton.setOnAction(event -> {
             if (onReset != null) {
                 onReset.run();
             }
         });
-        skipButton.setOnAction(e -> {
+        skipButton.setOnAction(event -> {
             if (onSkip != null) {
                 onSkip.run();
             }
@@ -285,7 +303,7 @@ public final class ControlPanelView extends HBox {
                 ICON_BUTTON_SIZE, ICON_BUTTON_SIZE,
                 AppConstants.COLOR_PROGRESS_ACTIVE));
         button.setAlignment(Pos.CENTER);
-        button.setContentDisplay(javafx.scene.control.ContentDisplay.CENTER);
+        button.setContentDisplay(ContentDisplay.CENTER);
         return button;
     }
 

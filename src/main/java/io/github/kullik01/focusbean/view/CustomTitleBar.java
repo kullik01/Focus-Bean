@@ -33,6 +33,7 @@ package io.github.kullik01.focusbean.view;
 import io.github.kullik01.focusbean.util.AppConstants;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
@@ -46,7 +47,9 @@ import javafx.scene.shape.SVGPath;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
+import java.net.URL;
 import java.util.Objects;
 
 /**
@@ -60,9 +63,13 @@ import java.util.Objects;
  */
 public final class CustomTitleBar extends HBox {
 
+    /** The font family used for the title label. */
     private static final String FONT_FAMILY = "'Segoe UI', 'Helvetica Neue', sans-serif";
+    /** The height of the title bar in pixels. */
     private static final double TITLE_BAR_HEIGHT = 32.0;
+    /** The width of the window control buttons in pixels. */
     private static final double BUTTON_WIDTH = 46.0;
+    /** The scale factor for the button icons. */
     private static final double ICON_SCALE = 0.55;
 
     /**
@@ -105,8 +112,11 @@ public final class CustomTitleBar extends HBox {
             -fx-padding: 0;
             """;
 
+    /** The stage controlled by this title bar. */
     private final Stage stage;
+    /** The horizontal offset of the mouse click during window dragging. */
     private double xOffset;
+    /** The vertical offset of the mouse click during window dragging. */
     private double yOffset;
 
     /**
@@ -147,11 +157,11 @@ public final class CustomTitleBar extends HBox {
      * @return the configured title section HBox
      */
     private HBox createTitleSection() {
-        javafx.scene.Node iconNode;
+        Node iconNode;
         // Try to load custom logo
         try {
             String logoPath = "/io/github/kullik01/focusbean/view/logo.png";
-            java.net.URL logoUrl = getClass().getResource(logoPath);
+            URL logoUrl = getClass().getResource(logoPath);
             if (logoUrl == null) {
                 // Fallback to root
                 logoUrl = getClass().getResource("/logo.png");
@@ -168,7 +178,7 @@ public final class CustomTitleBar extends HBox {
             } else {
                 throw new Exception("Logo not found");
             }
-        } catch (Exception e) {
+        } catch (Exception exception) {
             // Coffee bean icon using SVG
             SVGPath coffeeIcon = new SVGPath();
             coffeeIcon.setContent(
@@ -218,9 +228,9 @@ public final class CustomTitleBar extends HBox {
         Tooltip tooltip = createTooltip("Minimize");
         minimizeButton.setTooltip(tooltip);
 
-        minimizeButton.setOnMouseEntered(e -> minimizeButton.setStyle(STYLE_BUTTON_MINIMIZE_HOVER));
-        minimizeButton.setOnMouseExited(e -> minimizeButton.setStyle(STYLE_BUTTON_DEFAULT));
-        minimizeButton.setOnAction(e -> stage.setIconified(true));
+        minimizeButton.setOnMouseEntered(event -> minimizeButton.setStyle(STYLE_BUTTON_MINIMIZE_HOVER));
+        minimizeButton.setOnMouseExited(event -> minimizeButton.setStyle(STYLE_BUTTON_DEFAULT));
+        minimizeButton.setOnAction(event -> stage.setIconified(true));
 
         return minimizeButton;
     }
@@ -250,16 +260,16 @@ public final class CustomTitleBar extends HBox {
         Tooltip tooltip = createTooltip("Close");
         closeButton.setTooltip(tooltip);
 
-        closeButton.setOnMouseEntered(e -> {
+        closeButton.setOnMouseEntered(event -> {
             closeButton.setStyle(STYLE_BUTTON_CLOSE_HOVER);
             // Change icon color to white on red background
             closeIcon.setStroke(Color.WHITE);
         });
-        closeButton.setOnMouseExited(e -> {
+        closeButton.setOnMouseExited(event -> {
             closeButton.setStyle(STYLE_BUTTON_DEFAULT);
             closeIcon.setStroke(Color.web(AppConstants.COLOR_TEXT_PRIMARY));
         });
-        closeButton.setOnAction(e -> {
+        closeButton.setOnAction(event -> {
             stage.getProperties().put("close_requested", true);
             stage.close();
         });
@@ -275,7 +285,7 @@ public final class CustomTitleBar extends HBox {
      */
     private Tooltip createTooltip(String text) {
         Tooltip tooltip = new Tooltip(text);
-        tooltip.setShowDelay(new javafx.util.Duration(0));
+        tooltip.setShowDelay(new Duration(0));
         tooltip.setStyle(String.format("""
                 -fx-font-family: 'Segoe UI', sans-serif;
                 -fx-font-size: 12px;

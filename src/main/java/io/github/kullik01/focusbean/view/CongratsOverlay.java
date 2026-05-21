@@ -58,14 +58,23 @@ import javafx.util.Duration;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
+/**
+ * An overlay that displays a celebratory confetti animation and a message when a daily goal is reached.
+ */
 public final class CongratsOverlay extends StackPane {
 
+    /** Total duration of the celebration in milliseconds. */
     private static final int DURATION_MS = 15000;
+    /** Duration of the overlay fade-out animation in milliseconds. */
     private static final int OVERLAY_FADE_OUT_MS = 800;
+    /** Duration of the text fade-in animation in milliseconds. */
     private static final int TEXT_FADE_IN_MS = 650;
+    /** Duration of the text fade-out animation in milliseconds. */
     private static final int TEXT_FADE_OUT_MS = 800;
+    /** Number of confetti particles to generate. */
     private static final int CONFETTI_COUNT = 5000;
 
+    /** List of colors used for the confetti particles. */
     private static final List<Color> CONFETTI_COLORS = List.of(
             Color.web("#D4AF37"),
             Color.web(AppConstants.COLOR_ACCENT),
@@ -76,12 +85,19 @@ public final class CongratsOverlay extends StackPane {
             Color.web("#2ECC71"),
             Color.web("#9B59B6"));
 
+    /** The layer where confetti particles are rendered. */
     private final Pane confettiLayer;
+    /** The box containing the congratulatory text. */
     private final VBox textBox;
 
+    /** Parallel transition managing the animation of all confetti particles. */
     private ParallelTransition confettiTransition;
+    /** Timeline managing the dismissal of the overlay after completion. */
     private Timeline dismissTimeline;
 
+    /**
+     * Constructs a new CongratsOverlay.
+     */
     public CongratsOverlay() {
         setStyle("-fx-background-color: transparent;");
         setMouseTransparent(true);
@@ -121,10 +137,18 @@ public final class CongratsOverlay extends StackPane {
         StackPane.setAlignment(textBox, Pos.CENTER);
     }
 
+    /**
+     * Starts the celebration animation.
+     */
     public void play() {
         startIfReady(0);
     }
 
+    /**
+     * Starts the animation if the overlay has been laid out, otherwise retries.
+     *
+     * @param attempt the current retry attempt count
+     */
     private void startIfReady(int attempt) {
         if (getWidth() <= 0 || getHeight() <= 0) {
             if (attempt < 12) {
@@ -156,15 +180,18 @@ public final class CongratsOverlay extends StackPane {
         overlayFadeOut.setFromValue(1);
         overlayFadeOut.setToValue(0);
         overlayFadeOut.setInterpolator(Interpolator.EASE_BOTH);
-        overlayFadeOut.setOnFinished(e -> removeFromParent());
+        overlayFadeOut.setOnFinished(event -> removeFromParent());
 
         dismissTimeline = new Timeline(
                 new javafx.animation.KeyFrame(
                         Duration.millis(Math.max(0, DURATION_MS - OVERLAY_FADE_OUT_MS)),
-                        e -> overlayFadeOut.play()));
+                        event -> overlayFadeOut.play()));
         dismissTimeline.play();
     }
 
+    /**
+     * Creates and animates the confetti particles.
+     */
     private void buildAndPlayConfetti() {
         confettiLayer.getChildren().clear();
 
@@ -180,12 +207,12 @@ public final class CongratsOverlay extends StackPane {
             double startX = rnd.nextDouble(0, Math.max(1, width));
             double startY = -rnd.nextDouble(20, height * 0.6);
 
-            if (particle instanceof Rectangle r) {
-                r.setX(startX);
-                r.setY(startY);
-            } else if (particle instanceof Circle c) {
-                c.setCenterX(startX);
-                c.setCenterY(startY);
+            if (particle instanceof Rectangle rectangle) {
+                rectangle.setX(startX);
+                rectangle.setY(startY);
+            } else if (particle instanceof Circle circle) {
+                circle.setCenterX(startX);
+                circle.setCenterY(startY);
             }
 
             confettiLayer.getChildren().add(particle);
@@ -216,26 +243,35 @@ public final class CongratsOverlay extends StackPane {
         confettiTransition.play();
     }
 
+    /**
+     * Creates a single confetti particle.
+     *
+     * @param rnd the random number generator
+     * @return the created confetti particle node
+     */
     private static Node createParticle(ThreadLocalRandom rnd) {
         Color color = CONFETTI_COLORS.get(rnd.nextInt(CONFETTI_COLORS.size()));
 
         if (rnd.nextBoolean()) {
             double radius = rnd.nextDouble(3.0, 6.5);
-            Circle c = new Circle(radius, color);
-            c.setOpacity(1.0);
-            return c;
+            Circle circle = new Circle(radius, color);
+            circle.setOpacity(1.0);
+            return circle;
         }
 
-        double w = rnd.nextDouble(6.0, 12.0);
-        double h = rnd.nextDouble(6.0, 14.0);
-        Rectangle r = new Rectangle(w, h, color);
-        r.setArcWidth(rnd.nextDouble(0, 4));
-        r.setArcHeight(rnd.nextDouble(0, 4));
-        r.setOpacity(1.0);
-        r.setRotate(rnd.nextDouble(0, 360));
-        return r;
+        double width = rnd.nextDouble(6.0, 12.0);
+        double height = rnd.nextDouble(6.0, 14.0);
+        Rectangle rectangle = new Rectangle(width, height, color);
+        rectangle.setArcWidth(rnd.nextDouble(0, 4));
+        rectangle.setArcHeight(rnd.nextDouble(0, 4));
+        rectangle.setOpacity(1.0);
+        rectangle.setRotate(rnd.nextDouble(0, 360));
+        return rectangle;
     }
 
+    /**
+     * Removes this overlay from its parent pane and stops all animations.
+     */
     private void removeFromParent() {
         if (dismissTimeline != null) {
             dismissTimeline.stop();

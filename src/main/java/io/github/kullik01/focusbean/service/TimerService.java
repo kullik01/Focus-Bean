@@ -67,14 +67,25 @@ import java.util.logging.Logger;
  */
 public final class TimerService {
 
+    /** Logger for this class. */
     private static final Logger LOGGER = Logger.getLogger(TimerService.class.getName());
+
+    /** Duration of one second in milliseconds. */
     private static final int ONE_SECOND_MS = 1000;
 
+    /** The JavaFX Timeline used for the countdown. */
     private final Timeline timeline;
+
+    /** The remaining time in seconds for the current session. */
     private final IntegerProperty remainingSeconds;
+
+    /** The current state of the timer. */
     private final ObjectProperty<TimerState> currentState;
 
+    /** Callback invoked when the timer reaches zero. */
     private Runnable onTimerComplete;
+
+    /** The timer state before it was paused, used for resumption. */
     private TimerState stateBeforePause;
 
     /**

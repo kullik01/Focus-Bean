@@ -79,10 +79,16 @@ import java.util.logging.Logger;
  */
 public final class PersistenceService {
 
+    /** Logger for this class. */
     private static final Logger LOGGER = Logger.getLogger(PersistenceService.class.getName());
 
+    /** The directory where application data is stored. */
     private final Path dataDirectory;
+
+    /** The file path for the session history data. */
     private final Path dataFile;
+
+    /** The Gson instance used for JSON serialization and deserialization. */
     private final Gson gson;
 
     /**
@@ -149,8 +155,8 @@ public final class PersistenceService {
             LOGGER.log(Level.INFO, "Saved {0} sessions to {1}",
                     new Object[] { history.size(), dataFile });
 
-        } catch (IOException e) {
-            LOGGER.log(Level.SEVERE, "Failed to save data to " + dataFile, e);
+        } catch (IOException ioException) {
+            LOGGER.log(Level.SEVERE, "Failed to save data to " + dataFile, ioException);
         }
     }
 
@@ -188,11 +194,11 @@ public final class PersistenceService {
 
             return new LoadedData(settings, history);
 
-        } catch (IOException e) {
-            LOGGER.log(Level.SEVERE, "Failed to load data from " + dataFile, e);
+        } catch (IOException ioException) {
+            LOGGER.log(Level.SEVERE, "Failed to load data from " + dataFile, ioException);
             return new LoadedData(new UserSettings(), new SessionHistory());
-        } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Failed to parse data from " + dataFile, e);
+        } catch (Exception exception) {
+            LOGGER.log(Level.SEVERE, "Failed to parse data from " + dataFile, exception);
             return new LoadedData(new UserSettings(), new SessionHistory());
         }
     }
@@ -282,6 +288,10 @@ public final class PersistenceService {
 
     /**
      * Internal data class for JSON serialization.
+     *
+     * @param version  the data schema version
+     * @param settings the user settings
+     * @param sessions the list of timer sessions
      */
     private record ApplicationData(
             int version,
@@ -316,6 +326,7 @@ public final class PersistenceService {
      */
     private static final class LocalDateTimeAdapter extends TypeAdapter<LocalDateTime> {
 
+        /** The formatter used for ISO-8601 date-time strings. */
         private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
         @Override

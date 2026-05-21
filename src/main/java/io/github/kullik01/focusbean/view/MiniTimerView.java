@@ -73,33 +73,56 @@ import java.util.logging.Logger;
  */
 public final class MiniTimerView extends StackPane {
 
+    /** Logger for this class. */
     private static final Logger LOGGER = Logger.getLogger(MiniTimerView.class.getName());
 
+    /** The size of the mini view in pixels. */
     private static final double VIEW_SIZE = 170;
+    /** The size of the progress ring in pixels. */
     private static final double RING_SIZE = 142;
+    /** The stroke width of the progress ring in pixels. */
     private static final double RING_STROKE_WIDTH = 5;
+    /** The radius of the progress dot in pixels. */
     private static final double DOT_RADIUS = 6;
+    /** The size of the control button in pixels. */
     private static final double BUTTON_SIZE = 32;
+    /** The font family used for text elements. */
     private static final String FONT_FAMILY = "'Segoe UI', 'Helvetica Neue', sans-serif";
 
+    /** Icon for the play/start action. */
     private static final String ICON_PLAY = "▶";
+    /** Icon for the pause action. */
     private static final String ICON_PAUSE = "⏸";
 
+    /** The timer controller bound to this view. */
     private final TimerController controller;
+    /** The canvas used for drawing the progress ring. */
     private final Canvas progressCanvas;
+    /** Label for displaying the remaining time. */
     private final Label timeLabel;
+    /** Label for displaying the time unit (min/sec). */
     private final Label unitLabel;
+    /** Label for displaying the current timer state name. */
     private final Label stateLabel;
+    /** The button used for starting and pausing the timer. */
     private final Button startPauseButton;
+    /** The right-click context menu. */
     private final ContextMenu contextMenu;
 
+    /** The total duration of the current session in seconds. */
     private int totalSeconds;
+    /** The remaining duration of the current session in seconds. */
     private int remainingSeconds;
+    /** The current state of the timer. */
     private TimerState currentState;
+    /** Whether the dark theme is currently applied. */
     private boolean darkMode;
 
+    /** Callback invoked to show the full application window. */
     private Runnable onShowFullWindow;
+    /** Callback invoked to close the mini mode. */
     private Runnable onCloseMiniMode;
+    /** Callback invoked to minimize the mini window. */
     private Runnable onMinimize;
 
     /**
