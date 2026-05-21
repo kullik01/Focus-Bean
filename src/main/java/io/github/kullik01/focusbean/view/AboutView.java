@@ -60,6 +60,7 @@ public final class AboutView extends VBox {
 
     private static final Logger LOGGER = Logger.getLogger(AboutView.class.getName());
     private static final String FONT_FAMILY = "'Segoe UI', 'Helvetica Neue', sans-serif";
+    private static final double BOTTOM_SECTION_HEIGHT = 110;
 
     private static final String STYLE_CARD = """
             -fx-background-color: %s;
@@ -169,6 +170,10 @@ public final class AboutView extends VBox {
 
         VBox techStack = createTechStack();
 
+        // Spacer to push last separator down to align with the right card's separator
+        Region infoSpacer = new Region();
+        VBox.setVgrow(infoSpacer, Priority.ALWAYS);
+
         // Separator
         Region separator3 = createSeparator();
 
@@ -183,15 +188,21 @@ public final class AboutView extends VBox {
                 """);
         githubLink.setOnAction(e -> openGithubUrl());
 
+        // Bottom section with fixed height to match the right card's bottom section
+        VBox bottomSection = new VBox(12);
+        bottomSection.setAlignment(Pos.TOP_CENTER);
+        bottomSection.setMinHeight(BOTTOM_SECTION_HEIGHT);
+        bottomSection.getChildren().addAll(githubLink, copyrightLabel);
+
         card.getChildren().addAll(
                 appNameLabel, versionLabel,
                 separator1,
                 authorRow, licenseRow,
                 separator2,
                 techTitleLabel, techStack,
+                infoSpacer,
                 separator3,
-                githubLink,
-                copyrightLabel);
+                bottomSection);
 
         return card;
     }
@@ -230,6 +241,11 @@ public final class AboutView extends VBox {
             card.getChildren().add(row);
         }
 
+        // Spacer to push separator down to align with the left card's last separator
+        Region shortcutsSpacer = new Region();
+        VBox.setVgrow(shortcutsSpacer, Priority.ALWAYS);
+        card.getChildren().add(shortcutsSpacer);
+
         // Add data storage info section
         Region separator = createSeparator();
         card.getChildren().add(separator);
@@ -238,12 +254,17 @@ public final class AboutView extends VBox {
         dataTitleLabel.setFont(Font.font(FONT_FAMILY, FontWeight.BOLD, 16));
         dataTitleLabel.setTextFill(javafx.scene.paint.Color.web(AppConstants.COLOR_TEXT_PRIMARY));
         techLabels.add(dataTitleLabel);
-        card.getChildren().add(dataTitleLabel);
 
         Label windowsPathLabel = createInfoLabel("Windows: %APPDATA%/FocusBean/");
         Label linuxPathLabel = createInfoLabel("Linux: ~/.local/share/FocusBean/");
 
-        card.getChildren().addAll(windowsPathLabel, linuxPathLabel);
+        // Bottom section with fixed height to match the left card's bottom section
+        VBox bottomSection = new VBox(12);
+        bottomSection.setAlignment(Pos.TOP_LEFT);
+        bottomSection.setMinHeight(BOTTOM_SECTION_HEIGHT);
+        bottomSection.getChildren().addAll(dataTitleLabel, windowsPathLabel, linuxPathLabel);
+
+        card.getChildren().add(bottomSection);
 
         return card;
     }
